@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
-import { activeHint, hintFocusCells, hintView } from '../game/hint.ts'
+import { activeHint, hintAction, hintFocusCells, hintView } from '../game/hint.ts'
 import { FREE_PLAY_KEY } from '../game/session.ts'
 import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
@@ -28,11 +28,14 @@ export function PuzzleScreen({ state, dispatch }: Props) {
   const { ui } = state
   const screenRef = useRef<HTMLDivElement>(null)
   const hint = activeHint(state, FREE_PLAY_KEY)
+  // At step 2 every Hint control (H, the panel button, the action-row Hint) places the move.
+  const hintNext = hintAction(hint)
   useKeyboard(screenRef, dispatch, {
     inputMode: ui.inputMode,
     selectedCell: ui.selectedCell,
     restartConfirming: ui.restartConfirming,
     hintOpen: hint !== null,
+    hintAtMove: hintNext.type === 'hintApplied',
     isMac,
   })
   const focusGrid = useCallback(() => {
@@ -57,8 +60,8 @@ export function PuzzleScreen({ state, dispatch }: Props) {
         <HintPanel
           step={hint?.step ?? null}
           view={hintView(hint, session.digits)}
-          disabled={solved || hint?.step === 'explain' || hint?.result?.kind === 'none'}
-          onAdvance={() => dispatch({ type: 'hintRequested' })}
+          disabled={solved || hint?.result?.kind === 'none'}
+          onAdvance={() => dispatch(hintNext)}
           focusGrid={focusGrid}
         />
         <ModeIndicator
@@ -80,7 +83,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
           undoCaption={keyCaption(platform)}
           hintDisabled={solved}
           onUndo={() => dispatch({ type: 'undoRequested' })}
-          onHint={() => dispatch({ type: 'hintRequested' })}
+          onHint={() => dispatch(hintNext)}
           onRestart={() => dispatch({ type: 'restartRequested' })}
           onCancel={() => dispatch({ type: 'restartCancelled' })}
           onConfirm={() => dispatch({ type: 'restartConfirmed' })}

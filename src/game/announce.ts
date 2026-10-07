@@ -1,5 +1,6 @@
 import { copy } from '../content/copy.ts'
-import { activeHint, hintView } from './hint.ts'
+import { colOf, rowOf } from '../engine/grid.ts'
+import { activeHint, hintMove, hintView } from './hint.ts'
 import { hasNote } from './notes.ts'
 import { reducer } from './reducer.ts'
 import { FREE_PLAY_KEY } from './session.ts'
@@ -26,12 +27,20 @@ function digitTarget(prev: AppState, action: Action): { cell: number; digit: num
  * The screen-reader message for `action` taking `prev` to `next`, or null for silence.
  * Pure. "7" / "cleared" for digits, "note 7 added|removed", "Given, can't change",
  * mode names, "current digit 7" (number-first), "Solved", and the Hint's nudge
- * or explanation text when `hintRequested` moves it to that step.
+ * or explanation text when `hintRequested` moves it to that step, and the
+ * placement ("7 placed, row 4, column 4", with ". Solved" if it solves) for `hintApplied`.
  */
 export function announce(prev: AppState, next: AppState, action: Action): string | null {
   const before = prev.sessions[FREE_PLAY_KEY]
   const after = next.sessions[FREE_PLAY_KEY]
   if (!before || !after) return null
+  // A Hint move says its placement, and the solve in the same message.
+  if (action.type === 'hintApplied') {
+    const move = hintMove(activeHint(prev, FREE_PLAY_KEY))
+    if (!move || before.digits === after.digits) return null
+    const solved = before.status !== 'solved' && after.status === 'solved'
+    return copy.announceHintPlaced(move.digit, rowOf(move.cell) + 1, colOf(move.cell) + 1, solved)
+  }
   if (before.status !== 'solved' && after.status === 'solved') return copy.announceSolved
 
   switch (action.type) {

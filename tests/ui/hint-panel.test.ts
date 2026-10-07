@@ -101,7 +101,7 @@ describe('Hint panel', () => {
     expect(cell(36).getAttribute('aria-label')).not.toMatch(/hint$/)
   })
 
-  it('the step button advances one step; "Show me the move" is focusable but inert', () => {
+  it('the step button advances one step; "Show me the move" places the move and focus goes to the grid', () => {
     click(hintButton())
     expect(label()).toBe('Nudge')
     const button = panelButton()
@@ -109,12 +109,69 @@ describe('Hint panel', () => {
     expect(panelButton()).toBe(button) // one stable button
     expect(label()).toBe('Explanation')
     expect(button.textContent).toBe('Show me the move')
-    expect(button.getAttribute('aria-disabled')).toBe('true')
-    expect(button.disabled).toBe(false)
-    const before = host.innerHTML
+    expect(button.hasAttribute('aria-disabled')).toBe(false)
+    focus(button)
     click(button)
-    press('h', {}, cell(0))
-    expect(host.innerHTML).toBe(before)
+    expect(cell(40).textContent).toBe('5')
+    expect(cell(40).getAttribute('aria-label')).toBe('Row 5, column 5, 5, your digit')
+    expect(label()).toBe('Hint')
+    expect(panelButton().textContent).toBe('Show a nudge')
+    expect(text()).toBe('')
+    expect(hinted()).toEqual([])
+    expect(live()).toBe('5 placed, row 5, column 5')
+    const tabStop = host.querySelector('[role="grid"] [tabindex="0"]')
+    expect(document.activeElement).toBe(tabStop)
+  })
+
+  it('H at step 2 places the move; a third H opens a new nudge', () => {
+    focus(cell(OTHER))
+    press('h')
+    press('h')
+    press('h')
+    expect(cell(40).textContent).toBe('5')
+    expect(label()).toBe('Hint')
+    expect(document.activeElement).toBe(cell(OTHER))
+    press('h')
+    expect(label()).toBe('Nudge')
+    expect(cell(40).textContent).toBe('5')
+  })
+
+  it('the move lands over Notes: italic player digit, Notes hidden; Undo brings the Notes back', () => {
+    focus(cell(40))
+    press('n')
+    press('3')
+    expect(cell(40).getAttribute('aria-label')).toBe('Row 5, column 5, notes 3')
+    press('h')
+    press('h')
+    press('h')
+    expect(cell(40).getAttribute('aria-label')).toBe('Row 5, column 5, 5, your digit')
+    press('z', { ctrlKey: true })
+    expect(cell(40).getAttribute('aria-label')).toBe('Row 5, column 5, notes 3')
+    expect(label()).toBe('Hint')
+  })
+
+  it('the action-row Hint at step 2 places the move too; focus stays on it', () => {
+    const button = hintButton()
+    focus(button)
+    click(button)
+    click(button)
+    expect(label()).toBe('Explanation')
+    click(button)
+    expect(cell(40).textContent).toBe('5')
+    expect(label()).toBe('Hint')
+    expect(live()).toBe('5 placed, row 5, column 5')
+    expect(document.activeElement).toBe(button)
+  })
+
+  it('the move placed with focus on the digit pad: focus stays put', () => {
+    focus(cell(OTHER))
+    press('h')
+    press('h')
+    const pad = host.querySelector<HTMLButtonElement>('.digit-pad-key')!
+    focus(pad)
+    press('h')
+    expect(cell(40).textContent).toBe('5')
+    expect(document.activeElement).toBe(pad)
   })
 
   it('a digit change resets the panel to idle; no marks; focus stays in the grid', () => {
@@ -215,6 +272,29 @@ describe('no Hint found', () => {
     expect(panelButton().textContent).toBe('Show a nudge')
     expect(panelButton().getAttribute('aria-disabled')).toBe('true')
     expect(panelButton().disabled).toBe(false)
+  })
+})
+
+describe('a Hint move that solves', () => {
+  it('both the panel step button and the action-row Hint are aria-disabled, and clicking them changes nothing', () => {
+    const last = solution.slice(0, 40) + '0' + solution.slice(41)
+    mount(createInitialState({ givens: last, solution, difficulty: 'easy' }))
+    const hint = hintButton()
+    click(hint)
+    click(hint)
+    expect(label()).toBe('Explanation')
+    click(panelButton())
+    expect(cell(40).textContent).toBe('5')
+    expect(live()).toBe('5 placed, row 5, column 5. Solved')
+    expect(label()).toBe('Hint')
+    for (const b of [panelButton(), hintButton()]) {
+      expect(b.getAttribute('aria-disabled')).toBe('true')
+      expect(b.disabled).toBe(false)
+    }
+    const before = host.innerHTML
+    click(panelButton())
+    click(hintButton())
+    expect(host.innerHTML).toBe(before)
   })
 })
 

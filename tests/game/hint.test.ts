@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { withAnnouncement } from '../../src/game/announce.ts'
-import { activeHint, hintFocusCells, hintView } from '../../src/game/hint.ts'
+import { activeHint, hintAction, hintFocusCells, hintMove, hintView } from '../../src/game/hint.ts'
 import { reducer } from '../../src/game/reducer.ts'
 import { createInitialState, createSession, FREE_PLAY_KEY } from '../../src/game/session.ts'
 import type { Action, AppState } from '../../src/game/types.ts'
@@ -19,6 +19,7 @@ const run = (state: AppState, ...actions: Action[]) => actions.reduce(reducer, s
 const say = (state: AppState, ...actions: Action[]) => actions.reduce(withAnnouncement, state)
 const H: Action = { type: 'hintRequested' }
 const ESC: Action = { type: 'hintClosed' }
+const APPLY: Action = { type: 'hintApplied' }
 const select = (cell: number): Action => ({ type: 'cellSelected', cell })
 const enter = (digit: number): Action => ({ type: 'digitEntered', digit })
 
@@ -62,7 +63,7 @@ describe('hintRequested', () => {
     expect(nudgeCells(HINT_POSITIONS.pointing)).toEqual([30, 31, 32, 39, 40, 41, 48, 49, 50])
   })
 
-  it('step 2 + H: no change, same state (Story 2.2 wires the move)', () => {
+  it('step 2 + hintRequested: no change, same state (the move is hintApplied)', () => {
     const s = run(fresh(), H, H)
     expect(reducer(s, H)).toBe(s)
   })
@@ -273,10 +274,140 @@ describe('announcements', () => {
 })
 
 describe('acceptance: H twice from step 1', () => {
-  it('the first press shows step 2, the second changes nothing', () => {
+  /** What one H press does (the UI maps it with `hintAction`). */
+  const press = (s: AppState) => reducer(s, hintAction(activeHint(s, FREE_PLAY_KEY)))
+
+  it('the first press shows step 2, the second places the move, a third opens a new nudge', () => {
     const s1 = run(fresh(), H)
-    const s2 = reducer(s1, H)
+    expect(hintAction(s1.ui.hint)).toEqual(H)
+    const s2 = press(s1)
     expect(s2.ui.hint?.step).toBe('explain')
-    expect(reducer(s2, H)).toBe(s2)
+    expect(hintAction(s2.ui.hint)).toEqual(APPLY)
+    const s3 = press(s2)
+    expect(s3.sessions.free.digits[40]).toBe('5')
+    expect(s3.ui.hint).toEqual({ sessionKey: FREE_PLAY_KEY, step: 'idle', result: null })
+    const s4 = press(s3)
+    expect(s4.ui.hint?.step).toBe('nudge')
+    expect(s4.sessions.free.digits).toBe(s3.sessions.free.digits)
+  })
+})
+
+describe('hintMove / hintAction', () => {
+  it('the last chain Step\'s placement at step 2 only', () => {
+    expect(hintMove(null)).toBeNull()
+    const n = run(fresh(), H)
+    expect(hintMove(n.ui.hint)).toBeNull()
+    expect(hintMove(run(n, H).ui.hint)).toEqual({ cell: 40, digit: 5 })
+    const pointing = run(createInitialState({ givens: HINT_POSITIONS.pointing, solution, difficulty: 'hard' }), H, H)
+    const chain = pointing.ui.hint?.result?.kind === 'chain' ? pointing.ui.hint.result.chain : []
+    expect(chain.length).toBeGreaterThan(1)
+    expect(hintMove(pointing.ui.hint)).toEqual(chain[chain.length - 1].placements[0])
+    expect(hintAction(null)).toEqual(H)
+    expect(hintAction({ sessionKey: FREE_PLAY_KEY, step: 'explain', result: { kind: 'none' } })).toEqual(H)
+  })
+})
+
+describe('hintApplied', () => {
+  const atMove = (s: AppState = fresh()) => deepFreeze(run(s, select(OTHER), H, H))
+  const idle = { sessionKey: FREE_PLAY_KEY, step: 'idle', result: null }
+
+  it('apply: places the move, hintsUsed + 1, one Undo entry, Hint idle, announced once', () => {
+    const s = atMove()
+    const next = say(s, APPLY)
+    expect(next.sessions.free.digits[40]).toBe('5')
+    expect(next.sessions.free.digits).toBe(s.sessions.free.digits.slice(0, 40) + '5' + s.sessions.free.digits.slice(41))
+    expect(next.sessions.free.hintsUsed).toBe(1)
+    expect(next.sessions.free.status).toBe('inProgress')
+    expect(next.ui.undo).toHaveLength(s.ui.undo.length + 1)
+    expect(next.ui.undo.at(-1)).toEqual({ digits: s.sessions.free.digits, notes: s.sessions.free.notes })
+    expect(next.ui.hint).toEqual(idle)
+    expect(hintFocusCells(next.ui.hint).size).toBe(0)
+    expect(next.ui.announcement).toEqual({ text: '5 placed, row 5, column 5', seq: (s.ui.announcement?.seq ?? 0) + 1 })
+    expect(next.ui.selectedCell).toBe(OTHER)
+    expect(next.meta.lastPlayedKey).toBe(FREE_PLAY_KEY)
+  })
+
+  it('closes an open Restart confirm', () => {
+    const s = run(atMove(), { type: 'restartRequested' })
+    expect(s.ui.restartConfirming).toBe(true)
+    expect(run(s, APPLY).ui.restartConfirming).toBe(false)
+  })
+
+  it('Notes in the target: the digit hides them and the mask is kept', () => {
+    const noted = run(fresh(), { type: 'entryModeChosen', mode: 'notes' }, select(40), enter(3), enter(5), { type: 'entryModeChosen', mode: 'digit' })
+    const mask = noted.sessions.free.notes[40]
+    expect(mask).not.toBe(0)
+    const next = run(noted, H, H, APPLY)
+    expect(next.sessions.free.digits[40]).toBe('5')
+    expect(next.sessions.free.notes[40]).toBe(mask)
+    expect(next.sessions.free.notes).toBe(noted.sessions.free.notes)
+  })
+
+  it('Notes entry mode: still places the digit; Notes untouched', () => {
+    const noted = run(fresh(), { type: 'entryModeChosen', mode: 'notes' }, select(40), enter(3))
+    const s = run(noted, H, H)
+    expect(s.ui.entryMode).toBe('notes')
+    const next = run(s, APPLY)
+    expect(next.sessions.free.digits[40]).toBe('5')
+    expect(next.sessions.free.notes).toBe(s.sessions.free.notes)
+    expect(next.sessions.free.hintsUsed).toBe(1)
+  })
+
+  it('Undo after: digits and Notes come back; hintsUsed stays; Hint stays idle', () => {
+    const noted = run(fresh(), { type: 'entryModeChosen', mode: 'notes' }, select(40), enter(3))
+    const s = run(noted, H, H)
+    const applied = run(s, APPLY)
+    const undone = run(applied, { type: 'undoRequested' })
+    expect(undone.sessions.free.digits).toBe(s.sessions.free.digits)
+    expect(undone.sessions.free.notes).toBe(s.sessions.free.notes)
+    expect(undone.sessions.free.hintsUsed).toBe(1)
+    expect(undone.ui.hint).toBe(applied.ui.hint)
+    expect(undone.ui.hint).toEqual(idle)
+    // hintsUsed only goes up: a second Hint move counts again.
+    expect(run(undone, H, H, APPLY).sessions.free.hintsUsed).toBe(2)
+  })
+
+  it('solves on the last empty cell in the same step; one message; Hint idle and refused', () => {
+    const last = solution.slice(0, 40) + '0' + solution.slice(41)
+    const s = deepFreeze(run(createInitialState({ givens: last, solution, difficulty: 'easy' }), H, H))
+    const next = say(s, APPLY)
+    expect(next.sessions.free.digits).toBe(solution)
+    expect(next.sessions.free.status).toBe('solved')
+    expect(next.sessions.free.hintsUsed).toBe(1)
+    expect(next.ui.hint).toEqual(idle)
+    expect(next.ui.announcement?.text).toBe('5 placed, row 5, column 5. Solved')
+    expect(reducer(next, H)).toBe(next)
+    expect(reducer(next, APPLY)).toBe(next)
+  })
+
+  describe('stale: same state, hintsUsed unchanged, no announcement; never throws', () => {
+    const at = atMove()
+    const withHint = (hint: AppState['ui']['hint']): AppState => deepFreeze({ ...at, ui: { ...at.ui, hint } })
+    const cases: [string, AppState][] = [
+      ['ui.hint null', withHint(null)],
+      ["another Session's Hint", withHint({ ...at.ui.hint!, sessionKey: 'city:a' })],
+      ['step idle', withHint({ ...at.ui.hint!, step: 'idle' })],
+      ['step nudge', withHint({ ...at.ui.hint!, step: 'nudge' })],
+      ['result not a chain', withHint({ ...at.ui.hint!, result: { kind: 'none' } })],
+      ['result null', withHint({ ...at.ui.hint!, result: null })],
+      ['no Session', deepFreeze({ ...at, sessions: {} })],
+      ['solved', deepFreeze({ ...at, sessions: { free: { ...at.sessions.free, digits: solution, status: 'solved' } } })],
+      [
+        'target not empty',
+        deepFreeze({ ...at, sessions: { free: { ...at.sessions.free, digits: at.sessions.free.digits.slice(0, 40) + '9' + at.sessions.free.digits.slice(41) } } }),
+      ],
+    ]
+    for (const [name, s] of cases) {
+      it(name, () => {
+        expect(reducer(s, APPLY)).toBe(s)
+        expect(say(s, APPLY)).toBe(s)
+      })
+    }
+
+    it('a fresh state (closed panel)', () => {
+      const s = fresh()
+      expect(say(s, APPLY)).toBe(s)
+      expect(s.sessions.free.hintsUsed).toBe(0)
+    })
   })
 })

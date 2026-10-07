@@ -199,6 +199,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       selectedCell: null,
       restartConfirming: false,
       hintOpen: false,
+      hintAtMove: false,
       isMac: true,
     }
     const k = (key: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey', boolean>> = {}) => ({
@@ -225,6 +226,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       selectedCell: 3,
       restartConfirming: false,
       hintOpen: false,
+      hintAtMove: false,
       isMac: false,
     }
     const k = (key: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey', boolean>> = {}) => ({
@@ -238,9 +240,27 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(keyToAction(k('h'), ctx)).toEqual({ type: 'hintRequested' })
     expect(keyToAction(k('H', { shiftKey: true }), { ...ctx, inGrid: false })).toEqual({ type: 'hintRequested' })
     expect(keyToAction(k('h', { ctrlKey: true }), ctx)).toBeNull()
+    // At step 2, H places the move.
+    expect(keyToAction(k('h'), { ...ctx, hintOpen: true, hintAtMove: true })).toEqual({ type: 'hintApplied' })
+    expect(keyToAction(k('H', { shiftKey: true }), { ...ctx, hintOpen: true, hintAtMove: true })).toEqual({ type: 'hintApplied' })
+    expect(keyToAction(k('h', { ctrlKey: true }), { ...ctx, hintAtMove: true })).toBeNull()
     expect(keyToAction(k('Escape'), ctx)).toBeNull()
     expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true })).toEqual({ type: 'hintClosed' })
     expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true, restartConfirming: true })).toEqual({ type: 'restartCancelled' })
+  })
+
+  it('H at step 2 places the move as a player digit; a held repeat does nothing', () => {
+    const other = emptyCells.find((c) => Math.floor(c / 9) !== 4)!
+    focus(cell(other))
+    press('h')
+    press('h')
+    expect(press('h', { repeat: true })).toBe(false)
+    expect(value(40)).toBe('')
+    expect(press('h')).toBe(true)
+    expect(value(40)).toBe('5')
+    expect(cell(40).getAttribute('aria-label')).toBe('Row 5, column 5, 5, your digit')
+    expect(live()).toBe('5 placed, row 5, column 5')
+    expect(document.activeElement).toBe(cell(other))
   })
 
   it('keys pressed on body or the header change nothing', () => {

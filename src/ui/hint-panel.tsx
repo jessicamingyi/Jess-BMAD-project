@@ -7,7 +7,7 @@ type Props = {
   /** The Hint's step, or null when the panel is closed (nothing renders). */
   step: HintStep | null
   view: HintView
-  /** The step button does nothing (solved, or "Show me the move" until Story 2.2). */
+  /** The step button does nothing (solved, or no Hint was found). */
   disabled: boolean
   onAdvance: () => void
   /** Move focus to the grid's tab-stop cell. */
@@ -20,8 +20,8 @@ type Props = {
  * button and the "Esc to set aside" caption. Not aria-live: the step text is
  * announced once through the shared LiveRegion.
  *
- * Focus: when the panel resets to idle or closes while focus is inside it, focus
- * goes to the grid; otherwise it stays put.
+ * Focus: when the panel resets to idle (including after the move is placed) or
+ * closes while focus is inside it, focus goes to the grid; otherwise it stays put.
  */
 export function HintPanel({ step, view, disabled, onAdvance, focusGrid }: Props) {
   /** Tracked with focus events, as in ActionRow: activeElement drops to <body> once the panel unmounts. */

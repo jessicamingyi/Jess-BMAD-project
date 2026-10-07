@@ -79,6 +79,25 @@ describe('announce', () => {
     expect(message(s, enter(Number(solution[firstEmpty])))).toBe('Solved')
   })
 
+  it('says a Hint move once as "5 placed, row 5, column 5"; a stale hintApplied is silent', () => {
+    const hint: Action = { type: 'hintRequested' }
+    const apply: Action = { type: 'hintApplied' }
+    const s = run(fresh(), hint, hint)
+    expect(message(s, apply)).toBe('5 placed, row 5, column 5')
+    const next = run(s, apply)
+    expect(next.ui.announcement).toEqual({ text: '5 placed, row 5, column 5', seq: s.ui.announcement!.seq + 1 })
+    expect(message(next, apply)).toBeNull()
+    expect(withAnnouncement(next, apply)).toBe(next)
+    expect(message(run(fresh(), hint), apply)).toBeNull()
+    expect(message(fresh(), apply)).toBeNull()
+  })
+
+  it('a Hint move that solves says one message: "… column 5. Solved"', () => {
+    const last = solution.slice(0, 40) + '0' + solution.slice(41)
+    const s = run(createInitialState({ givens: last, solution, difficulty: 'easy' }), { type: 'hintRequested' }, { type: 'hintRequested' })
+    expect(message(s, { type: 'hintApplied' })).toBe('5 placed, row 5, column 5. Solved')
+  })
+
   it('is silent for selection, Undo and Restart', () => {
     const s = run(fresh(), select(firstEmpty), enter(7))
     expect(message(s, select(firstEmpty + 1))).toBeNull()

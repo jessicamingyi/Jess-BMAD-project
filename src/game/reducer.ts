@@ -1,6 +1,6 @@
 import { findHint } from '../engine/hints.ts'
 import { parseGrid } from '../engine/grid.ts'
-import { activeHint } from './hint.ts'
+import { activeHint, hintMove } from './hint.ts'
 import { toggleNote } from './notes.ts'
 import { createSession, FREE_PLAY_KEY } from './session.ts'
 import type { Action, AppState, Difficulty, Puzzle, Screen, UndoEntry } from './types.ts'
@@ -165,8 +165,8 @@ function resetHintOnDigits(prev: AppState, next: AppState): AppState {
 /**
  * H or a step button. Refused when there is no Session or it is solved.
  * Closed or idle → find a Hint from the digits: step 1 (nudge), or idle when the
- * Techniques find no placement. Nudge → explain. Explain → no change (Story 2.2
- * places the move). Never recorded in Undo.
+ * Techniques find no placement. Nudge → explain. Explain → no change (the move
+ * is placed by `hintApplied`). Never recorded in Undo.
  */
 function requestHint(state: AppState): AppState {
   const session = state.sessions[FREE_PLAY_KEY]
@@ -183,10 +183,43 @@ function requestHint(state: AppState): AppState {
   return state
 }
 
+/**
+ * Place the open Hint's move (step 'explain', chain): set the digit whatever the
+ * entry mode (Notes stay, hidden under the digit), add 1 to `hintsUsed`, and
+ * detect a solve in the same step. Refused (same state) with no Session, when
+ * solved, without the active Session's own Hint at step 2, or when the target
+ * isn't an empty non-Given cell. `reduce` records it in Undo; `resetHintOnDigits`
+ * then sets the Hint idle.
+ */
+function applyHint(state: AppState): AppState {
+  const session = state.sessions[FREE_PLAY_KEY]
+  if (!session || session.status === 'solved') return state
+  const move = hintMove(activeHint(state, FREE_PLAY_KEY))
+  if (!move || !isCell(move.cell) || !isDigit(move.digit)) return state
+  const { cell, digit } = move
+  if (session.givens[cell] !== '0' || session.digits[cell] !== '0') return state
+  const digits = session.digits.slice(0, cell) + String(digit) + session.digits.slice(cell + 1)
+  return {
+    ...state,
+    sessions: {
+      ...state.sessions,
+      [FREE_PLAY_KEY]: {
+        ...session,
+        digits,
+        hintsUsed: session.hintsUsed + 1,
+        status: digits === session.solution ? 'solved' : 'inProgress',
+      },
+    },
+    meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
+  }
+}
+
 function reduce(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'hintRequested':
       return requestHint(state)
+    case 'hintApplied':
+      return record(state, applyHint(state))
     case 'hintClosed':
       return state.ui.hint === null ? state : { ...state, ui: { ...state.ui, hint: null } }
     case 'undoRequested':

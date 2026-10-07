@@ -3,8 +3,8 @@ import { explainChain, TECHNIQUE_TEXT, type TechniqueFacts, type UnitRef } from 
 import { computeCandidates, digitsOf } from '../engine/candidates.ts'
 import { boxOf, colOf, parseGrid, rowOf, UNITS, type Grid, type Unit } from '../engine/grid.ts'
 import { applyStep } from '../engine/solver.ts'
-import type { Step } from '../engine/step.ts'
-import type { AppState, HintState } from './types.ts'
+import type { CellDigit, Step } from '../engine/step.ts'
+import type { Action, AppState, HintState } from './types.ts'
 
 /** The Hint for Session `key`, or null (closed, or another Session's Hint). */
 export function activeHint(state: AppState, key: string): HintState | null {
@@ -16,6 +16,22 @@ export function activeHint(state: AppState, key: string): HintState | null {
 function shownChain(hint: HintState | null): readonly Step[] | null {
   if (!hint || hint.step === 'idle' || hint.result?.kind !== 'chain') return null
   return hint.result.chain
+}
+
+/**
+ * The move a Hint at step 2 places: the last chain Step's first placement.
+ * Null at any other step, or without a chain. (Story 2.4 adds the Mistake case, digit 0 = clear.)
+ */
+export function hintMove(hint: HintState | null): CellDigit | null {
+  if (!hint || hint.step !== 'explain') return null
+  const chain = shownChain(hint)
+  if (!chain) return null
+  return chain[chain.length - 1].placements[0] ?? null
+}
+
+/** What H or a Hint button does now: apply the move at step 2 (with a chain), else ask for the next step. */
+export function hintAction(hint: HintState | null): Action {
+  return hintMove(hint) !== null ? { type: 'hintApplied' } : { type: 'hintRequested' }
 }
 
 type AreaUnit = { readonly kind: 'row' | 'column' | 'box'; readonly index: number }

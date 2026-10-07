@@ -22,6 +22,8 @@ export type KeyContext = {
   readonly restartConfirming: boolean
   /** The Hint panel is open for this Session (Esc sets it aside). */
   readonly hintOpen: boolean
+  /** The Hint is at step 2 with a move to place: H applies it. */
+  readonly hintAtMove: boolean
   /** Undo is Cmd+Z on macOS, Ctrl+Z elsewhere. */
   readonly isMac: boolean
 }
@@ -78,7 +80,7 @@ export function keyToAction(input: KeyInput, ctx: KeyContext): Action | null {
       return { type: 'inputModeToggled' }
     case 'h':
     case 'H':
-      return { type: 'hintRequested' }
+      return ctx.hintAtMove ? { type: 'hintApplied' } : { type: 'hintRequested' }
     default:
       return null
   }
@@ -99,7 +101,7 @@ export function useKeyboard(
   dispatch: (action: Action) => void,
   context: Omit<KeyContext, 'inGrid'>,
 ): void {
-  const { inputMode, selectedCell, restartConfirming, hintOpen, isMac } = context
+  const { inputMode, selectedCell, restartConfirming, hintOpen, hintAtMove, isMac } = context
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -113,6 +115,7 @@ export function useKeyboard(
         selectedCell,
         restartConfirming,
         hintOpen,
+        hintAtMove,
         isMac,
       })
       if (!action) return
@@ -121,7 +124,7 @@ export function useKeyboard(
     }
     el.addEventListener('keydown', onKeyDown)
     return () => el.removeEventListener('keydown', onKeyDown)
-  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, isMac])
+  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, hintAtMove, isMac])
 }
 
 /**

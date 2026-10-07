@@ -2,7 +2,8 @@
 title: 'Story 2.2: Show me the move'
 type: 'feature'
 created: '2026-10-07'
-status: 'draft'
+status: 'done'
+baseline_commit: '0e55d89f35ed303b323ce2c1cfb191ce707083f6'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -54,16 +55,16 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/game/types.ts` -- add `{ type: 'hintApplied' }` to `Action`, with a doc comment.
-- [ ] `src/game/hint.ts` -- `hintMove(hint): { cell; digit } | null`: the last chain Step's `placements[0]` when the step is 'explain', else null. Also `hintAction(hint): Action`: `hintApplied` at 'explain' with a chain, else `hintRequested`. 2.4 extends `hintMove` for the Mistake case (digit 0 = clear).
-- [ ] `src/game/reducer.ts` -- `applyHint(state)`: guard as in the matrix Stale row, then set `digits[cell]`, `hintsUsed + 1`, `status` from `digits === solution`, and `lastPlayedKey`. Route it through `record` in `reduce`. `resetHintOnDigits` then leaves the Hint idle. Update the `requestHint` doc comment ('explain' is still a no-op for `hintRequested`).
-- [ ] `src/content/copy.ts` -- `announceHintPlaced(digit, row, col)` → "7 placed, row 4, column 4" (1-based).
-- [ ] `src/game/announce.ts` -- for `hintApplied`, when the digits changed, return the placement text from the previous Hint's `hintMove`. When it also solves, follow OQ2. A no-op returns null.
-- [ ] `src/ui/keyboard.ts` -- `KeyContext.hintAtMove: boolean`. When it's true, h/H → `hintApplied`. Thread it through `useKeyboard` deps.
-- [ ] `src/ui/puzzle-screen.tsx`, `hint-panel.tsx` -- the panel button dispatches `hintAction(hint)`. Drop `step === 'explain'` from `disabled`, so "Show me the move" works. Pass `hintAtMove`. The action-row Hint follows OQ1. Update the comments on the `disabled` prop.
-- [ ] `tests/game/hint.test.ts` -- every matrix row at reducer level: `hintsUsed` across apply and Undo, the Notes mask preserved, Notes entry mode, solve on the last cell (fixture: the solution with one empty cell), and every stale variant keeping the same reference. Replace the 2.1 assertion "explain + hintRequested = no change" if it now conflicts.
-- [ ] `tests/game/announce.test.ts` -- placement once with the exact string. A stale call is silent. The solve message follows OQ2.
-- [ ] `tests/ui/keyboard.test.ts`, `hint-panel.test.ts`, `action-row.test.ts` -- H at step 2 places the digit. Clicking "Show me the move" places it, the panel shows "Hint" · "Show a nudge", the marks are gone, and focus moves to the grid's tab-stop cell. The placed cell shows a player digit. The action-row case follows OQ1.
+- [x] `src/game/types.ts` -- add `{ type: 'hintApplied' }` to `Action`, with a doc comment.
+- [x] `src/game/hint.ts` -- `hintMove(hint): { cell; digit } | null`: the last chain Step's `placements[0]` when the step is 'explain', else null. Also `hintAction(hint): Action`: `hintApplied` at 'explain' with a chain, else `hintRequested`. 2.4 extends `hintMove` for the Mistake case (digit 0 = clear).
+- [x] `src/game/reducer.ts` -- `applyHint(state)`: guard as in the matrix Stale row, then set `digits[cell]`, `hintsUsed + 1`, `status` from `digits === solution`, and `lastPlayedKey`. Route it through `record` in `reduce`. `resetHintOnDigits` then leaves the Hint idle. Update the `requestHint` doc comment ('explain' is still a no-op for `hintRequested`).
+- [x] `src/content/copy.ts` -- `announceHintPlaced(digit, row, col)` → "7 placed, row 4, column 4" (1-based).
+- [x] `src/game/announce.ts` -- for `hintApplied`, when the digits changed, return the placement text from the previous Hint's `hintMove`. When it also solves, follow OQ2. A no-op returns null.
+- [x] `src/ui/keyboard.ts` -- `KeyContext.hintAtMove: boolean`. When it's true, h/H → `hintApplied`. Thread it through `useKeyboard` deps.
+- [x] `src/ui/puzzle-screen.tsx`, `hint-panel.tsx` -- the panel button dispatches `hintAction(hint)`. Drop `step === 'explain'` from `disabled`, so "Show me the move" works. Pass `hintAtMove`. The action-row Hint follows OQ1. Update the comments on the `disabled` prop.
+- [x] `tests/game/hint.test.ts` -- every matrix row at reducer level: `hintsUsed` across apply and Undo, the Notes mask preserved, Notes entry mode, solve on the last cell (fixture: the solution with one empty cell), and every stale variant keeping the same reference. Replace the 2.1 assertion "explain + hintRequested = no change" if it now conflicts.
+- [x] `tests/game/announce.test.ts` -- placement once with the exact string. A stale call is silent. The solve message follows OQ2.
+- [x] `tests/ui/keyboard.test.ts`, `hint-panel.test.ts`, `action-row.test.ts` -- H at step 2 places the digit. Clicking "Show me the move" places it, the panel shows "Hint" · "Show a nudge", the marks are gone, and focus moves to the grid's tab-stop cell. The placed cell shows a player digit. The action-row case follows OQ1.
 
 **Acceptance Criteria:**
 - Given a Hint at step 1, when H is pressed twice, then the first press shows step 2 and the second places the move. A third press opens a new nudge.
@@ -75,6 +76,22 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Route | Evidence |
+|---|---|---|---|---|---|
+| 1 | smoke | After a solve, the disabled panel button looks the same as an enabled one | low | patch | The browser screenshot `chrome-5-solved.png` shows the button unstyled. |
+| 2 | blind | No UI test for both Hint buttons going disabled after a Hint solves the Puzzle | low | patch | Only the reducer refusal is tested. |
+| 3 | blind | ". Solved" is hardcoded next to `copy.announceSolved` | low | patch | Duplicated copy can drift. |
+| 4 | blind | Inline row/column math in `announce.ts` | low | patch | `rowOf`/`colOf` exist in engine/grid. |
+| 5 | blind | Non-null assertion in `hintMove` | low | patch | Guard order can be made explicit. |
+| 6 | edge | An empty chain would crash `hintMove` | false | reject | `findHint` returns a chain only once a Step places a digit (VG confirmed). |
+| 7 | blind | No stale test for a Given target | false | reject | `digits` already contains the Givens, so the guard is redundant, not untested (VG). |
+| 8 | blind | The action-row Hint gives no warning that it now fills a cell | low | reject | The human chose this behaviour; the panel shows "Show me the move" and the live region reports the placement. |
+| 9 | blind | `hintAtMove` could be stale | false | reject | Mounted H×3 tests fail if it is dropped from the deps (VG). |
+| 10 | blind, edge | The action-row test lives in `hint-panel.test.ts` | — | reject | The static action-row suite can't click; the case is covered in the mounted suite. |
+| 11 | blind | Spec logs empty; status snapshot | — | reject | The workflow manages these; the fourth `solved` parameter on `announceHintPlaced` is recorded here. |
+
+Real-browser smoke test (Chrome 155, Edge 154): all 6 steps pass with no console, CSP or network errors. An Easy Puzzle solved with H only took 54–55 moves, exactly 3 presses each; the final announcement was "6 placed, row 9, column 9. Solved". Notes mode places a digit and Ctrl+Z restores the Notes; the action-row Hint at step 2 places the move.
 
 ## Design Notes
 

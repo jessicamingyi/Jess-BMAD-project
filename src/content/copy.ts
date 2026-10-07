@@ -116,4 +116,7 @@ export const copy = {
   announceGiven: "Given, can't change",
   announceCurrentDigit: (digit: number): string => `current digit ${digit}`,
   announceSolved: 'Solved',
+  /** A Hint move, e.g. "7 placed, row 4, column 4" (1-based); "… column 4. Solved" when it solves the Puzzle. */
+  announceHintPlaced: (digit: number, row: number, col: number, solved = false): string =>
+    `${digit} placed, row ${row}, column ${col}${solved ? `. ${copy.announceSolved}` : ''}`,
 } as const

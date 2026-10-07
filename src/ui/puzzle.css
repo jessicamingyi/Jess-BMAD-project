@@ -642,6 +642,21 @@
   gap: var(--space-3);
 }
 
+/*
+ * The panel's step button when aria-disabled (solved, or no Hint found): the same
+ * muted, hover-proof look as the global aria-disabled rule below, scoped to the
+ * panel so no cascade order can drop it. ink-muted text on the card panel: the
+ * card/ink-muted pair (same ratio either way round) is in contrast.test.ts.
+ */
+.hint-panel .button[aria-disabled='true'],
+.hint-panel .button[aria-disabled='true']:hover,
+.hint-panel .button[aria-disabled='true']:active {
+  border-color: var(--color-ink-muted);
+  background-color: transparent;
+  color: var(--color-ink-muted);
+  cursor: default;
+}
+
 .hint-panel-caption {
   color: var(--color-ink-muted);
   font-size: var(--type-caption-size);
