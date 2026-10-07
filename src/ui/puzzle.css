@@ -24,6 +24,13 @@
   }
 }
 
+/* Calm UI (UX-DR39): nothing on the Puzzle screen animates or transitions. */
+.puzzle-screen,
+.puzzle-screen * {
+  transition: none;
+  animation: none;
+}
+
 /* Grid card (UX-DR7) */
 .grid-card {
   flex: none;
@@ -36,8 +43,35 @@
 }
 
 .sudoku-grid {
-  display: grid;
-  grid-template-columns: repeat(9, auto);
+  display: flex;
+  flex-direction: column;
+}
+
+.sudoku-row {
+  display: flex;
+}
+
+/*
+ * The grid is one tab stop (roving tabindex). The frame carries the focus ring
+ * while focus is in the grid; the selected-cell ring is the cursor, so the cell
+ * itself shows no outline.
+ */
+.grid-card:focus-within {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+.sudoku-cell:focus,
+.sudoku-cell:focus-visible {
+  outline: none;
+}
+
+/* Forced colours strip fills and shadows: keep the selected-cell cursor visible. */
+@media (forced-colors: active) {
+  .sudoku-cell--selected {
+    outline: var(--rule-frame) solid Highlight;
+    outline-offset: calc(-1 * var(--rule-frame));
+  }
 }
 
 /* Cells keep 58px of face at every width; rules sit outside that face. */
@@ -113,7 +147,7 @@
   line-height: 1;
 }
 
-.sudoku-cell:focus-visible,
+/* Every other focusable control: 3px solid focus outline at 3px offset (UX-DR62). */
 .digit-pad-key:focus-visible,
 .segment:focus-visible,
 .button:focus-visible {

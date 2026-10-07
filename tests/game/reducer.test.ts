@@ -76,6 +76,7 @@ describe('game reducer', () => {
       currentDigit: null,
       undo: [],
       restartConfirming: false,
+      announcement: null,
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })
@@ -484,6 +485,84 @@ describe('Undo and Restart', () => {
     expect(reducer(solved, restartRequested)).toBe(solved)
     expect(reducer(solved, restartConfirmed)).toBe(solved)
     expect(solved.sessions.free.status).toBe('solved')
+  })
+})
+
+describe('keyboard actions (Story 1.5)', () => {
+  const clear: Action = { type: 'cellCleared' }
+  const place: Action = { type: 'currentDigitPlaced' }
+  const toggleEntry: Action = { type: 'entryModeToggled' }
+  const undo: Action = { type: 'undoRequested' }
+  const free = (s: AppState) => s.sessions.free
+
+  it('cellCleared clears a player digit and records Undo', () => {
+    const placed = deepFreeze(run(fresh(), select(firstEmpty), enter(7)))
+    const cleared = reducer(placed, clear)
+    expect(free(cleared).digits[firstEmpty]).toBe('0')
+    expect(cleared.ui.undo).toHaveLength(2)
+    expect(free(reducer(cleared, undo)).digits[firstEmpty]).toBe('7')
+  })
+
+  it('cellCleared clears the Notes of an empty cell, undoably', () => {
+    const noted = deepFreeze(run(fresh(), select(firstEmpty), notesMode, enter(3), enter(5)))
+    const cleared = reducer(noted, clear)
+    expect(free(cleared).notes[firstEmpty]).toBe(0)
+    expect(cleared.ui.undo).toHaveLength(3)
+    expect(free(reducer(cleared, undo)).notes[firstEmpty]).toBe(free(noted).notes[firstEmpty])
+  })
+
+  it('cellCleared on a player digit keeps the hidden Notes', () => {
+    const s = run(fresh(), select(firstEmpty), notesMode, enter(3), digitMode, enter(7), clear)
+    expect(free(s).digits[firstEmpty]).toBe('0')
+    expect(free(s).notes[firstEmpty]).toBe(1 << 2)
+  })
+
+  it('cellCleared returns the same object on a Given, a clean empty cell, no selection, or once solved', () => {
+    const onGiven = deepFreeze(run(fresh(), select(firstGiven)))
+    expect(reducer(onGiven, clear)).toBe(onGiven)
+    const onEmpty = deepFreeze(run(fresh(), select(firstEmpty)))
+    expect(reducer(onEmpty, clear)).toBe(onEmpty)
+    const none = fresh()
+    expect(reducer(none, clear)).toBe(none)
+    const last = emptyCells[emptyCells.length - 1]
+    const solved = deepFreeze(run(fillAllBut(fresh(), last), select(last), enter(Number(solution[last]))))
+    expect(free(solved).status).toBe('solved')
+    expect(reducer(solved, clear)).toBe(solved)
+  })
+
+  it('currentDigitPlaced applies the current digit to the selected cell in number-first', () => {
+    const s = deepFreeze(run(fresh(), toggleInput, enter(7), select(firstEmpty), place))
+    expect(free(s).digits[firstEmpty]).toBe('7')
+    expect(s.ui.undo).toHaveLength(1)
+    // The same digit again clears, as with the mouse.
+    expect(free(reducer(s, place)).digits[firstEmpty]).toBe('0')
+  })
+
+  it('currentDigitPlaced toggles Notes in Notes mode', () => {
+    const s = run(fresh(), toggleInput, notesMode, enter(4), select(firstEmpty), place)
+    expect(free(s).notes[firstEmpty]).toBe(1 << 3)
+  })
+
+  it('currentDigitPlaced returns the same object without a digit or selection, in cell-first, or on a Given', () => {
+    const noDigit = deepFreeze(run(fresh(), toggleInput, select(firstEmpty)))
+    expect(reducer(noDigit, place)).toBe(noDigit)
+    const noCell = deepFreeze(run(fresh(), toggleInput, enter(7)))
+    expect(reducer(noCell, place)).toBe(noCell)
+    const cellFirst = deepFreeze(run(fresh(), toggleInput, enter(7), toggleInput, select(firstEmpty)))
+    expect(reducer(cellFirst, place)).toBe(cellFirst)
+    const given = deepFreeze(run(fresh(), toggleInput, enter(7), select(firstGiven)))
+    expect(reducer(given, place)).toBe(given)
+  })
+
+  it('entryModeToggled flips Digit and Notes without recording Undo', () => {
+    const notes = reducer(fresh(), toggleEntry)
+    expect(notes.ui.entryMode).toBe('notes')
+    expect(reducer(notes, toggleEntry).ui.entryMode).toBe('digit')
+    expect(notes.ui.undo).toEqual([])
+  })
+
+  it('starts with no announcement', () => {
+    expect(fresh().ui.announcement).toBeNull()
   })
 })
 

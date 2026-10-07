@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { ActionRow } from '../../src/ui/action-row.tsx'
-import { keyCaption } from '../../src/ui/key-caption.ts'
+import { isMacPlatform, keyCaption } from '../../src/ui/key-caption.ts'
 import { PuzzleScreen } from '../../src/ui/puzzle-screen.tsx'
 
 const noop = () => {}
@@ -72,6 +72,16 @@ describe('keyCaption', () => {
 
   it('returns Ctrl+Z elsewhere', () => {
     for (const p of ['Win32', 'Linux x86_64', 'iPhone', '']) expect(keyCaption(p), p).toBe('Ctrl+Z')
+  })
+})
+
+describe('isMacPlatform', () => {
+  it('is true exactly where the caption is ⌘Z, so Cmd+Z and the caption agree', () => {
+    for (const p of ['MacIntel', 'Macintosh']) expect(isMacPlatform(p), p).toBe(true)
+    for (const p of ['Win32', 'Linux x86_64', 'iPhone', '']) expect(isMacPlatform(p), p).toBe(false)
+    for (const p of ['MacIntel', 'Macintosh', 'Win32', 'Linux x86_64', 'iPhone', '']) {
+      expect(keyCaption(p) === '⌘Z', p).toBe(isMacPlatform(p))
+    }
   })
 })
 

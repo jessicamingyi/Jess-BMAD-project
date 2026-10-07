@@ -28,6 +28,7 @@ export function createInitialState(puzzle: Puzzle): AppState {
       currentDigit: null,
       undo: [],
       restartConfirming: false,
+      announcement: null,
     },
   }
 }

@@ -48,4 +48,13 @@ export const copy = {
   restartConfirmLabel: 'Restart the Puzzle?',
   restartConfirmText: 'Clear your digits and Notes? The Givens stay.',
   keepGoing: 'Keep going',
+
+  /** Polite live-region announcements (UX-DR61). Mode switches reuse entryDigit/entryNotes and statusCellFirst/statusNumberFirst. */
+  announceDigit: (digit: number): string => String(digit),
+  announceNoteAdded: (digit: number): string => `note ${digit} added`,
+  announceNoteRemoved: (digit: number): string => `note ${digit} removed`,
+  announceCleared: 'cleared',
+  announceGiven: "Given, can't change",
+  announceCurrentDigit: (digit: number): string => `current digit ${digit}`,
+  announceSolved: 'Solved',
 } as const

@@ -52,6 +52,16 @@ export type UiState = {
   readonly undo: readonly UndoEntry[]
   /** The Restart confirm is showing in place of the action row. */
   readonly restartConfirming: boolean
+  /**
+   * The latest screen-reader announcement. `seq` increases with every message so
+   * repeating the same text re-announces. Never recorded in Undo.
+   */
+  readonly announcement: Announcement | null
+}
+
+export type Announcement = {
+  readonly text: string
+  readonly seq: number
 }
 
 export type AppState = {
@@ -69,6 +79,11 @@ export type Action =
   | { readonly type: 'entryModeChosen'; readonly mode: EntryMode }
   | { readonly type: 'inputModeChosen'; readonly mode: InputMode }
   | { readonly type: 'inputModeToggled' }
+  | { readonly type: 'entryModeToggled' }
+  /** Backspace/Delete: clear the selected cell's player digit, or its Notes when empty. */
+  | { readonly type: 'cellCleared' }
+  /** Number-first Enter/Space: place the current digit in the selected cell. */
+  | { readonly type: 'currentDigitPlaced' }
   | { readonly type: 'undoRequested' }
   | { readonly type: 'restartRequested' }
   | { readonly type: 'restartCancelled' }

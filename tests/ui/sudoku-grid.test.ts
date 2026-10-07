@@ -24,9 +24,13 @@ describe('SudokuGrid', () => {
   const html = renderToStaticMarkup(createElement(SudokuGrid, { session, selectedCell: player, onClick: () => {} }))
   const rendered = cells(html)
 
-  it('renders 81 cells in a labelled group', () => {
+  it('renders 81 gridcells in 9 rows of a labelled grid', () => {
     expect(rendered).toHaveLength(81)
-    expect(html).toMatch(/<div class="sudoku-grid" role="group" aria-label="Sudoku grid">/)
+    expect(html).toMatch(/<div class="sudoku-grid" role="grid" aria-label="Sudoku grid">/)
+    expect(html.match(/role="row"/g)).toHaveLength(9)
+    expect(html.match(/role="gridcell"/g)).toHaveLength(81)
+    expect(html.match(/tabindex="0"/g)).toHaveLength(1)
+    expect(html.match(/tabindex="-1"/g)).toHaveLength(80)
   })
 
   it('marks Givens, player digits and empty cells', () => {

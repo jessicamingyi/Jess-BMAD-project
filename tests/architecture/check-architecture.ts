@@ -11,7 +11,7 @@ export type SourceFile = { path: string; source: string }
 
 export type Violation = {
   file: string
-  kind: 'import' | 'package' | 'global'
+  kind: 'import' | 'package' | 'global' | 'key'
   /** The import specifier or global name that broke the rule. */
   name: string
   message: string
@@ -247,5 +247,70 @@ export function checkArchitecture(files: readonly SourceFile[]): Violation[] {
     }
   }
 
+  return violations
+}
+
+/** Key handler props (JSX attributes or object keys), case-insensitive, with or without `Capture`. */
+const KEY_PROP = /^onkey(?:down|up|press)(?:capture)?$/i
+
+/** The one file family allowed to handle keys (AD-1, UX-DR60). */
+const KEYBOARD_FILE = /^src\/ui\/keyboard(?:[^/]*|\/.*)$/
+
+function propName(name: ts.Node): string | null {
+  return ts.isIdentifier(name) || ts.isStringLiteralLike(name) ? name.text : null
+}
+
+/**
+ * Single keyboard handler guard: outside `src/ui/keyboard*`, no `src/**\/*.ts(x)`
+ * file may use key props (`onKeyDown`, `onKeyUp`, `onKeyPress`, `onkeydown = …`)
+ * or `addEventListener('key…')`. Pure; returns violations naming the file.
+ */
+export function checkKeyHandlers(files: readonly SourceFile[]): Violation[] {
+  const violations: Violation[] = []
+  for (const file of files) {
+    const path = normalize(file.path)
+    if (!/^src\/.*\.tsx?$/.test(path) || path.endsWith('.d.ts') || KEYBOARD_FILE.test(path)) continue
+    const sf = ts.createSourceFile(path, file.source, ts.ScriptTarget.Latest, true, scriptKindFor(path))
+    const found: string[] = []
+    const visit = (node: ts.Node): void => {
+      let name: string | null = null
+      if (ts.isJsxAttribute(node)) name = propName(node.name)
+      else if (
+        ts.isPropertyAssignment(node) ||
+        ts.isShorthandPropertyAssignment(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isPropertyDeclaration(node)
+      ) {
+        name = propName(node.name)
+      } else if (ts.isPropertyAccessExpression(node)) name = node.name.text
+      else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression)) {
+        name = node.argumentExpression.text
+      }
+      if (name !== null && KEY_PROP.test(name)) found.push(name)
+
+      if (ts.isCallExpression(node)) {
+        const callee = node.expression
+        const method = ts.isPropertyAccessExpression(callee)
+          ? callee.name.text
+          : ts.isIdentifier(callee)
+            ? callee.text
+            : null
+        const [arg] = node.arguments
+        if (method === 'addEventListener' && arg && ts.isStringLiteralLike(arg) && /^key/i.test(arg.text)) {
+          found.push(`addEventListener('${arg.text}')`)
+        }
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(sf)
+    for (const name of found) {
+      violations.push({
+        file: path,
+        kind: 'key',
+        name,
+        message: `${path} uses ${name}; keyboard handling belongs only in src/ui/keyboard* (one handler)`,
+      })
+    }
+  }
   return violations
 }
