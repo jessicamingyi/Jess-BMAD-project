@@ -54,7 +54,7 @@ updated: '2026-10-07'
   - A new Puzzle that arrives while you're on another screen waits under "Puzzle".
 - Epic 1 was merged to `main` and pushed on 7 Oct. CI is green, and Pages publishing waits for the `PAGES_ENABLED` repository variable (the repo stays private for now).
 
-## Pulled forward from Sprint 4 (built Wed 7 Oct)
+## Pulled forward from Sprint 4 (built Wed 7 Oct; counted in Sprint 4)
 
 - **TS-25 Story 2.1, Nudge and explanation:**
   - **Hint panel:** the first Hint step names an area to look at ("Look for a hidden single in row 3."). The second explains the move in one or two sentences, with the relevant cells ringed on the grid.
@@ -63,6 +63,11 @@ updated: '2026-10-07'
   - **Review:** 3 reviews and 7 fixes, plus a real-browser check in Chrome and Edge in both themes.
   - **Commit:** committed locally as `272835f`, on `story/2-1-nudge-and-explanation`. Not yet merged to `main`.
   - The ticket is counted in Sprint 4.
+- **TS-26 Story 2.2, Show me the move:**
+  - **The move:** the third Hint step places the explained digit. It always places a digit, even in Notes mode, as one Undo step. The live region says "7 placed, row 4, column 4", or "… Solved" when the move finishes the Puzzle.
+  - **Your decisions:** the action-row Hint applies the move at step 2, and the solve message names both the move and "Solved".
+  - **Review:** 3 reviews and 5 fixes; the browser check solved a whole Puzzle with H alone.
+  - **Commit:** committed locally on `story/2-2-show-me-the-move`, stacked on 2.1; not yet on `main`.
 
 ## Tickets done (8 / 10)
 
