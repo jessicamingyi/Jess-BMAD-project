@@ -17,10 +17,12 @@ type SegmentedProps<T extends string> = {
   active: T
   onChoose: (value: T) => void
   caption?: string
+  /** Every segment disabled (and ink-muted), e.g. the Difficulty picker while generating. */
+  disabled?: boolean
 }
 
-/** Two-part segmented control; the active segment is inverted and aria-pressed. */
-function Segmented<T extends string>({ label, segments, active, onChoose, caption }: SegmentedProps<T>) {
+/** Segmented control (mode indicator, Difficulty picker); the active segment is inverted and aria-pressed. */
+export function Segmented<T extends string>({ label, segments, active, onChoose, caption, disabled = false }: SegmentedProps<T>) {
   return (
     <div className="segmented" role="group" aria-label={label}>
       {segments.map((s) => (
@@ -29,8 +31,9 @@ function Segmented<T extends string>({ label, segments, active, onChoose, captio
           type="button"
           className={s.value === active ? 'segment segment--active' : 'segment'}
           aria-pressed={s.value === active}
+          disabled={disabled}
           onClick={() => {
-            if (s.value !== active) onChoose(s.value)
+            if (!disabled && s.value !== active) onChoose(s.value)
           }}
         >
           {s.label}

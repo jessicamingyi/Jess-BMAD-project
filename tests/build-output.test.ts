@@ -42,6 +42,24 @@ describe('production build output', () => {
     expect(urls.some((url) => url.startsWith(`${BASE}assets/`))).toBe(true)
   })
 
+  it('emits the generator as a separate worker chunk under assets/, not inlined', () => {
+    const worker = assets.filter((a) => /generator-worker.*\.js$/.test(a.name))
+    expect(worker.map((a) => a.name)).toHaveLength(1)
+    const [chunk] = worker
+    const entry = assets.filter((a) => /^index-.*\.js$/.test(a.name))
+    expect(entry).toHaveLength(1)
+    const [main] = entry
+    // Generator-only marker: mulberry32's increment 0x6d2b79f5 (emitted as 1831565813). It is in
+    // the worker chunk and never in the main entry chunk, so generation can't run on the main thread.
+    const MULBERRY32 = /1831565813|0x6d2b79f5/i
+    expect(chunk.source).toMatch(MULBERRY32)
+    expect(main.source).not.toMatch(MULBERRY32)
+    // The app's own worker wiring: the main chunk loads the worker as a same-origin file under
+    // assets/, and the worker chunk itself holds no Blob or data: JavaScript.
+    expect(main.source).toContain(`new Worker(new URL(\`${BASE}assets/${chunk.name}\``)
+    expect(chunk.source).not.toMatch(/\bnew Blob\(|data:(?:application|text)\/javascript/i)
+  })
+
   it('inlines nothing as data: URIs', () => {
     expect(html).not.toContain('data:')
     expect(assets.some((a) => a.name.endsWith('.css'))).toBe(true)

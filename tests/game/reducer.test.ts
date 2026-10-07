@@ -78,6 +78,7 @@ describe('game reducer', () => {
       undo: [],
       restartConfirming: false,
       announcement: null,
+      freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })
@@ -595,6 +596,7 @@ describe('settings and screens (Story 1.6)', () => {
       sameDigitHighlighting: true,
       unitHighlighting: true,
       lamplight: false,
+      freePlayDifficulty: null,
     })
     expect(state.ui.screen).toBe('puzzle')
   })

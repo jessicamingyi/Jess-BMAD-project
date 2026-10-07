@@ -3,6 +3,7 @@ import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
+import { createInitialState } from '../../src/game/session.ts'
 import { App } from '../../src/ui/app.tsx'
 import { keyToAction, type KeyContext } from '../../src/ui/keyboard.ts'
 
@@ -23,7 +24,7 @@ beforeEach(() => {
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
-  act(() => root.render(createElement(App)))
+  act(() => root.render(createElement(App, { initialState: createInitialState(samplePuzzle) })))
 })
 
 afterEach(() => {
@@ -260,7 +261,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       press(solution[c])
     }
     expect(live()).toBe('Solved')
-    expect(host.textContent).toContain('Solved.')
+    expect(host.textContent).toContain('Solved. Another one?')
   }, 20_000)
 
   it('re-announces the same text as a fresh node', () => {
@@ -279,6 +280,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     const names = tabbable.map((el) => (el.getAttribute('role') === 'gridcell' ? 'grid' : el.textContent))
     expect(names).toEqual([
       'Puzzle',
+      'Free Play',
       'Settings',
       'grid',
       'Digit',

@@ -114,3 +114,23 @@ export function useKeyboard(
     return () => el.removeEventListener('keydown', onKeyDown)
   }, [ref, dispatch, inputMode, selectedCell, restartConfirming, isMac])
 }
+
+/**
+ * Esc for a screen without play shortcuts (the Free Play entry's replace
+ * confirm). Only a bare Escape is handled, and only while `onEscape` is set;
+ * digits, N, M and every other key stay with the browser.
+ */
+export function useEscape(ref: RefObject<HTMLElement | null>, onEscape: (() => void) | null): void {
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !onEscape) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.repeat) return
+      if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
+      e.preventDefault()
+      onEscape()
+    }
+    el.addEventListener('keydown', onKeyDown)
+    return () => el.removeEventListener('keydown', onKeyDown)
+  }, [ref, onEscape])
+}

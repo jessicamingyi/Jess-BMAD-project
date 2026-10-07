@@ -32,6 +32,9 @@ export function PuzzleScreen({ state, dispatch }: Props) {
     isMac,
   })
 
+  // App renders this screen only with a Session; stay safe if it ever doesn't.
+  if (!session) return null
+
   return (
     <div className="puzzle-screen" ref={screenRef}>
       <SudokuGrid
@@ -64,7 +67,14 @@ export function PuzzleScreen({ state, dispatch }: Props) {
           onCancel={() => dispatch({ type: 'restartCancelled' })}
           onConfirm={() => dispatch({ type: 'restartConfirmed' })}
         />
-        {session.status === 'solved' && <p className="puzzle-status">{copy.solvedSample}</p>}
+        {session.status === 'solved' && (
+          <p className="puzzle-status">
+            {copy.solvedFreePlay}{' '}
+            <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'freePlay' })}>
+              {copy.navFreePlay}
+            </button>
+          </p>
+        )}
       </div>
     </div>
   )

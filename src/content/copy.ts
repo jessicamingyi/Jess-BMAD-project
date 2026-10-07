@@ -5,7 +5,8 @@ const DIFFICULTY_NAMES = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as con
 
 /** User-facing strings, kept in one place. */
 export const copy = {
-  solvedSample: 'Solved.',
+  /** Calm solve line in Free Play; followed by a link-styled button back to the entry. */
+  solvedFreePlay: 'Solved. Another one?',
 
   /** Puzzle header title in Free Play, e.g. "Free Play · Easy" (no Stamp). */
   freePlayTitle: (difficulty: keyof typeof DIFFICULTY_NAMES): string => `Free Play · ${DIFFICULTY_NAMES[difficulty]}`,
@@ -31,10 +32,23 @@ export const copy = {
     return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}`
   },
 
-  /** Header nav ("Puzzle · Settings"). */
+  /** Header nav ("Puzzle · Free Play · Settings"). */
   navLabel: 'Main',
   navPuzzle: 'Puzzle',
+  navFreePlay: 'Free Play',
   navSettings: 'Settings',
+
+  /** Free Play entry. */
+  freePlayHeading: 'Free Play',
+  difficultyPickerLabel: 'Difficulty',
+  difficultyName: (difficulty: keyof typeof DIFFICULTY_NAMES): string => DIFFICULTY_NAMES[difficulty],
+  freePlayStart: 'Start a Puzzle',
+  freePlayCarryOn: 'Carry on',
+  freePlayStartNew: 'Start a new one',
+  freePlayReplaceLabel: 'Replace your Free Play Puzzle?',
+  freePlayReplaceText: 'This replaces your current Free Play Puzzle.',
+  freePlayGenerating: 'Finding a fair Puzzle…',
+  freePlayFailed: "Couldn't find a fair Puzzle this time. Try again when you like.",
 
   /** Settings screen. */
   settingsHeading: 'Settings',

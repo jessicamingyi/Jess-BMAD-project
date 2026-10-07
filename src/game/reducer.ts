@@ -1,9 +1,14 @@
 import { toggleNote } from './notes.ts'
-import { FREE_PLAY_KEY } from './session.ts'
-import type { Action, AppState, UndoEntry } from './types.ts'
+import { createSession, FREE_PLAY_KEY } from './session.ts'
+import type { Action, AppState, Difficulty, Puzzle, Screen, UndoEntry } from './types.ts'
 
 const isCell = (c: number) => Number.isInteger(c) && c >= 0 && c < 81
 const isDigit = (d: number) => Number.isInteger(d) && d >= 1 && d <= 9
+const isDifficulty = (d: unknown): d is Difficulty => d === 'easy' || d === 'medium' || d === 'hard'
+const isScreen = (s: unknown): s is Screen => s === 'puzzle' || s === 'freePlay' || s === 'settings'
+const isGridString = (s: unknown) => typeof s === 'string' && /^[0-9]{81}$/.test(s)
+const isPuzzle = (p: Puzzle | undefined): p is Puzzle =>
+  !!p && isGridString(p.givens) && isGridString(p.solution) && isDifficulty(p.difficulty)
 
 /**
  * Apply `digit` to `cell` in the current entry mode.
@@ -150,8 +155,94 @@ export function reducer(state: AppState, action: Action): AppState {
       return setRestartConfirming(state, false)
     case 'restartConfirmed':
       return restart(state)
+    case 'screenChosen':
+      return chooseScreen(state, action.screen)
+    case 'freePlayDifficultyPicked':
+    case 'freePlayRequested':
+    case 'freePlayReplaceRequested':
+    case 'freePlayReplaceCancelled':
+    case 'freePlayGenerated':
+    case 'freePlayFailed':
+      return freePlay(state, action)
     default:
       return record(state, step(state, action))
+  }
+}
+
+/**
+ * Switch screens. Leaving or entering a screen closes any open Restart or
+ * replace confirm. The Puzzle screen needs a Session. Opening the Free Play entry
+ * seeds the picker from the last Free Play Difficulty (unless a request is pending).
+ */
+function chooseScreen(state: AppState, screen: Screen): AppState {
+  if (!isScreen(screen) || state.ui.screen === screen) return state
+  if (screen === 'puzzle' && !state.sessions[FREE_PLAY_KEY]) return state
+  const fp = state.ui.freePlay
+  const entering = screen === 'freePlay' && fp.status !== 'generating'
+  const picked = entering ? (state.settings.freePlayDifficulty ?? 'easy') : fp.picked
+  // Re-entering the entry clears an old failure line.
+  const status = entering && fp.status === 'failed' ? 'idle' : fp.status
+  const unchanged = fp.picked === picked && fp.status === status && !fp.confirmingReplace
+  return {
+    ...state,
+    ui: {
+      ...state.ui,
+      screen,
+      restartConfirming: false,
+      freePlay: unchanged ? fp : { ...fp, picked, status, confirmingReplace: false },
+    },
+  }
+}
+
+/** Free Play entry and generator replies. Never recorded in Undo. */
+function freePlay(state: AppState, action: Action): AppState {
+  const fp = state.ui.freePlay
+  const session = state.sessions[FREE_PLAY_KEY]
+  const withFreePlay = (next: Partial<typeof fp>): AppState => ({ ...state, ui: { ...state.ui, freePlay: { ...fp, ...next } } })
+  switch (action.type) {
+    case 'freePlayDifficultyPicked':
+      if (!isDifficulty(action.difficulty) || fp.status === 'generating' || fp.picked === action.difficulty) return state
+      return withFreePlay({ picked: action.difficulty, status: 'idle' })
+    case 'freePlayRequested':
+      if (!isDifficulty(action.difficulty) || !Number.isInteger(action.requestId)) return state
+      return withFreePlay({
+        picked: action.difficulty,
+        requestId: action.requestId,
+        status: 'generating',
+        confirmingReplace: false,
+      })
+    case 'freePlayReplaceRequested':
+      if (fp.confirmingReplace || fp.status === 'generating' || session?.status !== 'inProgress') return state
+      return withFreePlay({ confirmingReplace: true })
+    case 'freePlayReplaceCancelled':
+      if (!fp.confirmingReplace) return state
+      return withFreePlay({ confirmingReplace: false })
+    case 'freePlayFailed':
+      if (fp.status !== 'generating' || action.requestId !== fp.requestId) return state
+      return withFreePlay({ status: 'failed' })
+    case 'freePlayGenerated': {
+      if (fp.status !== 'generating' || action.requestId !== fp.requestId) return state
+      if (!isPuzzle(action.puzzle)) return withFreePlay({ status: 'failed' })
+      const { puzzle } = action
+      return {
+        ...state,
+        sessions: { ...state.sessions, [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) },
+        settings: { ...state.settings, freePlayDifficulty: puzzle.difficulty },
+        meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
+        ui: {
+          ...state.ui,
+          // Open the Puzzle only if the player is still on the entry; elsewhere they stay put.
+          screen: state.ui.screen === 'freePlay' ? 'puzzle' : state.ui.screen,
+          selectedCell: null,
+          currentDigit: null,
+          undo: [],
+          restartConfirming: false,
+          freePlay: { ...fp, picked: puzzle.difficulty, status: 'idle', confirmingReplace: false },
+        },
+      }
+    }
+    default:
+      return state
   }
 }
 
@@ -204,14 +295,8 @@ function step(state: AppState, action: Action): AppState {
     }
     case 'settingToggled': {
       const { setting } = action
-      if (!Object.hasOwn(state.settings, setting)) return state
+      if (!Object.hasOwn(state.settings, setting) || typeof state.settings[setting] !== 'boolean') return state
       return { ...state, settings: { ...state.settings, [setting]: !state.settings[setting] } }
-    }
-    case 'screenChosen': {
-      if (action.screen !== 'puzzle' && action.screen !== 'settings') return state
-      if (state.ui.screen === action.screen) return state
-      // Leaving or entering a screen closes any open Restart confirm.
-      return { ...state, ui: { ...state.ui, screen: action.screen, restartConfirming: false } }
     }
     case 'currentDigitPlaced': {
       const { inputMode, currentDigit, selectedCell } = state.ui

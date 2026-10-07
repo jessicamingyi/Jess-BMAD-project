@@ -27,18 +27,34 @@ export type Session = {
 }
 
 export type Album = Readonly<Record<string, never>>
-/** Player preferences (Assists and Lamplight). Reset on every load in Epic 1; saving is Epic 4. */
+/** Player preferences (Assists, Lamplight, last Free Play Difficulty). Reset on every load in Epic 1; saving is Epic 4. */
 export type Settings = {
   readonly mistakeHighlighting: boolean
   readonly sameDigitHighlighting: boolean
   readonly unitHighlighting: boolean
   readonly lamplight: boolean
+  /** The Difficulty of the last Free Play Puzzle started; null until one arrives. */
+  readonly freePlayDifficulty: Difficulty | null
 }
 
-export type SettingName = keyof Settings
+/** The on/off switches on the Settings screen. */
+export type SettingName = 'mistakeHighlighting' | 'sameDigitHighlighting' | 'unitHighlighting' | 'lamplight'
 
 /** The screen shown under the header; switched by state, no router. */
-export type Screen = 'puzzle' | 'settings'
+export type Screen = 'puzzle' | 'freePlay' | 'settings'
+
+export type FreePlayStatus = 'idle' | 'generating' | 'failed'
+
+/** The Free Play entry screen. */
+export type FreePlayUi = {
+  /** The picker's Difficulty; seeded from `settings.freePlayDifficulty ?? 'easy'` when the entry opens. */
+  readonly picked: Difficulty
+  /** The latest request id (owned by the UI shell); only a reply with this id is applied. */
+  readonly requestId: number
+  readonly status: FreePlayStatus
+  /** The inline "This replaces your current Free Play Puzzle." confirm is showing. */
+  readonly confirmingReplace: boolean
+}
 
 export type Meta = {
   readonly lastPlayedKey: string | null
@@ -72,6 +88,7 @@ export type UiState = {
    * repeating the same text re-announces. Never recorded in Undo.
    */
   readonly announcement: Announcement | null
+  readonly freePlay: FreePlayUi
 }
 
 export type Announcement = {
@@ -105,5 +122,14 @@ export type Action =
   | { readonly type: 'restartConfirmed' }
   /** Flip one Settings switch. Never recorded in Undo. */
   | { readonly type: 'settingToggled'; readonly setting: SettingName }
-  /** Header nav: show the Puzzle or Settings screen. */
+  /** Header nav: show the Puzzle, Free Play entry or Settings screen. */
   | { readonly type: 'screenChosen'; readonly screen: Screen }
+  /** Free Play entry. None of these is ever recorded in Undo. */
+  | { readonly type: 'freePlayDifficultyPicked'; readonly difficulty: Difficulty }
+  /** The shell started generating; `requestId` and the seed come from the shell. */
+  | { readonly type: 'freePlayRequested'; readonly requestId: number; readonly difficulty: Difficulty }
+  | { readonly type: 'freePlayReplaceRequested' }
+  | { readonly type: 'freePlayReplaceCancelled' }
+  /** Worker reply; applied only when `requestId` is the latest and a request is pending. */
+  | { readonly type: 'freePlayGenerated'; readonly requestId: number; readonly puzzle: Puzzle }
+  | { readonly type: 'freePlayFailed'; readonly requestId: number }

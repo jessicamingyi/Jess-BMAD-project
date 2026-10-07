@@ -250,6 +250,12 @@ body {
   text-underline-offset: var(--size-underline-offset);
 }
 
+/* Before any Puzzle exists "Puzzle" stays in the nav, muted and still focusable (aria-disabled). */
+.nav-link[aria-disabled='true'] {
+  color: var(--color-ink-muted);
+  cursor: default;
+}
+
 .nav-link:focus-visible {
   outline: var(--rule-frame) solid var(--color-focus);
   outline-offset: var(--rule-frame);

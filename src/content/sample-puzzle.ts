@@ -1,6 +1,6 @@
 /**
- * Built-in sample Puzzle (Easy). Loads at startup until Story 1.8 replaces it
- * with Free Play entry; afterwards it remains a test fixture.
+ * Sample Puzzle (Easy): a test fixture only. The app starts on the Free Play
+ * entry and never imports this file from src/ui (tests enforce that).
  * 81-char digit strings, cells 0–80 row-major, 0 = empty.
  */
 export const samplePuzzle = {

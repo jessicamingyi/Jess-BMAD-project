@@ -25,6 +25,10 @@ export default defineConfig({
     // Never inline assets as data: URIs; the CSP (default-src 'self') blocks them.
     assetsInlineLimit: 0,
   },
+  // The generator runs in a module worker (`{ type: 'module' }`), emitted as its own same-origin chunk.
+  worker: {
+    format: 'es',
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',

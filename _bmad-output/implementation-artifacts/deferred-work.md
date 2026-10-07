@@ -8,6 +8,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-5-keyboard-and-screen-reader.md`
   summary: Check in real browsers (Firefox especially) that Space on a grid cell in number-first places the current digit once, not place-then-clear via a native keyup click.
   evidence: `useKeyboard` prevents only the Space keydown; jsdom never fires native button activation, so tests can't show it. If a browser still clicks on keyup, `cellClicked` re-applies the digit and clears it (unverified, medium if true). Settle with a manual Firefox/Chrome check; fix by also preventing the matching keyup.
+  verified 2026-10-07 in Chrome 155 / Edge 154 (headless smoke test); Firefox not checked.
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-7-technique-solver-and-grader.md`
   summary: Test that the header "Free Play · {Difficulty}" follows the session's Difficulty for Medium and Hard, not just Easy.

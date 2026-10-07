@@ -298,7 +298,9 @@
 /* Every other focusable control: 3px solid focus outline at 3px offset (UX-DR62). */
 .digit-pad-key:focus-visible,
 .segment:focus-visible,
-.button:focus-visible {
+.button:focus-visible,
+.link-button:focus-visible,
+.free-play-heading:focus-visible {
   position: relative;
   z-index: 1;
   outline: var(--rule-frame) solid var(--color-focus);
@@ -346,6 +348,18 @@
 
 .segment--active {
   background-color: var(--color-ink);
+  color: var(--color-card);
+}
+
+/* Disabled (the Difficulty picker while generating): ink-muted, the pressed one still inverted. */
+.segment:disabled {
+  border-color: var(--color-ink-muted);
+  color: var(--color-ink-muted);
+  cursor: default;
+}
+
+.segment--active:disabled {
+  background-color: var(--color-ink-muted);
   color: var(--color-card);
 }
 
@@ -484,4 +498,58 @@
   font-size: var(--type-meta-size);
   line-height: var(--type-meta-line-height);
   font-style: italic;
+}
+
+/* Link-styled button after the solve line: back to the Free Play entry. */
+.link-button {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--rule-thin);
+  text-underline-offset: var(--size-underline-offset);
+  cursor: pointer;
+}
+
+/* Free Play entry (UX-DR15): heading, Difficulty picker, start actions, calm status line. */
+.free-play-screen {
+  max-width: var(--size-side-column-max);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.free-play-screen .action-row {
+  min-height: 0;
+}
+
+.free-play-heading {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-city-title-size);
+  font-weight: normal;
+  line-height: var(--type-city-title-line-height);
+}
+
+.free-play-status,
+.free-play-error {
+  margin: 0;
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+}
+
+.free-play-status {
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.free-play-error {
+  color: var(--color-ink);
 }

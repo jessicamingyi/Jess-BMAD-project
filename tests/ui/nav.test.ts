@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
+import { createInitialState } from '../../src/game/session.ts'
 import { App } from '../../src/ui/app.tsx'
 
 declare global {
@@ -20,7 +23,7 @@ beforeEach(() => {
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
-  act(() => root.render(createElement(App)))
+  act(() => root.render(createElement(App, { initialState: createInitialState(samplePuzzle) })))
 })
 
 afterEach(() => {
@@ -42,10 +45,11 @@ function press(key: string, init: KeyboardEventInit = {}, target: Element | null
 }
 
 describe('header nav', () => {
-  it('shows "Puzzle · Settings" as buttons in a labelled nav, Puzzle current', () => {
+  it('shows "Puzzle · Free Play · Settings" as buttons in a labelled nav, Puzzle current', () => {
     const nav = host.querySelector('header nav')!
     expect(nav.getAttribute('aria-label')).toBe('Main')
-    expect(nav.textContent).toBe('Puzzle·Settings')
+    expect(nav.textContent).toBe('Puzzle·Free Play·Settings')
+    expect(navLink('Puzzle').hasAttribute('aria-disabled')).toBe(false)
     expect(navLink('Puzzle').getAttribute('aria-current')).toBe('page')
     expect(navLink('Settings').hasAttribute('aria-current')).toBe(false)
     expect(navLink('Puzzle').className).toBe('nav-link')
@@ -113,5 +117,40 @@ describe('header nav', () => {
     expect(cell(b)!.getAttribute('aria-label')).toMatch(/empty$/)
     press('z', { ctrlKey: true })
     expect(cell(a)!.textContent).toBe('')
+  })
+})
+
+describe('header nav before any Puzzle exists', () => {
+  beforeEach(() => {
+    act(() => root.unmount())
+    root = createRoot(host)
+    act(() => root.render(createElement(App)))
+  })
+
+  it('starts on Free Play; "Puzzle" is shown but aria-disabled, still focusable, and does nothing', () => {
+    const nav = host.querySelector('header nav')!
+    expect(nav.textContent).toBe('Puzzle·Free Play·Settings')
+    expect(navLink('Free Play').getAttribute('aria-current')).toBe('page')
+    const puzzle = navLink('Puzzle')
+    expect(puzzle.getAttribute('aria-disabled')).toBe('true')
+    expect(puzzle.disabled).toBe(false)
+    expect(puzzle.tabIndex).toBe(0)
+    act(() => puzzle.click())
+    expect(host.querySelector('main h1')!.textContent).toBe('Free Play')
+    expect(host.querySelector('[role="grid"]')).toBeNull()
+  })
+
+  it('Free Play from Settings focuses the entry heading', () => {
+    act(() => navLink('Settings').click())
+    act(() => navLink('Free Play').click())
+    const heading = host.querySelector('main h1')!
+    expect(heading.textContent).toBe('Free Play')
+    expect(document.activeElement).toBe(heading)
+  })
+
+  it('the disabled "Puzzle" link is ink-muted (tokens only)', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/ui/theme.css'), 'utf8')
+    const rule = /\.nav-link\[aria-disabled='true'\]\s*\{([^}]*)\}/.exec(css)![1]
+    expect(rule).toContain('color: var(--color-ink-muted)')
   })
 })

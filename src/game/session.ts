@@ -21,16 +21,21 @@ export const DEFAULT_SETTINGS: Settings = {
   sameDigitHighlighting: true,
   unitHighlighting: true,
   lamplight: false,
+  freePlayDifficulty: null,
 }
 
-export function createInitialState(puzzle: Puzzle): AppState {
+/**
+ * The starting AppState. The app passes no Puzzle: `sessions` is empty and the
+ * Free Play entry shows. Tests pass a fixture Puzzle to start on the Puzzle screen.
+ */
+export function createInitialState(puzzle?: Puzzle): AppState {
   return {
     album: {},
-    sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) },
+    sessions: puzzle ? { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) } : {},
     settings: DEFAULT_SETTINGS,
     meta: { lastPlayedKey: null },
     ui: {
-      screen: 'puzzle',
+      screen: puzzle ? 'puzzle' : 'freePlay',
       selectedCell: null,
       entryMode: 'digit',
       inputMode: 'cellFirst',
@@ -38,6 +43,7 @@ export function createInitialState(puzzle: Puzzle): AppState {
       undo: [],
       restartConfirming: false,
       announcement: null,
+      freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
     },
   }
 }

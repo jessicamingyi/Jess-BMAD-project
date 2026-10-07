@@ -1,27 +1,40 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
-import { samplePuzzle } from '../content/sample-puzzle.ts'
+import { useEffect, useReducer, useRef } from 'react'
 import { withAnnouncement } from '../game/announce.ts'
 import { createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
-import type { Screen } from '../game/types.ts'
+import type { AppState, Screen } from '../game/types.ts'
 import { AppNav } from './app-nav.tsx'
+import { FreePlayScreen } from './free-play-screen.tsx'
 import { LiveRegion } from './live-region.tsx'
 import { PuzzleScreen } from './puzzle-screen.tsx'
 import { PuzzleTitle } from './puzzle-title.tsx'
 import { SettingsScreen } from './settings-screen.tsx'
+import { useGenerator, type GeneratorWorkerFactory } from './use-generator.ts'
+
+type Props = {
+  /** Tests only: start from this state instead of the empty Free Play entry. */
+  initialState?: AppState
+  /** Tests only: a fake generator worker. */
+  createWorker?: GeneratorWorkerFactory
+}
+
+const emptyState = () => createInitialState()
 
 /**
  * Owns AppState (one reducer for every screen) so settings, the Session and Undo
- * history survive switching between Puzzle and Settings. Settings start from
- * their defaults on every load; nothing is saved yet (Epic 4).
+ * history survive switching screens. The app starts on the Free Play entry with
+ * no Session. Settings start from their defaults on every load; nothing is saved
+ * yet (Epic 4).
  */
-export function App() {
-  const [state, dispatch] = useReducer(withAnnouncement, samplePuzzle, createInitialState)
+export function App({ initialState, createWorker }: Props) {
+  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => s ?? emptyState())
+  const start = useGenerator(dispatch, createWorker)
   const { screen } = state.ui
   const { lamplight } = state.settings
+  const session = state.sessions[FREE_PLAY_KEY]
   const mainRef = useRef<HTMLElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
-  /** Bumped on every nav choice; focus moves once the chosen screen has rendered. */
-  const [focusRequest, setFocusRequest] = useState(0)
+  /** The screen focus was last moved for; focus moves once a changed screen has rendered. */
+  const focusedScreen = useRef(screen)
 
   // Lamplight comes only from the toggle; the system colour scheme is ignored.
   useEffect(() => {
@@ -33,28 +46,31 @@ export function App() {
     }
   }, [lamplight])
 
-  // After a nav choice: focus the grid's tab-stop cell, or the Settings page heading.
+  // On a screen change (nav, "Carry on", the solved link, or a new Puzzle opening
+  // from the entry): focus the grid's tab-stop cell, or the page heading.
   useEffect(() => {
-    if (focusRequest === 0) return
-    if (screen === 'settings') headingRef.current?.focus()
-    else mainRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus()
-  }, [focusRequest, screen])
+    if (focusedScreen.current === screen) return
+    focusedScreen.current = screen
+    if (screen === 'puzzle') mainRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus()
+    else headingRef.current?.focus()
+  }, [screen])
 
   const choose = (next: Screen) => {
     // Choosing the current screen does nothing (no re-render, no focus jump).
     if (next === screen) return
     dispatch({ type: 'screenChosen', screen: next })
-    setFocusRequest((n) => n + 1)
   }
+
+  const showPuzzle = screen === 'puzzle' && session !== undefined
 
   return (
     <div className="app">
       <header className="app-header">
         <p className="app-wordmark">Traveller Sudoku</p>
         <p className="app-tagline">correspondence by puzzle</p>
-        <AppNav current={screen} onChoose={choose} />
-        {/* Puzzle screen only: the title sits on its own line beneath the wordmark (Settings has its own h1). */}
-        {screen === 'puzzle' && <PuzzleTitle difficulty={state.sessions[FREE_PLAY_KEY].difficulty} />}
+        <AppNav current={screen} puzzleAvailable={session !== undefined} onChoose={choose} />
+        {/* Puzzle screen only: the title sits on its own line beneath the wordmark (other screens have their own h1). */}
+        {showPuzzle && <PuzzleTitle difficulty={session.difficulty} />}
       </header>
       <main className="app-main" ref={mainRef}>
         {screen === 'settings' ? (
@@ -63,11 +79,22 @@ export function App() {
             headingRef={headingRef}
             onToggle={(setting) => dispatch({ type: 'settingToggled', setting })}
           />
-        ) : (
+        ) : showPuzzle ? (
           <PuzzleScreen state={state} dispatch={dispatch} />
+        ) : (
+          <FreePlayScreen
+            freePlay={state.ui.freePlay}
+            session={session}
+            headingRef={headingRef}
+            onPick={(difficulty) => dispatch({ type: 'freePlayDifficultyPicked', difficulty })}
+            onStart={start}
+            onCarryOn={() => choose('puzzle')}
+            onReplace={() => dispatch({ type: 'freePlayReplaceRequested' })}
+            onCancelReplace={() => dispatch({ type: 'freePlayReplaceCancelled' })}
+          />
         )}
       </main>
-      {/* Outside the screens so it stays mounted (and in sync) across a visit to Settings. */}
+      {/* Outside the screens so it stays mounted (and in sync) across screen changes. */}
       <LiveRegion announcement={state.ui.announcement} />
     </div>
   )

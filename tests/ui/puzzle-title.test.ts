@@ -5,6 +5,8 @@ import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { copy } from '../../src/content/copy.ts'
+import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
+import { createInitialState } from '../../src/game/session.ts'
 import { App } from '../../src/ui/app.tsx'
 
 declare global {
@@ -22,7 +24,7 @@ beforeEach(() => {
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
-  act(() => root.render(createElement(App)))
+  act(() => root.render(createElement(App, { initialState: createInitialState(samplePuzzle) })))
 })
 
 afterEach(() => {
