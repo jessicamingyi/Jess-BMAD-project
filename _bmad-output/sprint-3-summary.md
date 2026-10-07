@@ -8,11 +8,11 @@ updated: '2026-10-07'
 # Traveller Sudoku: Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** a playable, live Free Play Sudoku.
-**Tickets:** 10 (TS-15 to TS-24). **Progress:** 8 / 10 done. Epic 1 code is complete.
+**Tickets:** 10 (TS-15 to TS-24). **Progress:** 9 / 10 done. Epic 1 code is complete; the City list is approved.
 
 - Readiness check (`bmad-sprint-planning`).
 - **Epic 1, Stories 1.1 to 1.8:** project shell live on GitHub Pages; mouse play; Notes and number-first entry; Undo and Restart; keyboard and screen-reader play; Assists and Lamplight; Technique solver and grader; Free Play at a chosen Difficulty.
-- **Creator:** write the 30 Cities and Postcard lines and settle their tone.
+- **Creator:** choose the 30 Cities (the Postcard lines moved to TS-40 in the unscheduled backlog on 7 Oct).
 
 **Done when:** you can open the live site and play a fair Easy, Medium or Hard Puzzle with mouse or keyboard, in either theme.
 **Risks:** Going live needs the repo made public for GitHub Pages (and the City content before Epic 3 deploys).
@@ -87,7 +87,7 @@ updated: '2026-10-07'
   - **Review:** 3 reviews and 5 fixes, plus a browser check in both themes.
 - **Epic 2 (Hints) is code-complete.** Stories 2.1–2.4 are committed locally on stacked branches up to `story/2-4-mistake-hints`; not yet on `main`.
 
-## Tickets done (8 / 10)
+## Tickets done (9 / 10)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
@@ -99,13 +99,13 @@ updated: '2026-10-07'
 | TS-21 | [Story 1.6: Assists and Lamplight](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Wed 7 Oct |
 | TS-22 | [Story 1.7: Fair puzzles: Technique solver and grader](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct |
 | TS-23 | [Story 1.8: Start a Free Play Puzzle](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct |
+| TS-24 | [Choose the 30 Cities (name, country, Region, Tier)](planning-artifacts/cities.md) | Content | S | Jessica + Claude | Done | Wed 7 Oct |
 
-## Tickets not done yet (2)
+## Tickets not done yet (1)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
 | TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | To do | - |
-| TS-24 | Write the 30 Cities and Postcard lines, settle their tone | Content | M | Jessica | To do | Needed before Story 3.1; deploys are blocked while placeholders exist |
 
 ---
 Tickets and status: [backlog.md](implementation-artifacts/backlog.md) · visual board: [board.html](implementation-artifacts/board.html)
