@@ -2,11 +2,12 @@ import { useCallback, useRef } from 'react'
 import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
-import { activeHint, hintAction, hintFocusCells, hintTechnique, hintView } from '../game/hint.ts'
-import { FREE_PLAY_KEY } from '../game/session.ts'
+import { activeHint, hintAction, hintFocusCells, hintMistakeCell, hintTechnique, hintView } from '../game/hint.ts'
+import { FREE_PLAY_KEY, isFullNotSolved } from '../game/session.ts'
 import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
 import { DigitPad } from './digit-pad.tsx'
+import { FullGridLine } from './full-grid-line.tsx'
 import { HintPanel } from './hint-panel.tsx'
 import { isMacPlatform, keyCaption } from './key-caption.ts'
 import { useKeyboard } from './keyboard.ts'
@@ -52,7 +53,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
       <SudokuGrid
         session={session}
         selectedCell={ui.selectedCell}
-        marks={cellMarks(session, ui.selectedCell, state.settings)}
+        marks={cellMarks(session, ui.selectedCell, state.settings, hintMistakeCell(hint))}
         hintCells={hintFocusCells(hint)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
@@ -99,6 +100,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
             </button>
           </p>
         )}
+        {!solved && isFullNotSolved(session) && <FullGridLine onHint={() => dispatch(hintNext)} focusGrid={focusGrid} />}
       </div>
     </div>
   )

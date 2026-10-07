@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseGrid } from '../../src/engine/grid.ts'
-import { findHint, type HintResult } from '../../src/engine/hints.ts'
+import { findHint, hintFor, type HintResult } from '../../src/engine/hints.ts'
 import { countSolutions } from '../../src/engine/brute.ts'
 import type { Step } from '../../src/engine/step.ts'
 import { TECHNIQUES } from '../../src/engine/techniques/index.ts'
@@ -92,5 +92,63 @@ describe('findHint', () => {
         expect(strings.sort()).toEqual([s.technique, s.unit.kind].sort())
       }
     }
+  })
+})
+
+describe('hintFor (Mistakes first)', () => {
+  const { givens, solution } = PUZZLES.sample
+  const put = (digits: string, cell: number, d: string) => digits.slice(0, cell) + d + digits.slice(cell + 1)
+
+  it('reports the first Mistake in row-major order, whatever order they were placed in', () => {
+    expect(givens[11]).toBe('0')
+    expect(givens[50]).toBe('0')
+    const a = put(put(givens, 50, '9'), 11, '8')
+    const b = put(put(givens, 11, '8'), 50, '9')
+    expect(a).toBe(b)
+    expect(hintFor(givens, a, solution)).toEqual({ kind: 'mistake', cell: 11, digit: 8 })
+    // Only the later one left: it is reported next.
+    expect(hintFor(givens, put(givens, 50, '9'), solution)).toEqual({ kind: 'mistake', cell: 50, digit: 9 })
+  })
+
+  it('correct player digits are not Mistakes', () => {
+    const one = put(givens, 11, solution[11])
+    expect(hintFor(givens, one, solution)).toEqual(findHint(parseGrid(one)))
+    // Every other empty cell filled correctly (many non-Given player digits), a few left empty.
+    const empties = [...givens].flatMap((ch, i) => (ch === '0' ? [i] : []))
+    const many = empties.filter((_, k) => k % 3 !== 0).reduce<string>((d, c) => put(d, c, solution[c]), givens)
+    expect(empties.filter((c) => many[c] !== '0').length).toBeGreaterThan(30)
+    expect(many).toContain('0')
+    const r = hintFor(givens, many, solution)
+    expect(r.kind).toBe('chain')
+    expect(r).toEqual(findHint(parseGrid(many)))
+  })
+
+  it('a Given that differs from the solution (crafted) is never reported', () => {
+    const crafted = put(givens, 0, givens[0] === '9' ? '8' : '9')
+    expect(crafted[0]).not.toBe(solution[0])
+    const r = hintFor(crafted, crafted, solution)
+    expect(r.kind).not.toBe('mistake')
+    expect(r).toEqual(findHint(parseGrid(crafted)))
+  })
+
+  it('no Mistakes: the same result as findHint, for every fixture position', () => {
+    // Every digit is a Given here, so there is no Mistake whatever the solution string.
+    for (const digits of Object.values(HINT_POSITIONS)) {
+      expect(hintFor(digits, digits, solution)).toEqual(findHint(parseGrid(digits)))
+    }
+    expect(hintFor(givens, givens, solution)).toEqual(findHint(parseGrid(givens)))
+    const inkala = PUZZLES.beyondMvp.givens
+    expect(hintFor(inkala, inkala, solution)).toEqual({ kind: 'none' })
+  })
+
+  it('a full but wrong grid always gives a Mistake (never none or a chain)', () => {
+    const swapped = put(put(solution, 2, solution[3]), 3, solution[2])
+    const r = hintFor(givens, swapped, solution)
+    expect(r.kind).toBe('mistake')
+  })
+
+  it('is deterministic: equal inputs give equal results', () => {
+    const digits = put(givens, 50, '9')
+    expect(hintFor(givens, digits, solution)).toEqual(hintFor(givens, digits, solution))
   })
 })

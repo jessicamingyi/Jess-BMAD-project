@@ -7,7 +7,7 @@ export type CellMark = {
   readonly highlight: boolean
   /** Holds the same digit as the selected cell (same-digit Assist). */
   readonly sameDigit: boolean
-  /** A player digit that differs from the solution (Mistake Assist). */
+  /** A player digit that differs from the solution (Mistake Assist, or the cell an open Mistake Hint names). */
   readonly mistake: boolean
 }
 
@@ -27,8 +27,14 @@ const isCell = (c: number | null): c is number => c !== null && Number.isInteger
  * Assist marks for every cell, applying the Assist switches. Pure.
  * Highlight and same digit follow the selected cell only (in both input modes);
  * Mistakes come from `engine/mistakes` (digits, Givens, solution; never Notes).
+ * `hintMistake` (from `hintMistakeCell`) is marked as a Mistake even with the Assist Off.
  */
-export function cellMarks(session: Session, selectedCell: number | null, settings: Settings): GridMarks {
+export function cellMarks(
+  session: Session,
+  selectedCell: number | null,
+  settings: Settings,
+  hintMistake: number | null = null,
+): GridMarks {
   const selected = isCell(selectedCell) ? selectedCell : null
   const units =
     selected !== null && settings.unitHighlighting
@@ -52,7 +58,7 @@ export function cellMarks(session: Session, selectedCell: number | null, setting
     cells.push({
       highlight: units !== null && (row === units.row || col === units.col || box === units.box),
       sameDigit: sameDigitOn && session.digits[cell] === selectedDigit,
-      mistake: mistakes !== null && mistakes[cell],
+      mistake: (mistakes !== null && mistakes[cell]) || cell === hintMistake,
     })
   }
   return { cells, units }

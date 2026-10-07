@@ -15,6 +15,14 @@ export function createSession(key: string, puzzle: Puzzle): Session {
   }
 }
 
+/**
+ * Every cell holds a digit but the grid isn't the solution ("Something doesn't
+ * fit yet"). The Session stays `inProgress` with input live.
+ */
+export function isFullNotSolved(session: Session): boolean {
+  return !session.digits.includes('0') && session.digits !== session.solution
+}
+
 /** Settings defaults (FR-20): Mistake Off, same digit On, row/column/box On, Lamplight Off. */
 export const DEFAULT_SETTINGS: Settings = {
   mistakeHighlighting: false,

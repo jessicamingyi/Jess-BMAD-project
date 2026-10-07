@@ -500,6 +500,18 @@
   font-style: italic;
 }
 
+/* "Something doesn't fit yet — want a hint?" line with its default-style Hint button, in the solved line's slot. */
+.full-grid-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.full-grid-line .button {
+  font-style: normal;
+}
+
 /* Link-styled button after the solve line: back to the Free Play entry. */
 .link-button {
   min-width: var(--size-min-target);

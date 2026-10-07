@@ -3,7 +3,7 @@ import { colOf, rowOf } from '../engine/grid.ts'
 import { activeHint, hintMove, hintView } from './hint.ts'
 import { hasNote } from './notes.ts'
 import { reducer } from './reducer.ts'
-import { FREE_PLAY_KEY } from './session.ts'
+import { FREE_PLAY_KEY, isFullNotSolved } from './session.ts'
 import type { Action, AppState } from './types.ts'
 
 /** The cell and digit an action tries to apply (null when it applies none). */
@@ -27,8 +27,11 @@ function digitTarget(prev: AppState, action: Action): { cell: number; digit: num
  * The screen-reader message for `action` taking `prev` to `next`, or null for silence.
  * Pure. "7" / "cleared" for digits, "note 7 added|removed", "Given, can't change",
  * mode names, "current digit 7" (number-first), "Solved", and the Hint's nudge
- * or explanation text when `hintRequested` moves it to that step, and the
- * placement ("7 placed, row 4, column 4", with ". Solved" if it solves) for `hintApplied`.
+ * or explanation text when `hintRequested` moves it to that step, and for
+ * `hintApplied` the placement ("7 placed, row 4, column 4", with ". Solved" if it
+ * solves) or a Mistake clear ("row 4, column 6 cleared"). When a digit fills the
+ * last empty cell and the grid isn't the solution, the digit message gains the
+ * cue once: "7. Something doesn't fit yet — want a hint?".
  */
 export function announce(prev: AppState, next: AppState, action: Action): string | null {
   const before = prev.sessions[FREE_PLAY_KEY]
@@ -38,6 +41,7 @@ export function announce(prev: AppState, next: AppState, action: Action): string
   if (action.type === 'hintApplied') {
     const move = hintMove(activeHint(prev, FREE_PLAY_KEY))
     if (!move || before.digits === after.digits) return null
+    if (move.digit === 0) return copy.announceHintCleared(rowOf(move.cell) + 1, colOf(move.cell) + 1)
     const solved = before.status !== 'solved' && after.status === 'solved'
     return copy.announceHintPlaced(move.digit, rowOf(move.cell) + 1, colOf(move.cell) + 1, solved)
   }
@@ -78,7 +82,10 @@ export function announce(prev: AppState, next: AppState, action: Action): string
   const { cell, digit } = target
   if (before.givens[cell] !== '0') return copy.announceGiven
   if (before.digits[cell] !== after.digits[cell]) {
-    return after.digits[cell] === '0' ? copy.announceCleared : copy.announceDigit(digit)
+    if (after.digits[cell] === '0') return copy.announceCleared
+    // The grid just filled up wrong: say so once, with the digit.
+    if (!isFullNotSolved(before) && isFullNotSolved(after)) return copy.announceDigitFullNotSolved(digit)
+    return copy.announceDigit(digit)
   }
   if (before.notes[cell] !== after.notes[cell]) {
     return hasNote(after.notes[cell], digit) ? copy.announceNoteAdded(digit) : copy.announceNoteRemoved(digit)

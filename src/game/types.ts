@@ -160,8 +160,9 @@ export type Action =
   /** Esc: set the Hint aside (close the panel). */
   | { readonly type: 'hintClosed' }
   /**
-   * H, "Show me the move" or Hint at step 2: place the chain's final placement
-   * through Undo (one entry), add 1 to `hintsUsed`, and send the Hint back to idle.
+   * H, "Show me the move" or Hint at step 2: place the chain's final
+   * placement, or clear a Mistake Hint's cell, through Undo (one entry), add 1
+   * to `hintsUsed`, and send the Hint back to idle.
    * Acts only on the active Session's own Hint at step 'explain'; otherwise no change.
    */
   | { readonly type: 'hintApplied' }

@@ -18,6 +18,20 @@ function shownChain(hint: HintState | null): readonly Step[] | null {
   return hint.result.chain
 }
 
+/** The Mistake a shown Hint (step 1 or 2) reports, else null. */
+function shownMistake(hint: HintState | null): { readonly cell: number; readonly digit: number } | null {
+  if (!hint || hint.step === 'idle' || hint.result?.kind !== 'mistake') return null
+  return hint.result
+}
+
+/**
+ * The cell of the Mistake a shown Hint reports (step 1 or 2), else null. It
+ * shows the Mistake mark even with the Mistake Assist Off.
+ */
+export function hintMistakeCell(hint: HintState | null): number | null {
+  return shownMistake(hint)?.cell ?? null
+}
+
 /**
  * The Technique a shown Hint's "What's a…" link names: the chain's first Step's,
  * the same one the nudge names. Null when closed, idle or without a chain.
@@ -27,17 +41,20 @@ export function hintTechnique(hint: HintState | null): TechniqueKey | null {
 }
 
 /**
- * The move a Hint at step 2 places: the last chain Step's first placement.
- * Null at any other step, or without a chain. (Story 2.4 adds the Mistake case, digit 0 = clear.)
+ * The move a Hint at step 2 makes: the last chain Step's first placement, or for
+ * a Mistake `{ cell, digit: 0 }` (clear that cell). Null at any other step, or
+ * without a chain or Mistake.
  */
 export function hintMove(hint: HintState | null): CellDigit | null {
   if (!hint || hint.step !== 'explain') return null
+  const mistake = shownMistake(hint)
+  if (mistake) return { cell: mistake.cell, digit: 0 }
   const chain = shownChain(hint)
   if (!chain) return null
   return chain[chain.length - 1].placements[0] ?? null
 }
 
-/** What H or a Hint button does now: apply the move at step 2 (with a chain), else ask for the next step. */
+/** What H or a Hint button does now: apply the move at step 2 (chain or Mistake), else ask for the next step. */
 export function hintAction(hint: HintState | null): Action {
   return hintMove(hint) !== null ? { type: 'hintApplied' } : { type: 'hintRequested' }
 }
@@ -55,9 +72,11 @@ const EMPTY: ReadonlySet<number> = new Set()
 
 /**
  * The cells to hint-focus. Step 1: the nudge unit's nine cells. Step 2: every
- * chain Step's `focusCells`. Closed or idle: none.
+ * chain Step's `focusCells`. A Mistake: its cell at both steps. Closed or idle: none.
  */
 export function hintFocusCells(hint: HintState | null): ReadonlySet<number> {
+  const mistake = shownMistake(hint)
+  if (mistake) return new Set([mistake.cell])
   const chain = shownChain(hint)
   if (!chain) return EMPTY
   if (hint!.step === 'nudge') {
@@ -118,7 +137,7 @@ export type HintView = {
   readonly text: string
   /** The one step button's label. */
   readonly button: string
-  /** The "What's a…" link and its definition at steps 1 and 2 with a chain; else null. */
+  /** The "What's a…" link and its definition at steps 1 and 2 with a chain; else null (never for a Mistake). */
   readonly technique: HintTechniqueView | null
 }
 
@@ -141,6 +160,18 @@ function techniqueView(key: TechniqueKey | null): HintTechniqueView | null {
  * current digits: any change resets the Hint, so they are the ones it was found from).
  */
 export function hintView(hint: HintState | null, digits: string): HintView {
+  const mistake = shownMistake(hint)
+  if (mistake) {
+    const row = rowOf(mistake.cell) + 1
+    return hint!.step === 'nudge'
+      ? { label: copy.hintLabelNudge, text: copy.hintMistakeNudge(row), button: copy.hintExplainIt, technique: null }
+      : {
+          label: copy.hintLabelExplain,
+          text: copy.hintMistakeExplain(mistake.digit, row, colOf(mistake.cell) + 1),
+          button: copy.hintShowMove,
+          technique: null,
+        }
+  }
   const chain = shownChain(hint)
   if (!chain) return { label: copy.hintLabelIdle, text: '', button: copy.hintShowNudge, technique: null }
   const first = chain[0]

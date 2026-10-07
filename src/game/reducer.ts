@@ -1,5 +1,4 @@
-import { findHint } from '../engine/hints.ts'
-import { parseGrid } from '../engine/grid.ts'
+import { hintFor } from '../engine/hints.ts'
 import { activeHint, hintMove, hintTechnique } from './hint.ts'
 import { toggleNote } from './notes.ts'
 import { createSession, FREE_PLAY_KEY } from './session.ts'
@@ -164,8 +163,9 @@ function resetHintOnDigits(prev: AppState, next: AppState): AppState {
 
 /**
  * H or a step button. Refused when there is no Session or it is solved.
- * Closed or idle → find a Hint from the digits: step 1 (nudge), or idle when the
- * Techniques find no placement. Nudge → explain. Explain → no change (the move
+ * Closed or idle → find a Hint from the digits: the first Mistake if any, else
+ * a Technique chain; step 1 (nudge), or idle when the Techniques find no
+ * placement. Nudge → explain. Explain → no change (the move
  * is placed by `hintApplied`). Never recorded in Undo.
  */
 function requestHint(state: AppState): AppState {
@@ -176,7 +176,7 @@ function requestHint(state: AppState): AppState {
   if (hint === null || hint.step === 'idle') {
     // Digits are unchanged since an idle "no Hint" result, so it would be the same again.
     if (hint?.result?.kind === 'none') return state
-    const result = findHint(parseGrid(session.digits))
+    const result = hintFor(session.givens, session.digits, session.solution)
     return withHint({ sessionKey: FREE_PLAY_KEY, step: result.kind === 'none' ? 'idle' : 'nudge', result })
   }
   if (hint.step === 'nudge') return withHint({ ...hint, step: 'explain' })
@@ -184,20 +184,27 @@ function requestHint(state: AppState): AppState {
 }
 
 /**
- * Place the open Hint's move (step 'explain', chain): set the digit whatever the
- * entry mode (Notes stay, hidden under the digit), add 1 to `hintsUsed`, and
- * detect a solve in the same step. Refused (same state) with no Session, when
- * solved, without the active Session's own Hint at step 2, or when the target
- * isn't an empty non-Given cell. `reduce` records it in Undo; `resetHintOnDigits`
- * then sets the Hint idle.
+ * Make the open Hint's move (step 'explain'). A chain: place the digit
+ * whatever the entry mode (Notes stay, hidden under the digit). A Mistake
+ * (digit 0): clear its cell (the Notes mask is kept, so its Notes show again).
+ * Either way add 1 to `hintsUsed` and detect a solve in the same step. Refused
+ * (same state) with no Session, when solved, without the active Session's own
+ * Hint at step 2, when a placement's target isn't an empty non-Given cell, or
+ * when a Mistake's cell is a Given or no longer holds the reported digit.
+ * `reduce` records it in Undo; `resetHintOnDigits` then sets the Hint idle.
  */
 function applyHint(state: AppState): AppState {
   const session = state.sessions[FREE_PLAY_KEY]
   if (!session || session.status === 'solved') return state
-  const move = hintMove(activeHint(state, FREE_PLAY_KEY))
-  if (!move || !isCell(move.cell) || !isDigit(move.digit)) return state
+  const hint = activeHint(state, FREE_PLAY_KEY)
+  const move = hintMove(hint)
+  if (!move || !isCell(move.cell)) return state
   const { cell, digit } = move
-  if (session.givens[cell] !== '0' || session.digits[cell] !== '0') return state
+  if (session.givens[cell] !== '0') return state
+  if (digit === 0) {
+    // A Mistake clear: the cell must still hold the digit the Hint reported.
+    if (hint?.result?.kind !== 'mistake' || session.digits[cell] !== String(hint.result.digit)) return state
+  } else if (!isDigit(digit) || session.digits[cell] !== '0') return state
   const digits = session.digits.slice(0, cell) + String(digit) + session.digits.slice(cell + 1)
   return {
     ...state,

@@ -86,6 +86,16 @@ describe('game/assists cellMarks', () => {
     expect(marks.cells.some((m) => m.mistake)).toBe(false)
   })
 
+  it("a Mistake Hint's cell is marked even with the Assist Off, and only that cell", () => {
+    const wrong = [...givens].flatMap((ch, i) => (ch === '0' ? [i] : [])).slice(0, 2)
+    const session = wrong.reduce((s, c) => put(s, c, String((Number(solution[c]) % 9) + 1)), base)
+    expect(where(cellMarks(session, null, DEFAULT_SETTINGS, wrong[1]).cells.map((m) => m.mistake))).toEqual([wrong[1]])
+    expect(cellMarks(session, null, DEFAULT_SETTINGS, null).cells.some((m) => m.mistake)).toBe(false)
+    expect(cellMarks(session, null, DEFAULT_SETTINGS).cells.some((m) => m.mistake)).toBe(false)
+    // Assist On: every Mistake, the Hint's cell included.
+    expect(where(cellMarks(session, null, on({ mistakeHighlighting: true }), wrong[1]).cells.map((m) => m.mistake))).toEqual(wrong)
+  })
+
   it('stacked: a selected Mistake 7 is same digit, highlighted and a Mistake', () => {
     const cell = [...givens].findIndex((ch, i) => ch === '0' && solution[i] !== '7')
     const session = put(base, cell, '7')

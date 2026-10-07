@@ -150,3 +150,55 @@ describe('technique definition', () => {
     expect(message(opened, { type: 'techniqueDefinitionClosed' })).toBeNull()
   })
 })
+
+describe('announce: Mistake Hints and a full but wrong grid', () => {
+  const last = emptyCells[emptyCells.length - 1]
+  const wrong = (Number(solution[last]) % 9) + 1
+  /** Every empty cell but `last` holds its solution digit. */
+  const almost = () => {
+    const s = fresh()
+    const digits = solution.slice(0, last) + '0' + solution.slice(last + 1)
+    return { ...s, sessions: { free: { ...s.sessions.free, digits } } }
+  }
+
+  it('the digit that fills the grid wrong gains the cue once; the right one says "Solved"', () => {
+    const s = run(almost(), select(last))
+    expect(message(s, enter(wrong))).toBe(`${wrong}. Something doesn't fit yet — want a hint?`)
+    const full = run(s, enter(wrong))
+    // wrong = solution + 1 (mod 9), so wrong + 1 is also not the solution.
+    const other = (wrong % 9) + 1
+    expect(message(full, enter(other))).toBe(String(other))
+    expect(message(full, enter(Number(solution[last])))).toBe('Solved')
+  })
+
+  it('number-first: placing (Enter or click) the digit that fills the grid wrong gains the cue', () => {
+    const cue = `${wrong}. Something doesn't fit yet — want a hint?`
+    const ready = run(almost(), toggleInput, enter(wrong), select(last))
+    expect(ready.ui.inputMode).toBe('numberFirst')
+    expect(message(ready, place)).toBe(cue)
+    expect(message(ready, { type: 'cellClicked', cell: last })).toBe(cue)
+  })
+
+  it('the cue follows not-full → full-but-wrong: clear then refill wrong says it again; a full grid changed in place does not', () => {
+    const cue = `${wrong}. Something doesn't fit yet — want a hint?`
+    const full = run(almost(), select(last), enter(wrong))
+    expect(full.ui.announcement?.text).toBe(cue)
+    const cleared = run(full, clear)
+    expect(cleared.ui.announcement?.text).toBe('cleared')
+    expect(cleared.sessions.free.digits[last]).toBe('0')
+    const refilled = run(cleared, enter(wrong))
+    expect(refilled.ui.announcement).toEqual({ text: cue, seq: cleared.ui.announcement!.seq + 1 })
+    // Replacing a digit in an already-full wrong grid says only the digit.
+    const other = (wrong % 9) + 1
+    expect(message(refilled, enter(other))).toBe(String(other))
+  })
+
+  it('a Mistake clear says "row r, column c cleared"; a stale clear says nothing', () => {
+    const s = run(almost(), select(last), enter(wrong), { type: 'hintRequested' }, { type: 'hintRequested' })
+    const r = Math.floor(last / 9) + 1
+    const c = (last % 9) + 1
+    expect(message(s, { type: 'hintApplied' })).toBe(`row ${r}, column ${c} cleared`)
+    const stale = { ...s, ui: { ...s.ui, hint: null } }
+    expect(message(stale, { type: 'hintApplied' })).toBeNull()
+  })
+})

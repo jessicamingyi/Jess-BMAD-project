@@ -357,7 +357,8 @@ describe("What's a [Technique]?", () => {
 
   it('Esc order: Restart confirm, then the definition, then the panel', () => {
     focus(cell(OTHER))
-    press('1')
+    // A correct digit (a Mistake would give a Mistake Hint, which has no definition).
+    press(solution[OTHER])
     press('h')
     click(link()!)
     click(host.querySelector<HTMLButtonElement>('.action-row button:last-child')!)
@@ -503,5 +504,206 @@ describe('solved Puzzle', () => {
     click(button)
     press('h')
     expect(panel()).toBeNull()
+  })
+})
+
+describe('Mistake Hint', () => {
+  /** Row 4, column 6 (1-based): empty in the sample. */
+  const M = 32
+  /** Row 6, column 6: a later Mistake. */
+  const M2 = 50
+  const wrongAt = (c: number) => String((Number(solution[c]) % 9) + 1)
+  const mistakes = () => [...host.querySelectorAll('.sudoku-cell--mistake')].map((el) => Number(el.getAttribute('data-cell')))
+
+  beforeEach(() => {
+    // A Note under M, then Mistakes at M2 and M; Mistake Assist Off (the default).
+    focus(cell(M))
+    press('n')
+    press('3')
+    press('n')
+    focus(cell(M2))
+    press(wrongAt(M2))
+    focus(cell(M))
+    press(wrongAt(M))
+  })
+
+  it('H×3 from the grid: row nudge, explanation without a link, then the clear; Notes back; Undo restores it', () => {
+    expect(mistakes()).toEqual([])
+    press('h')
+    expect(label()).toBe('Nudge')
+    expect(text()).toBe("One of your digits doesn't fit — look at row 4.")
+    expect(panelButton().textContent).toBe('Explain it')
+    expect(live()).toBe(text())
+    expect(hinted()).toEqual([M])
+    expect(panel()!.querySelector('.hint-panel-link')).toBeNull()
+    // Assist Off: only the Hint's cell carries the Mistake mark and name.
+    expect(mistakes()).toEqual([M])
+    expect(cell(M).getAttribute('aria-label')).toBe(`Row 4, column 6, ${wrongAt(M)}, your digit, mistake, hint`)
+    expect(cell(M2).getAttribute('aria-label')).toBe(`Row 6, column 6, ${wrongAt(M2)}, your digit`)
+    press('h')
+    expect(label()).toBe('Explanation')
+    expect(text()).toBe(`The ${wrongAt(M)} in row 4, column 6 isn't part of this Puzzle's solution. Clearing it gets you back on track.`)
+    expect(panelButton().textContent).toBe('Show me the move')
+    expect(panel()!.textContent).not.toContain("What's a")
+    expect(hinted()).toEqual([M])
+    expect(mistakes()).toEqual([M])
+    press('h')
+    expect(cell(M).getAttribute('aria-label')).toBe('Row 4, column 6, notes 3')
+    expect(live()).toBe('row 4, column 6 cleared')
+    expect(label()).toBe('Hint')
+    expect(hinted()).toEqual([])
+    expect(mistakes()).toEqual([])
+    press('z', { ctrlKey: true })
+    expect(cell(M).textContent).toBe(wrongAt(M))
+    expect(label()).toBe('Hint')
+    expect(mistakes()).toEqual([])
+  })
+
+  it('Esc at step 1 closes the panel and the forced mark goes with it', () => {
+    press('h')
+    expect(mistakes()).toEqual([M])
+    press('Escape')
+    expect(panel()).toBeNull()
+    expect(mistakes()).toEqual([])
+  })
+
+  it('the action-row Hint and "Show me the move" clear it too', () => {
+    click(hintButton())
+    click(hintButton())
+    click(panelButton())
+    expect(cell(M).textContent).not.toBe(wrongAt(M))
+    expect(live()).toBe('row 4, column 6 cleared')
+    // The next Hint reports the next Mistake.
+    click(hintButton())
+    expect(text()).toBe("One of your digits doesn't fit — look at row 6.")
+  })
+})
+
+describe("Something doesn't fit yet", () => {
+  /** Two side-by-side empty cells in one row. */
+  const A = [...givens].findIndex((ch, i) => ch === '0' && i % 9 !== 8 && givens[i + 1] === '0')
+  const B = A + 1
+  const line = () => host.querySelector<HTMLElement>('.full-grid-line')
+  const lineButton = () => line()!.querySelector<HTMLButtonElement>('button')!
+  /** Every player cell holds its solution digit except A (B's digit) and B (empty). */
+  function mountAlmost() {
+    const base = createInitialState(samplePuzzle)
+    const digits = solution.slice(0, A) + solution[B] + '0' + solution.slice(B + 1)
+    mount({ ...base, sessions: { free: { ...base.sessions.free, digits } } })
+  }
+  /** Fill B with A's digit: the grid is full and wrong. */
+  function fillWrong() {
+    focus(cell(B))
+    press(solution[A])
+  }
+
+  beforeEach(mountAlmost)
+
+  it('appears when the grid fills up wrong: below the action row, default-style Hint; cue announced; grid in place', () => {
+    const screen = host.querySelector('.puzzle-screen')!
+    const card = host.querySelector('.grid-card')!
+    expect(line()).toBeNull()
+    fillWrong()
+    expect(line()).not.toBeNull()
+    expect(line()!.textContent).toBe("Something doesn't fit yet — want a hint?Hint")
+    expect(line()!.classList.contains('puzzle-status')).toBe(true)
+    expect(line()!.previousElementSibling?.classList.contains('action-row')).toBe(true)
+    expect(line()!.closest('.side-column')).not.toBeNull()
+    expect(lineButton().classList.contains('button')).toBe(true)
+    expect(lineButton().classList.contains('button--primary')).toBe(false)
+    expect(line()!.hasAttribute('aria-live')).toBe(false)
+    expect(live()).toBe(`${solution[A]}. Something doesn't fit yet — want a hint?`)
+    expect(screen.firstElementChild).toBe(card)
+    expect(host.querySelector('.grid-card')).toBe(card)
+    expect(card.contains(line())).toBe(false)
+    // Still in progress: no solved line, Hint not disabled.
+    expect(host.textContent).not.toContain('Solved')
+    expect(hintButton().hasAttribute('aria-disabled')).toBe(false)
+  })
+
+  it('its Hint opens step 1 of the Mistake Hint, then explains, then clears; the line goes and focus moves to the grid', () => {
+    fillWrong()
+    focus(lineButton())
+    click(lineButton())
+    expect(label()).toBe('Nudge')
+    expect(text()).toBe(`One of your digits doesn't fit — look at row ${Math.floor(A / 9) + 1}.`)
+    expect(hinted()).toEqual([A])
+    click(lineButton())
+    expect(label()).toBe('Explanation')
+    expect(document.activeElement).toBe(lineButton())
+    click(lineButton())
+    expect(cell(A).getAttribute('aria-label')).toMatch(/empty$/)
+    expect(line()).toBeNull()
+    expect(document.activeElement).toBe(host.querySelector('[role="grid"] [tabindex="0"]'))
+  })
+
+  it('side-column focus order: panel, mode indicator, pad, Undo · Hint · Restart, then the line', () => {
+    fillWrong()
+    press('h')
+    const side = host.querySelector('.side-column')!
+    const tabbable = [...side.querySelectorAll<HTMLElement>('button, [tabindex]')].filter((el) => el.tabIndex >= 0)
+    const names = tabbable.map((el) => el.textContent)
+    expect(names[0]).toBe('Explain it')
+    expect(names[1]).toBe('Digit')
+    expect(names.slice(-4)).toEqual([expect.stringMatching(/^Undo/), 'HintH', 'Restart', 'Hint'])
+    // The line's "Hint" is described by the line, so it isn't just a second "Hint".
+    const describedBy = lineButton().getAttribute('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    expect(document.getElementById(describedBy!)?.textContent).toBe("Something doesn't fit yet — want a hint?")
+    expect(line()!.contains(document.getElementById(describedBy!))).toBe(true)
+  })
+
+  it('goes when a cell is emptied by the player; focus stays put when it was not in the line', () => {
+    fillWrong()
+    expect(line()).not.toBeNull()
+    focus(cell(B))
+    press('Backspace')
+    expect(line()).toBeNull()
+    expect(document.activeElement).toBe(cell(B))
+  })
+
+  const tabStop = () => host.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')
+
+  it('Undo from inside the line: the line goes and focus lands on the grid', () => {
+    fillWrong()
+    focus(lineButton())
+    expect(press('z', { ctrlKey: true })).toBe(true)
+    expect(line()).toBeNull()
+    expect(document.activeElement).not.toBe(document.body)
+    expect(document.activeElement).toBe(tabStop())
+    expect(document.activeElement?.getAttribute('role')).toBe('gridcell')
+  })
+
+  it('Backspace from inside the line empties the selected cell: the line goes and focus lands on the grid', () => {
+    fillWrong()
+    focus(lineButton())
+    expect(press('Backspace')).toBe(true)
+    expect(cell(B).getAttribute('aria-label')).toMatch(/empty$/)
+    expect(line()).toBeNull()
+    expect(document.activeElement).toBe(tabStop())
+    expect(document.activeElement?.getAttribute('role')).toBe('gridcell')
+  })
+
+  it('Restart (its confirm takes focus out of the line first): the line goes and focus returns to Restart, not body', () => {
+    fillWrong()
+    focus(lineButton())
+    click(host.querySelector<HTMLButtonElement>('.action-row button:last-child')!)
+    expect(document.activeElement?.textContent).toBe('Keep going')
+    click([...host.querySelectorAll<HTMLButtonElement>('.action-row--confirm button')].find((b) => b.textContent === 'Restart')!)
+    expect(line()).toBeNull()
+    expect(document.activeElement).not.toBe(document.body)
+    expect(document.activeElement?.textContent).toBe('Restart')
+  })
+
+  it('goes when the grid is solved', () => {
+    fillWrong()
+    focus(cell(A))
+    press(solution[A])
+    expect(line()).not.toBeNull()
+    focus(lineButton())
+    focus(cell(B))
+    press(solution[B])
+    expect(line()).toBeNull()
+    expect(host.textContent).toContain('Solved. Another one?')
   })
 })

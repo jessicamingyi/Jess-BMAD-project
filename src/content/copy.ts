@@ -15,7 +15,8 @@ export const copy = {
   /**
    * e.g. "Row 4, column 6, 7, given" / "…, 7, your digit" / "…, notes 3, 7" / "…, empty".
    * Row and column are 1-based; `notes` is only read for kind 'notes'.
-   * `mistake` appends ", mistake" to a player digit (only when the Mistake Assist is On).
+   * `mistake` appends ", mistake" to a player digit (when the Mistake Assist is On, or
+   * when an open Mistake Hint names that cell).
    * `hint` appends ", hint" to a cell a Hint names.
    */
   cellLabel: (
@@ -108,9 +109,18 @@ export const copy = {
   hintShowMove: 'Show me the move',
   hintSetAside: 'Esc to set aside',
   hintDefinitionClose: 'Close',
+  /** Mistake Hint, step 1 and step 2 (row and column 1-based). */
+  hintMistakeNudge: (row: number): string => `One of your digits doesn't fit — look at row ${row}.`,
+  hintMistakeExplain: (digit: number, row: number, col: number): string =>
+    `The ${digit} in row ${row}, column ${col} isn't part of this Puzzle's solution. Clearing it gets you back on track.`,
+
+  /** Inline side-column line when every cell is filled but the grid isn't the solution; its button reuses `hint`. */
+  fullNotSolved: "Something doesn't fit yet — want a hint?",
 
   /** Polite live-region announcements (UX-DR61). Mode switches reuse entryDigit/entryNotes and statusCellFirst/statusNumberFirst. */
   announceDigit: (digit: number): string => String(digit),
+  /** The digit that fills the grid wrong, with the cue once: "7. Something doesn't fit yet — want a hint?". */
+  announceDigitFullNotSolved: (digit: number): string => `${digit}. ${copy.fullNotSolved}`,
   announceNoteAdded: (digit: number): string => `note ${digit} added`,
   announceNoteRemoved: (digit: number): string => `note ${digit} removed`,
   announceCleared: 'cleared',
@@ -120,4 +130,6 @@ export const copy = {
   /** A Hint move, e.g. "7 placed, row 4, column 4" (1-based); "… column 4. Solved" when it solves the Puzzle. */
   announceHintPlaced: (digit: number, row: number, col: number, solved = false): string =>
     `${digit} placed, row ${row}, column ${col}${solved ? `. ${copy.announceSolved}` : ''}`,
+  /** A Mistake Hint's clear, e.g. "row 4, column 6 cleared" (1-based). */
+  announceHintCleared: (row: number, col: number): string => `row ${row}, column ${col} cleared`,
 } as const

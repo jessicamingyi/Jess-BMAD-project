@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { copy } from '../../src/content/copy.ts'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { withAnnouncement } from '../../src/game/announce.ts'
-import { activeHint, hintAction, hintFocusCells, hintMove, hintTechnique, hintView } from '../../src/game/hint.ts'
+import { cellMarks } from '../../src/game/assists.ts'
+import { activeHint, hintAction, hintFocusCells, hintMistakeCell, hintMove, hintTechnique, hintView } from '../../src/game/hint.ts'
 import { reducer } from '../../src/game/reducer.ts'
-import { createInitialState, createSession, FREE_PLAY_KEY } from '../../src/game/session.ts'
+import { createInitialState, createSession, FREE_PLAY_KEY, isFullNotSolved } from '../../src/game/session.ts'
 import type { Action, AppState } from '../../src/game/types.ts'
 import { HINT_POSITIONS, PUZZLES } from '../engine/fixtures.ts'
 
@@ -535,5 +537,226 @@ describe('hintApplied', () => {
       expect(say(s, APPLY)).toBe(s)
       expect(s.sessions.free.hintsUsed).toBe(0)
     })
+  })
+})
+
+describe('Mistake Hints', () => {
+  /** Row 4, column 6 (1-based): empty in the sample, solution 1. */
+  const M = 32
+  /** Row 6, column 6: empty, solution 4. A later Mistake in row-major order. */
+  const M2 = 50
+  const notesMode: Action = { type: 'entryModeChosen', mode: 'notes' }
+  const digitMode: Action = { type: 'entryModeChosen', mode: 'digit' }
+  const UNDO: Action = { type: 'undoRequested' }
+  const idle = { sessionKey: FREE_PLAY_KEY, step: 'idle', result: null }
+  const NUDGE = "One of your digits doesn't fit — look at row 4."
+  const EXPLAIN = "The 9 in row 4, column 6 isn't part of this Puzzle's solution. Clearing it gets you back on track."
+  /** A 9 at M (with Notes 3 and 5 under it) and an 8 at M2, M2 placed first. */
+  const wrong = () =>
+    deepFreeze(run(fresh(), select(M2), enter(8), notesMode, select(M), enter(3), enter(5), digitMode, select(M), enter(9)))
+
+  it('fixture: both cells are empty in the sample and the digits are Mistakes', () => {
+    expect(givens[M]).toBe('0')
+    expect(givens[M2]).toBe('0')
+    expect(solution[M]).not.toBe('9')
+    expect(solution[M2]).not.toBe('8')
+  })
+
+  it('step 1: the first Mistake in row-major order; Nudge, row text, "Explain it"; ring on that cell only; announced once', () => {
+    const s = say(wrong(), H)
+    expect(s.ui.hint).toEqual({ sessionKey: FREE_PLAY_KEY, step: 'nudge', result: { kind: 'mistake', cell: M, digit: 9 } })
+    expect(hintView(s.ui.hint, s.sessions.free.digits)).toEqual({ label: 'Nudge', text: NUDGE, button: 'Explain it', technique: null })
+    expect([...hintFocusCells(s.ui.hint)]).toEqual([M])
+    expect(hintMistakeCell(s.ui.hint)).toBe(M)
+    expect(hintMove(s.ui.hint)).toBeNull()
+    expect(hintAction(s.ui.hint)).toEqual(H)
+    expect(s.ui.announcement?.text).toBe(NUDGE)
+    expect(s.ui.undo).toEqual(wrong().ui.undo)
+  })
+
+  it('step 2: Explanation, the digit and its place, "Show me the move"; ring stays; no Technique', () => {
+    const s1 = say(wrong(), H)
+    const s2 = say(s1, H)
+    expect(s2.ui.hint?.step).toBe('explain')
+    expect(hintView(s2.ui.hint, s2.sessions.free.digits)).toEqual({
+      label: 'Explanation',
+      text: EXPLAIN,
+      button: 'Show me the move',
+      technique: null,
+    })
+    expect([...hintFocusCells(s2.ui.hint)]).toEqual([M])
+    expect(hintTechnique(s2.ui.hint)).toBeNull()
+    expect(hintMove(s2.ui.hint)).toEqual({ cell: M, digit: 0 })
+    expect(hintAction(s2.ui.hint)).toEqual(APPLY)
+    expect(s2.ui.announcement).toEqual({ text: EXPLAIN, seq: s1.ui.announcement!.seq + 1 })
+    // The definition can't open for a Mistake.
+    expect(reducer(s2, { type: 'techniqueDefinitionOpened' })).toBe(s2)
+  })
+
+  it('found whatever the Mistake Assist setting', () => {
+    const w = wrong()
+    const assistOn = deepFreeze({ ...w, settings: { ...w.settings, mistakeHighlighting: true } })
+    expect(run(assistOn, H).ui.hint?.result).toEqual({ kind: 'mistake', cell: M, digit: 9 })
+    expect(run(w, H).ui.hint?.result).toEqual({ kind: 'mistake', cell: M, digit: 9 })
+  })
+
+  it("Assist Off: only the Hint's cell is marked, at steps 1 and 2; idle or closed marks nothing", () => {
+    const s0 = wrong()
+    expect(s0.settings.mistakeHighlighting).toBe(false)
+    const marked = (s: AppState) =>
+      cellMarks(s.sessions.free, s.ui.selectedCell, s.settings, hintMistakeCell(activeHint(s, FREE_PLAY_KEY))).cells.flatMap(
+        (m, i) => (m.mistake ? [i] : []),
+      )
+    expect(marked(s0)).toEqual([])
+    const s1 = run(s0, H)
+    expect(marked(s1)).toEqual([M])
+    expect(marked(run(s1, H))).toEqual([M])
+    expect(marked(run(s1, ESC))).toEqual([])
+    const idleState = run(s1, select(OTHER), enter(Number(solution[OTHER])))
+    expect(idleState.ui.hint?.step).toBe('idle')
+    expect(hintMistakeCell(idleState.ui.hint)).toBeNull()
+    expect(marked(idleState)).toEqual([])
+    // A chain Hint marks nothing.
+    expect(hintMistakeCell(run(fresh(), H).ui.hint)).toBeNull()
+  })
+
+  it('clear: digit → 0 with the Notes mask kept; hintsUsed + 1; one Undo entry; Hint idle; announced once', () => {
+    const s = deepFreeze(say(wrong(), H, H))
+    const notes = s.sessions.free.notes
+    expect(notes[M]).not.toBe(0)
+    const next = say(s, APPLY)
+    const d = s.sessions.free.digits
+    expect(next.sessions.free.digits).toBe(d.slice(0, M) + '0' + d.slice(M + 1))
+    expect(next.sessions.free.notes).toBe(notes)
+    expect(next.sessions.free.hintsUsed).toBe(1)
+    expect(next.sessions.free.status).toBe('inProgress')
+    expect(next.ui.undo).toHaveLength(s.ui.undo.length + 1)
+    expect(next.ui.undo.at(-1)).toEqual({ digits: d, notes })
+    expect(next.ui.hint).toEqual(idle)
+    expect(hintFocusCells(next.ui.hint).size).toBe(0)
+    expect(next.ui.announcement).toEqual({ text: 'row 4, column 6 cleared', seq: s.ui.announcement!.seq + 1 })
+    expect(next.meta.lastPlayedKey).toBe(FREE_PLAY_KEY)
+  })
+
+  it('H three times (hintAction) clears it, in Notes entry mode too, Notes untouched', () => {
+    const press = (st: AppState) => reducer(st, hintAction(activeHint(st, FREE_PLAY_KEY)))
+    const s = run(wrong(), notesMode)
+    const cleared = press(press(press(s)))
+    expect(cleared.sessions.free.digits[M]).toBe('0')
+    expect(cleared.sessions.free.notes).toBe(s.sessions.free.notes)
+    expect(cleared.ui.entryMode).toBe('notes')
+  })
+
+  it('Undo after the clear: the Mistake digit comes back; hintsUsed unchanged; Hint idle', () => {
+    const applied = run(wrong(), H, H, APPLY)
+    const undone = run(applied, UNDO)
+    expect(undone.sessions.free.digits).toBe(wrong().sessions.free.digits)
+    expect(undone.sessions.free.notes).toEqual(wrong().sessions.free.notes)
+    expect(undone.sessions.free.hintsUsed).toBe(1)
+    expect(undone.ui.hint).toEqual(idle)
+  })
+
+  it('the next Hint reports the next Mistake; with none left, a chain', () => {
+    const afterFirst = run(wrong(), H, H, APPLY, H)
+    expect(afterFirst.ui.hint?.result).toEqual({ kind: 'mistake', cell: M2, digit: 8 })
+    const afterBoth = run(afterFirst, H, APPLY, H)
+    expect(afterBoth.sessions.free.digits[M2]).toBe('0')
+    expect(afterBoth.ui.hint?.result?.kind).toBe('chain')
+    expect(afterBoth.sessions.free.hintsUsed).toBe(2)
+  })
+
+  it('the player fixes or clears the cell: Hint idle; the next Hint moves on', () => {
+    const s = run(wrong(), H, H)
+    const fixed = run(s, select(M), enter(Number(solution[M])))
+    expect(fixed.ui.hint).toEqual(idle)
+    expect(run(fixed, H).ui.hint?.result).toEqual({ kind: 'mistake', cell: M2, digit: 8 })
+    expect(run(s, select(M), { type: 'cellCleared' }).ui.hint).toEqual(idle)
+  })
+
+  it('asking never changes Notes, and the reported cell is never a Given', () => {
+    const w = wrong()
+    const s = run(w, H, H)
+    expect(s.sessions.free.notes).toBe(w.sessions.free.notes)
+    const result = s.ui.hint?.result
+    expect(result?.kind === 'mistake' && givens[result.cell]).toBe('0')
+  })
+
+  describe('stale clear: same state, nothing announced; never throws', () => {
+    const at = deepFreeze(run(wrong(), H, H))
+    const withHint = (hint: AppState['ui']['hint']): AppState => deepFreeze({ ...at, ui: { ...at.ui, hint } })
+    const withDigits = (digits: string): AppState => deepFreeze({ ...at, sessions: { free: { ...at.sessions.free, digits } } })
+    const d = at.sessions.free.digits
+    const cases: [string, AppState][] = [
+      ['ui.hint null', withHint(null)],
+      ["another Session's Hint", withHint({ ...at.ui.hint!, sessionKey: 'city:a' })],
+      ['step nudge', withHint({ ...at.ui.hint!, step: 'nudge' })],
+      ['step idle', withHint({ ...at.ui.hint!, step: 'idle' })],
+      ['solved', deepFreeze({ ...at, sessions: { free: { ...at.sessions.free, digits: solution, status: 'solved' } } })],
+      ['cell no longer holds the digit', withDigits(d.slice(0, M) + '7' + d.slice(M + 1))],
+      ['cell already empty', withDigits(d.slice(0, M) + '0' + d.slice(M + 1))],
+      ['a Given cell', withHint({ ...at.ui.hint!, result: { kind: 'mistake', cell: 0, digit: 5 } })],
+      ['an out-of-range cell', withHint({ ...at.ui.hint!, result: { kind: 'mistake', cell: 81, digit: 9 } })],
+    ]
+    for (const [name, s] of cases) {
+      it(name, () => {
+        expect(reducer(s, APPLY)).toBe(s)
+        expect(say(s, APPLY)).toBe(s)
+      })
+    }
+  })
+})
+
+describe('full but wrong grid', () => {
+  /** Two side-by-side empty cells in one row; swapping their solution digits fills the grid wrong. */
+  const A = [...givens].findIndex((ch, i) => ch === '0' && i % 9 !== 8 && givens[i + 1] === '0')
+  const B = A + 1
+  const swapped = solution.slice(0, A) + solution[B] + solution[A] + solution.slice(B + 1)
+  const withDigits = (digits: string): AppState => {
+    const s = fresh()
+    return deepFreeze({ ...s, sessions: { free: { ...s.sessions.free, digits } } })
+  }
+
+  it('isFullNotSolved: no empty cell and not the solution', () => {
+    const session = createSession(FREE_PLAY_KEY, samplePuzzle)
+    expect(isFullNotSolved(session)).toBe(false)
+    expect(isFullNotSolved({ ...session, digits: solution })).toBe(false)
+    expect(isFullNotSolved({ ...session, digits: swapped })).toBe(true)
+    expect(isFullNotSolved({ ...session, digits: swapped.slice(0, A) + '0' + swapped.slice(B) })).toBe(false)
+  })
+
+  it('the last digit fills it wrong: inProgress, Assist untouched, the cue said once with the digit', () => {
+    const s0 = withDigits(solution.slice(0, A) + solution[B] + '0' + solution.slice(B + 1))
+    const s = say(s0, select(B), enter(Number(solution[A])))
+    expect(s.sessions.free.digits).toBe(swapped)
+    expect(s.sessions.free.status).toBe('inProgress')
+    expect(s.settings).toBe(s0.settings)
+    expect(s.ui.announcement?.text).toBe(`${solution[A]}. Something doesn't fit yet — want a hint?`)
+    // Already full: a further change says only the digit.
+    const again = say(s, select(A), enter(Number(solution[A])))
+    expect(isFullNotSolved(again.sessions.free)).toBe(true)
+    expect(again.ui.announcement?.text).toBe(solution[A])
+    // Input stays live: fixing the last cell solves.
+    const solved = say(again, select(B), enter(Number(solution[B])))
+    expect(solved.sessions.free.digits).toBe(solution)
+    expect(solved.sessions.free.status).toBe('solved')
+  })
+
+  it('a Hint on it is always a Mistake Hint', () => {
+    expect(run(withDigits(swapped), H).ui.hint?.result).toEqual({ kind: 'mistake', cell: A, digit: Number(solution[B]) })
+  })
+})
+
+describe('Mistake copy', () => {
+  it('has no "!" and no "Wrong"', () => {
+    for (const text of [
+      copy.hintMistakeNudge(4),
+      copy.hintMistakeExplain(9, 4, 6),
+      copy.announceHintCleared(4, 6),
+      copy.fullNotSolved,
+      copy.announceDigitFullNotSolved(7),
+    ]) {
+      expect(text).not.toMatch(/!|wrong/i)
+    }
+    expect(copy.announceDigitFullNotSolved(7)).toBe("7. Something doesn't fit yet — want a hint?")
   })
 })
