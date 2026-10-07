@@ -6,7 +6,7 @@ import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { createInitialState } from '../../src/game/session.ts'
 import type { AppState } from '../../src/game/types.ts'
 import { App } from '../../src/ui/app.tsx'
-import { PUZZLES } from '../engine/fixtures.ts'
+import { HINT_POSITIONS, PUZZLES } from '../engine/fixtures.ts'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean
@@ -45,7 +45,7 @@ afterEach(() => {
 
 const cell = (i: number) => host.querySelector<HTMLButtonElement>(`[data-cell="${i}"]`)!
 const panel = () => host.querySelector<HTMLElement>('.hint-panel')
-const panelButton = () => panel()!.querySelector<HTMLButtonElement>('button')!
+const panelButton = () => panel()!.querySelector<HTMLButtonElement>('.hint-panel-actions button')!
 const label = () => panel()!.querySelector('.hint-panel-label')!.textContent
 const text = () => panel()!.querySelector('.hint-panel-text')?.textContent ?? ''
 const live = () => host.querySelector('[aria-live="polite"]')!.textContent
@@ -257,8 +257,201 @@ describe('Hint panel', () => {
     press('h')
     const tabbable = [...host.querySelectorAll<HTMLElement>('main button, main [tabindex]')].filter((el) => el.tabIndex >= 0)
     const names = tabbable.map((el) => (el.getAttribute('role') === 'gridcell' ? 'grid' : el.textContent))
-    expect(names.slice(0, 3)).toEqual(['grid', 'Explain it', 'Digit'])
+    expect(names.slice(0, 4)).toEqual(['grid', "What's a naked single?", 'Explain it', 'Digit'])
     expect(names.slice(-3)).toEqual([expect.stringMatching(/^Undo/), 'HintH', 'Restart'])
+  })
+})
+
+describe("What's a [Technique]?", () => {
+  const link = () => panel()?.querySelector<HTMLButtonElement>('.hint-panel-link') ?? null
+  const definition = () => panel()?.querySelector<HTMLElement>('.hint-panel-definition') ?? null
+  const closeButton = () => definition()!.querySelector<HTMLButtonElement>('button')!
+  const gridSnapshot = () => host.querySelector('[role="grid"]')!.outerHTML
+
+  it('shows the link at steps 1 and 2, not when idle; it names the hardest Technique in the chain', () => {
+    const digits = HINT_POSITIONS.pointing
+    mount(createInitialState({ givens: digits, solution, difficulty: 'hard' }))
+    focus(cell(digits.indexOf('0')))
+    press('h')
+    expect(label()).toBe('Nudge')
+    expect(link()?.textContent).toBe("What's pointing?")
+    expect(link()?.getAttribute('aria-expanded')).toBe('false')
+    expect(link()?.hasAttribute('aria-controls')).toBe(false)
+    expect(definition()).toBeNull()
+    press('h')
+    expect(label()).toBe('Explanation')
+    expect(link()?.textContent).toBe("What's pointing?")
+    press('h') // places the move: idle
+    expect(label()).toBe('Hint')
+    expect(link()).toBeNull()
+  })
+
+  it('opens below the link with focus on it; step, text, marks, live region and grid unchanged', () => {
+    focus(cell(OTHER))
+    press('h')
+    const before = { text: text(), marks: hinted(), live: live(), grid: gridSnapshot() }
+    focus(link()!)
+    click(link()!)
+    const def = definition()!
+    expect(def).not.toBeNull()
+    expect(link()!.getAttribute('aria-expanded')).toBe('true')
+    expect(link()!.getAttribute('aria-controls')).toBe(def.id)
+    expect(link()!.nextElementSibling).toBe(def)
+    expect(def.getAttribute('role')).toBe('region')
+    expect(def.tabIndex).toBe(-1)
+    const title = def.querySelector('.hint-panel-definition-title')!
+    expect(def.getAttribute('aria-labelledby')).toBe(title.id)
+    expect(title.textContent).toBe('Naked single')
+    expect(def.textContent).toContain(
+      'A cell where only one digit is left, because the other eight are already in its row, column or box.',
+    )
+    expect(closeButton().textContent).toBe('Close')
+    expect(document.activeElement).toBe(def)
+    expect(label()).toBe('Nudge')
+    expect({ text: text(), marks: hinted(), live: live(), grid: gridSnapshot() }).toEqual(before)
+    expect(panel()!.contains(def)).toBe(true)
+    expect(host.querySelector('.grid-card')!.contains(def)).toBe(false)
+  })
+
+  it('Esc closes it and focus returns to the link; a second Esc closes the panel', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    expect(document.activeElement).toBe(definition())
+    expect(press('Escape')).toBe(true)
+    expect(definition()).toBeNull()
+    expect(label()).toBe('Nudge')
+    expect(document.activeElement).toBe(link())
+    press('Escape')
+    expect(panel()).toBeNull()
+    expect(document.activeElement).toBe(cell(OTHER))
+  })
+
+  it('the Close control and the link again close it; focus goes to the link', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    focus(closeButton())
+    click(closeButton())
+    expect(definition()).toBeNull()
+    expect(document.activeElement).toBe(link())
+    click(link()!)
+    expect(definition()).not.toBeNull()
+    focus(link()!)
+    click(link()!)
+    expect(definition()).toBeNull()
+    expect(link()!.getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(link())
+  })
+
+  it('Esc from the grid closes it and focus stays in the grid', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    focus(cell(OTHER))
+    press('Escape')
+    expect(definition()).toBeNull()
+    expect(panel()).not.toBeNull()
+    expect(document.activeElement).toBe(cell(OTHER))
+  })
+
+  it('Esc order: Restart confirm, then the definition, then the panel', () => {
+    focus(cell(OTHER))
+    press('1')
+    press('h')
+    click(link()!)
+    click(host.querySelector<HTMLButtonElement>('.action-row button:last-child')!)
+    expect(host.querySelector('.action-row--confirm')).not.toBeNull()
+    focus(cell(OTHER))
+    press('Escape')
+    expect(host.querySelector('.action-row--confirm')).toBeNull()
+    expect(definition()).not.toBeNull()
+    press('Escape')
+    expect(definition()).toBeNull()
+    expect(panel()).not.toBeNull()
+    press('Escape')
+    expect(panel()).toBeNull()
+  })
+
+  it('stays open when the step advances', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    focus(cell(OTHER))
+    press('h')
+    expect(label()).toBe('Explanation')
+    expect(definition()).not.toBeNull()
+  })
+
+  it('a digit placed from the grid: panel idle, definition gone, focus stays in the grid', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    focus(cell(OTHER))
+    press('1')
+    expect(label()).toBe('Hint')
+    expect(definition()).toBeNull()
+    expect(link()).toBeNull()
+    expect(document.activeElement).toBe(cell(OTHER))
+  })
+
+  it('a reset with focus in the definition sends focus to the grid tab stop', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    expect(document.activeElement).toBe(definition())
+    press('z', { ctrlKey: true }) // nothing to undo: no change
+    expect(document.activeElement).toBe(definition())
+    press('5') // cell-first with OTHER selected: places a digit
+    expect(label()).toBe('Hint')
+    expect(definition()).toBeNull()
+    expect(document.activeElement).toBe(host.querySelector('[role="grid"] [tabindex="0"]'))
+  })
+
+  it('H with focus inside the open definition advances the step; focus and the definition stay', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    const def = definition()!
+    expect(document.activeElement).toBe(def)
+    press('h')
+    expect(label()).toBe('Explanation')
+    expect(definition()).toBe(def)
+    expect(document.activeElement).toBe(def)
+  })
+
+  it('after Esc closes the panel, H opens a fresh Hint with the definition closed', () => {
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    focus(cell(OTHER))
+    press('Escape')
+    press('Escape')
+    expect(panel()).toBeNull()
+    press('h')
+    expect(label()).toBe('Nudge')
+    expect(definition()).toBeNull()
+    expect(link()!.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('a stray definitionOpen flag without a Technique never swallows Esc: it closes the panel', () => {
+    const base = createInitialState(samplePuzzle)
+    mount({ ...base, ui: { ...base.ui, hint: { sessionKey: 'free', step: 'idle', result: null, definitionOpen: true } } })
+    focus(cell(OTHER))
+    expect(panel()).not.toBeNull()
+    expect(link()).toBeNull()
+    expect(press('Escape')).toBe(true)
+    expect(panel()).toBeNull()
+  })
+
+  it('opening it leaves the grid card first and in place', () => {
+    const screen = host.querySelector('.puzzle-screen')!
+    const card = host.querySelector('.grid-card')!
+    focus(cell(OTHER))
+    press('h')
+    click(link()!)
+    expect(screen.firstElementChild).toBe(card)
+    expect(host.querySelector('.grid-card')).toBe(card)
   })
 })
 

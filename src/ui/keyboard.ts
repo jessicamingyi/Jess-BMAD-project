@@ -22,6 +22,8 @@ export type KeyContext = {
   readonly restartConfirming: boolean
   /** The Hint panel is open for this Session (Esc sets it aside). */
   readonly hintOpen: boolean
+  /** The Hint's "What's a…" definition is open (Esc closes it before the panel). */
+  readonly definitionOpen: boolean
   /** The Hint is at step 2 with a move to place: H applies it. */
   readonly hintAtMove: boolean
   /** Undo is Cmd+Z on macOS, Ctrl+Z elsewhere. */
@@ -45,9 +47,10 @@ export function keyToAction(input: KeyInput, ctx: KeyContext): Action | null {
   // Leave every other modified key to the browser.
   if (ctrlKey || metaKey || altKey) return null
 
-  // Esc closes the innermost thing first: the Restart confirm, then the Hint panel.
+  // Esc closes the innermost thing first: the Restart confirm, then the definition, then the Hint panel.
   if (key === 'Escape') {
     if (ctx.restartConfirming) return { type: 'restartCancelled' }
+    if (ctx.definitionOpen) return { type: 'techniqueDefinitionClosed' }
     return ctx.hintOpen ? { type: 'hintClosed' } : null
   }
 
@@ -101,7 +104,7 @@ export function useKeyboard(
   dispatch: (action: Action) => void,
   context: Omit<KeyContext, 'inGrid'>,
 ): void {
-  const { inputMode, selectedCell, restartConfirming, hintOpen, hintAtMove, isMac } = context
+  const { inputMode, selectedCell, restartConfirming, hintOpen, definitionOpen, hintAtMove, isMac } = context
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -115,6 +118,7 @@ export function useKeyboard(
         selectedCell,
         restartConfirming,
         hintOpen,
+        definitionOpen,
         hintAtMove,
         isMac,
       })
@@ -124,7 +128,7 @@ export function useKeyboard(
     }
     el.addEventListener('keydown', onKeyDown)
     return () => el.removeEventListener('keydown', onKeyDown)
-  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, hintAtMove, isMac])
+  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, definitionOpen, hintAtMove, isMac])
 }
 
 /**

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { withAnnouncement } from '../../src/game/announce.ts'
-import { activeHint, hintAction, hintFocusCells, hintMove, hintView } from '../../src/game/hint.ts'
+import { activeHint, hintAction, hintFocusCells, hintMove, hintTechnique, hintView } from '../../src/game/hint.ts'
 import { reducer } from '../../src/game/reducer.ts'
 import { createInitialState, createSession, FREE_PLAY_KEY } from '../../src/game/session.ts'
 import type { Action, AppState } from '../../src/game/types.ts'
@@ -242,14 +242,140 @@ describe('activeHint (two sessions)', () => {
 })
 
 describe('hintView', () => {
-  it('idle / nudge / explain labels and the one button', () => {
-    expect(hintView(null, givens)).toEqual({ label: 'Hint', text: '', button: 'Show a nudge' })
+  const naked = {
+    link: "What's a naked single?",
+    title: 'Naked single',
+    definition: 'A cell where only one digit is left, because the other eight are already in its row, column or box.',
+  }
+
+  it('idle / nudge / explain labels and the one button; the Technique link at steps 1 and 2 only', () => {
+    expect(hintView(null, givens)).toEqual({ label: 'Hint', text: '', button: 'Show a nudge', technique: null })
     const n = run(fresh(), H)
-    expect(hintView(n.ui.hint, givens)).toEqual({ label: 'Nudge', text: 'Look for a naked single in row 5.', button: 'Explain it' })
+    expect(hintView(n.ui.hint, givens)).toEqual({
+      label: 'Nudge',
+      text: 'Look for a naked single in row 5.',
+      button: 'Explain it',
+      technique: naked,
+    })
     const e = run(n, H)
-    expect(hintView(e.ui.hint, givens)).toMatchObject({ label: 'Explanation', button: 'Show me the move' })
+    expect(hintView(e.ui.hint, givens)).toMatchObject({ label: 'Explanation', button: 'Show me the move', technique: naked })
     const idle = run(e, select(OTHER), enter(1))
-    expect(hintView(idle.ui.hint, idle.sessions.free.digits)).toEqual({ label: 'Hint', text: '', button: 'Show a nudge' })
+    expect(hintView(idle.ui.hint, idle.sessions.free.digits)).toEqual({
+      label: 'Hint',
+      text: '',
+      button: 'Show a nudge',
+      technique: null,
+    })
+  })
+})
+
+describe('hintTechnique', () => {
+  const at = (digits: string, ...actions: Action[]) =>
+    run(createInitialState({ givens: digits, solution, difficulty: 'hard' }), ...actions).ui.hint
+
+  it("names the chain's first Step's Technique (the one the nudge names)", () => {
+    // Pointing, pointing, then a naked single.
+    expect(hintTechnique(at(HINT_POSITIONS.pointing, H))).toBe('pointing')
+    expect(hintView(at(HINT_POSITIONS.pointing, H), HINT_POSITIONS.pointing).technique?.link).toBe("What's pointing?")
+    expect(hintTechnique(at(HINT_POSITIONS.pointing, H, H))).toBe('pointing')
+    // Naked pair, naked pair, then a hidden single.
+    expect(hintTechnique(at(HINT_POSITIONS.nakedPair, H))).toBe('nakedPair')
+    expect(hintTechnique(at(HINT_POSITIONS.claiming, H))).toBe('claiming')
+    expect(hintTechnique(run(fresh(), H).ui.hint)).toBe('nakedSingle')
+  })
+
+  it('a mixed chain names its first Step, not the hardest; a single-step chain names its single', () => {
+    const step = (technique: 'nakedPair' | 'pointing' | 'hiddenSingle', placements: { cell: number; digit: number }[] = []) => ({
+      technique,
+      placements,
+      eliminations: [],
+      focusCells: [33],
+      unit: { kind: 'box' as const, index: 5 },
+    })
+    const mixed = {
+      sessionKey: FREE_PLAY_KEY,
+      step: 'nudge' as const,
+      result: { kind: 'chain' as const, chain: [step('nakedPair'), step('pointing'), step('hiddenSingle', [{ cell: 33, digit: 1 }])] },
+    }
+    expect(hintTechnique(mixed)).toBe('nakedPair')
+    expect(hintView(mixed, givens).text).toBe('Look for a naked pair in box 6.')
+    expect(hintView(mixed, givens).technique?.link).toBe("What's a naked pair?")
+    const single = { ...mixed, result: { kind: 'chain' as const, chain: [step('hiddenSingle', [{ cell: 33, digit: 1 }])] } }
+    expect(hintTechnique(single)).toBe('hiddenSingle')
+    expect(hintView(single, givens).technique?.link).toBe("What's a hidden single?")
+  })
+
+  it('null when closed, idle or without a chain', () => {
+    expect(hintTechnique(null)).toBeNull()
+    expect(hintTechnique({ sessionKey: FREE_PLAY_KEY, step: 'idle', result: null })).toBeNull()
+    expect(hintTechnique({ sessionKey: FREE_PLAY_KEY, step: 'nudge', result: { kind: 'none' } })).toBeNull()
+  })
+})
+
+describe('technique definition', () => {
+  const OPEN: Action = { type: 'techniqueDefinitionOpened' }
+  const CLOSE: Action = { type: 'techniqueDefinitionClosed' }
+
+  it('open: definitionOpen true; step, chain, marks, digits, Notes and Undo unchanged', () => {
+    const s = run(fresh(), select(OTHER), H)
+    const o = reducer(s, OPEN)
+    expect(o.ui.hint).toEqual({ ...s.ui.hint, definitionOpen: true })
+    expect(o.ui.hint?.result).toBe(s.ui.hint?.result)
+    expect(hintFocusCells(o.ui.hint)).toEqual(hintFocusCells(s.ui.hint))
+    expect(hintView(o.ui.hint, givens)).toEqual(hintView(s.ui.hint, givens))
+    expect(o.sessions).toBe(s.sessions)
+    expect(o.ui.undo).toBe(s.ui.undo)
+    expect(o.ui.selectedCell).toBe(s.ui.selectedCell)
+  })
+
+  it('close: definitionOpen false, same step', () => {
+    const o = run(fresh(), H, H, OPEN)
+    const c = reducer(o, CLOSE)
+    expect(c.ui.hint?.definitionOpen).toBe(false)
+    expect(c.ui.hint?.step).toBe('explain')
+    expect(c.sessions).toBe(o.sessions)
+    expect(c.ui.undo).toBe(o.ui.undo)
+  })
+
+  it('no change returns the same state: open twice, close when closed', () => {
+    const o = run(fresh(), H, OPEN)
+    expect(reducer(o, OPEN)).toBe(o)
+    const n = run(fresh(), H)
+    expect(reducer(n, CLOSE)).toBe(n)
+  })
+
+  it('step advance keeps it open (same chain, same Technique)', () => {
+    const s = run(fresh(), H, OPEN, H)
+    expect(s.ui.hint?.step).toBe('explain')
+    expect(s.ui.hint?.definitionOpen).toBe(true)
+  })
+
+  it('any digit change resets the Hint to idle and drops the definition', () => {
+    const placed = run(fresh(), select(OTHER), enter(1))
+    const opened = run(placed, H, OPEN)
+    const idle = { sessionKey: FREE_PLAY_KEY, step: 'idle', result: null }
+    expect(run(opened, enter(2)).ui.hint).toEqual(idle)
+    expect(run(opened, { type: 'cellCleared' }).ui.hint).toEqual(idle)
+    expect(run(opened, { type: 'undoRequested' }).ui.hint).toEqual(idle)
+    expect(run(opened, { type: 'restartRequested' }, { type: 'restartConfirmed' }).ui.hint).toEqual(idle)
+    expect(run(opened, H, APPLY).ui.hint).toEqual(idle)
+    expect(run(opened, ESC).ui.hint).toBeNull()
+  })
+
+  it('stale: no Hint, another Session, idle, or no chain → same state reference', () => {
+    const none = fresh()
+    expect(reducer(none, OPEN)).toBe(none)
+    expect(reducer(none, CLOSE)).toBe(none)
+    const opened = run(fresh(), H, OPEN)
+    const other = deepFreeze({ ...opened, ui: { ...opened.ui, hint: { ...opened.ui.hint!, sessionKey: 'city:x' } } })
+    expect(reducer(other, OPEN)).toBe(other)
+    expect(reducer(other, CLOSE)).toBe(other)
+    const idle = run(fresh(), select(OTHER), enter(1), H, enter(2))
+    expect(idle.ui.hint?.step).toBe('idle')
+    expect(reducer(idle, OPEN)).toBe(idle)
+    const noChain = deepFreeze({ ...opened, ui: { ...opened.ui, hint: { sessionKey: FREE_PLAY_KEY, step: 'nudge' as const, result: { kind: 'none' as const }, definitionOpen: true } } })
+    expect(reducer(noChain, OPEN)).toBe(noChain)
+    expect(reducer(noChain, CLOSE)).toBe(noChain)
   })
 })
 

@@ -136,3 +136,17 @@ describe('withAnnouncement', () => {
     expect(undone.ui.announcement).toEqual(s.ui.announcement)
   })
 })
+
+describe('technique definition', () => {
+  it('opening and closing it announce nothing', () => {
+    const shown = run(fresh(), { type: 'hintRequested' })
+    const opened = run(shown, { type: 'techniqueDefinitionOpened' })
+    expect(opened.ui.hint?.definitionOpen).toBe(true)
+    expect(opened.ui.announcement).toBe(shown.ui.announcement)
+    expect(message(shown, { type: 'techniqueDefinitionOpened' })).toBeNull()
+    const closed = run(opened, { type: 'techniqueDefinitionClosed' })
+    expect(closed.ui.hint?.definitionOpen).toBe(false)
+    expect(closed.ui.announcement).toBe(opened.ui.announcement)
+    expect(message(opened, { type: 'techniqueDefinitionClosed' })).toBeNull()
+  })
+})

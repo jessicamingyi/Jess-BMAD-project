@@ -85,6 +85,11 @@ export type HintState = {
   readonly sessionKey: string
   readonly step: HintStep
   readonly result: HintResult | null
+  /**
+   * The "What's a {technique}?" definition is open inside the panel. Absent = closed.
+   * Any reset rebuilds the Hint without it, so it closes with the Hint.
+   */
+  readonly definitionOpen?: boolean
 }
 
 export type UiState = {
@@ -160,3 +165,11 @@ export type Action =
    * Acts only on the active Session's own Hint at step 'explain'; otherwise no change.
    */
   | { readonly type: 'hintApplied' }
+  /**
+   * "What's a {technique}?": open the definition inside the panel. Acts only on the
+   * active Session's own Hint at step 1 or 2 with a chain; otherwise no change.
+   * Never announced and never recorded in Undo.
+   */
+  | { readonly type: 'techniqueDefinitionOpened' }
+  /** Esc, "Close" or the link again: close the definition. Same rules as opening. */
+  | { readonly type: 'techniqueDefinitionClosed' }

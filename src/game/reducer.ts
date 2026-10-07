@@ -1,6 +1,6 @@
 import { findHint } from '../engine/hints.ts'
 import { parseGrid } from '../engine/grid.ts'
-import { activeHint, hintMove } from './hint.ts'
+import { activeHint, hintMove, hintTechnique } from './hint.ts'
 import { toggleNote } from './notes.ts'
 import { createSession, FREE_PLAY_KEY } from './session.ts'
 import type { Action, AppState, Difficulty, Puzzle, Screen, UndoEntry } from './types.ts'
@@ -214,6 +214,18 @@ function applyHint(state: AppState): AppState {
   }
 }
 
+/**
+ * Open or close the "What's a…" definition. Only the active Session's own Hint
+ * at step 1 or 2 with a chain, and only when the value changes; otherwise the
+ * same state. Touches nothing but `ui.hint.definitionOpen`. Never recorded in Undo.
+ */
+function setDefinitionOpen(state: AppState, open: boolean): AppState {
+  const hint = activeHint(state, FREE_PLAY_KEY)
+  if (!hint || hintTechnique(hint) === null) return state
+  if ((hint.definitionOpen ?? false) === open) return state
+  return { ...state, ui: { ...state.ui, hint: { ...hint, definitionOpen: open } } }
+}
+
 function reduce(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'hintRequested':
@@ -222,6 +234,10 @@ function reduce(state: AppState, action: Action): AppState {
       return record(state, applyHint(state))
     case 'hintClosed':
       return state.ui.hint === null ? state : { ...state, ui: { ...state.ui, hint: null } }
+    case 'techniqueDefinitionOpened':
+      return setDefinitionOpen(state, true)
+    case 'techniqueDefinitionClosed':
+      return setDefinitionOpen(state, false)
     case 'undoRequested':
       return undo(state)
     case 'restartRequested':

@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
-import { activeHint, hintAction, hintFocusCells, hintView } from '../game/hint.ts'
+import { activeHint, hintAction, hintFocusCells, hintTechnique, hintView } from '../game/hint.ts'
 import { FREE_PLAY_KEY } from '../game/session.ts'
 import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
@@ -35,6 +35,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
     selectedCell: ui.selectedCell,
     restartConfirming: ui.restartConfirming,
     hintOpen: hint !== null,
+    definitionOpen: hint?.definitionOpen === true && hintTechnique(hint) !== null,
     hintAtMove: hintNext.type === 'hintApplied',
     isMac,
   })
@@ -62,6 +63,8 @@ export function PuzzleScreen({ state, dispatch }: Props) {
           view={hintView(hint, session.digits)}
           disabled={solved || hint?.result?.kind === 'none'}
           onAdvance={() => dispatch(hintNext)}
+          definitionOpen={hint?.definitionOpen === true}
+          onDefinition={(open) => dispatch({ type: open ? 'techniqueDefinitionOpened' : 'techniqueDefinitionClosed' })}
           focusGrid={focusGrid}
         />
         <ModeIndicator

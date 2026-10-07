@@ -24,6 +24,12 @@ export type TechniqueFacts = {
 }
 
 export type TechniqueText = {
+  /** The Technique's plain name, lower case ("hidden single"). */
+  readonly name: string
+  /** The panel link that opens the definition ("What's a hidden single?"). */
+  readonly link: string
+  /** What the Technique is, in one or two plain sentences. */
+  readonly definition: string
   /** Step 1: names the Technique and the area to look at. */
   readonly nudge: (unit: UnitRef) => string
   /** Step 2 when the Step is the whole chain (one or two sentences). */
@@ -83,27 +89,47 @@ function hiddenSingleConclude(f: TechniqueFacts): string {
 
 export const TECHNIQUE_TEXT: Readonly<Record<TechniqueKey, TechniqueText>> = {
   nakedSingle: {
+    name: 'naked single',
+    link: "What's a naked single?",
+    definition:
+      'A cell where only one digit is left, because the other eight are already in its row, column or box.',
     nudge: (u) => `Look for a naked single in ${unitName(u)}.`,
     explain: (f) =>
       `Row ${f.row}, column ${f.column} can only be ${aDigit(f.digit)}. Every other digit is already in its row, column or box.`,
     conclude: (f) => `That leaves ${aDigit(f.digit)} as the only digit for row ${f.row}, column ${f.column}.`,
   },
   hiddenSingle: {
+    name: 'hidden single',
+    link: "What's a hidden single?",
+    definition:
+      'A digit that fits in only one cell of a row, column or box, even if that cell could hold other digits.',
     nudge: (u) => `Look for a hidden single in ${unitName(u)}.`,
     explain: hiddenSingleExplain,
     conclude: hiddenSingleConclude,
   },
   nakedPair: {
+    name: 'naked pair',
+    link: "What's a naked pair?",
+    definition:
+      "Two cells in a row, column or box that can only hold the same two digits. Those digits can't go anywhere else in that row, column or box.",
     nudge: (u) => `Look for a naked pair in ${unitName(u)}.`,
     explain: (f) => sentence(pairLead(f)),
     lead: pairLead,
   },
   pointing: {
+    name: 'pointing',
+    link: "What's pointing?",
+    definition:
+      "When a digit's only places in a box all sit in one row or column, it can't go anywhere else in that row or column.",
     nudge: (u) => `Look for pointing in ${unitName(u)}.`,
     explain: (f) => sentence(pointingLead(f)),
     lead: pointingLead,
   },
   claiming: {
+    name: 'claiming',
+    link: "What's claiming?",
+    definition:
+      "When a digit's only places in a row or column all sit in one box, it can't go anywhere else in that box.",
     nudge: (u) => `Look for claiming in ${unitName(u)}.`,
     explain: (f) => sentence(claimingLead(f)),
     lead: claimingLead,

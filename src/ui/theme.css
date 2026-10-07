@@ -103,6 +103,8 @@
   --size-box-tick: 8px;
   --size-mark-stroke: 2px;
   --size-underline-offset: 4px;
+  /* The Hint panel's "What's a…" link (UX: 3px underline offset). */
+  --size-link-underline-offset: 3px;
   --size-mistake-dot: 6px;
   --rule-thin: 1px;
   --rule-box: 2px;

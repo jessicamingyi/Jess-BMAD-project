@@ -39,6 +39,30 @@ describe('TECHNIQUE_TEXT', () => {
     }
   })
 
+  it('every registry Technique has a non-empty name, link and definition without "!"', () => {
+    for (const { id } of TECHNIQUES) {
+      const t = TECHNIQUE_TEXT[id]
+      for (const text of [t.name, t.link, t.definition]) {
+        expect(typeof text, id).toBe('string')
+        expect(text.trim().length, id).toBeGreaterThan(0)
+        expect(text, id).not.toContain('!')
+      }
+      expect(t.link, id).toContain(t.name)
+      // One or two plain sentences.
+      expect(t.definition.split(/(?<=\.) /).length, id).toBeLessThanOrEqual(2)
+    }
+  })
+
+  it('pins the "What\'s a…" link strings', () => {
+    expect(Object.fromEntries(TECHNIQUES.map(({ id }) => [id, TECHNIQUE_TEXT[id].link]))).toEqual({
+      nakedSingle: "What's a naked single?",
+      hiddenSingle: "What's a hidden single?",
+      nakedPair: "What's a naked pair?",
+      pointing: "What's pointing?",
+      claiming: "What's claiming?",
+    })
+  })
+
   it('elimination Techniques have lead; singles have conclude', () => {
     for (const id of ELIMINATION) expect(typeof TECHNIQUE_TEXT[id].lead, id).toBe('function')
     for (const id of SINGLES) expect(typeof TECHNIQUE_TEXT[id].conclude, id).toBe('function')

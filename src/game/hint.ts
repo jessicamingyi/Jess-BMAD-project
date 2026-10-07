@@ -1,5 +1,5 @@
 import { copy } from '../content/copy.ts'
-import { explainChain, TECHNIQUE_TEXT, type TechniqueFacts, type UnitRef } from '../content/techniques.ts'
+import { explainChain, TECHNIQUE_TEXT, type TechniqueFacts, type TechniqueKey, type UnitRef } from '../content/techniques.ts'
 import { computeCandidates, digitsOf } from '../engine/candidates.ts'
 import { boxOf, colOf, parseGrid, rowOf, UNITS, type Grid, type Unit } from '../engine/grid.ts'
 import { applyStep } from '../engine/solver.ts'
@@ -16,6 +16,14 @@ export function activeHint(state: AppState, key: string): HintState | null {
 function shownChain(hint: HintState | null): readonly Step[] | null {
   if (!hint || hint.step === 'idle' || hint.result?.kind !== 'chain') return null
   return hint.result.chain
+}
+
+/**
+ * The Technique a shown Hint's "What's a…" link names: the chain's first Step's,
+ * the same one the nudge names. Null when closed, idle or without a chain.
+ */
+export function hintTechnique(hint: HintState | null): TechniqueKey | null {
+  return shownChain(hint)?.[0]?.technique ?? null
 }
 
 /**
@@ -110,6 +118,22 @@ export type HintView = {
   readonly text: string
   /** The one step button's label. */
   readonly button: string
+  /** The "What's a…" link and its definition at steps 1 and 2 with a chain; else null. */
+  readonly technique: HintTechniqueView | null
+}
+
+export type HintTechniqueView = {
+  /** "What's pointing?" */
+  readonly link: string
+  /** The definition's title: the Technique's name, capitalised ("Pointing"). */
+  readonly title: string
+  readonly definition: string
+}
+
+function techniqueView(key: TechniqueKey | null): HintTechniqueView | null {
+  if (key === null) return null
+  const { name, link, definition } = TECHNIQUE_TEXT[key]
+  return { link, title: name.charAt(0).toUpperCase() + name.slice(1), definition }
 }
 
 /**
@@ -118,14 +142,21 @@ export type HintView = {
  */
 export function hintView(hint: HintState | null, digits: string): HintView {
   const chain = shownChain(hint)
-  if (!chain) return { label: copy.hintLabelIdle, text: '', button: copy.hintShowNudge }
+  if (!chain) return { label: copy.hintLabelIdle, text: '', button: copy.hintShowNudge, technique: null }
   const first = chain[0]
+  const technique = techniqueView(hintTechnique(hint))
   if (hint!.step === 'nudge') {
     return {
       label: copy.hintLabelNudge,
       text: TECHNIQUE_TEXT[first.technique].nudge(ref(nudgeUnit(first.unit))),
       button: copy.hintExplainIt,
+      technique,
     }
   }
-  return { label: copy.hintLabelExplain, text: explanation(chain, parseGrid(digits)), button: copy.hintShowMove }
+  return {
+    label: copy.hintLabelExplain,
+    text: explanation(chain, parseGrid(digits)),
+    button: copy.hintShowMove,
+    technique,
+  }
 }

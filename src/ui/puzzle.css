@@ -642,6 +642,68 @@
   gap: var(--space-3);
 }
 
+/* "What's a {technique}?": an airmail-red link under the Hint text; toggles the definition. */
+.hint-panel .hint-panel-link {
+  position: relative;
+  align-self: flex-start;
+  color: var(--color-airmail-red);
+  text-underline-offset: var(--size-link-underline-offset);
+}
+
+/*
+ * The Technique definition, inline in the panel below the link (never over the
+ * grid): a thin top rule, a small-caps airmail-red title, the definition and a
+ * "Close" link. Focused by script when it opens, so it gets a visible ring.
+ */
+.hint-panel-definition {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: var(--rule-thin) solid var(--color-rule-thin);
+}
+
+.hint-panel-definition:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+.hint-panel-definition-title {
+  margin: 0;
+  color: var(--color-airmail-red);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: 1;
+}
+
+.hint-panel-definition-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+}
+
+@media (forced-colors: active) {
+  .hint-panel .hint-panel-link {
+    color: LinkText;
+  }
+
+  .hint-panel-definition {
+    border-top-color: CanvasText;
+  }
+
+  .hint-panel-definition-title {
+    color: CanvasText;
+  }
+
+  .hint-panel-definition:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
 /*
  * The panel's step button when aria-disabled (solved, or no Hint found): the same
  * muted, hover-proof look as the global aria-disabled rule below, scoped to the

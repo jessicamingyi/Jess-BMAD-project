@@ -199,6 +199,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       selectedCell: null,
       restartConfirming: false,
       hintOpen: false,
+      definitionOpen: false,
       hintAtMove: false,
       isMac: true,
     }
@@ -226,6 +227,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       selectedCell: 3,
       restartConfirming: false,
       hintOpen: false,
+      definitionOpen: false,
       hintAtMove: false,
       isMac: false,
     }
@@ -247,6 +249,11 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(keyToAction(k('Escape'), ctx)).toBeNull()
     expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true })).toEqual({ type: 'hintClosed' })
     expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true, restartConfirming: true })).toEqual({ type: 'restartCancelled' })
+    // Restart confirm, then the definition, then the panel.
+    const all = { ...ctx, hintOpen: true, definitionOpen: true, restartConfirming: true }
+    expect(keyToAction(k('Escape'), all)).toEqual({ type: 'restartCancelled' })
+    expect(keyToAction(k('Escape'), { ...all, restartConfirming: false })).toEqual({ type: 'techniqueDefinitionClosed' })
+    expect(keyToAction(k('Escape'), { ...all, restartConfirming: false, definitionOpen: false })).toEqual({ type: 'hintClosed' })
   })
 
   it('H at step 2 places the move as a player digit; a held repeat does nothing', () => {

@@ -107,6 +107,7 @@ export const copy = {
   hintExplainIt: 'Explain it',
   hintShowMove: 'Show me the move',
   hintSetAside: 'Esc to set aside',
+  hintDefinitionClose: 'Close',
 
   /** Polite live-region announcements (UX-DR61). Mode switches reuse entryDigit/entryNotes and statusCellFirst/statusNumberFirst. */
   announceDigit: (digit: number): string => String(digit),
