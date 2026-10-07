@@ -1,14 +1,14 @@
 ---
 title: 'Traveller Sudoku: Sprint 4: Hints and Postcards (Thu 8 Oct 2026)'
 sprint: 4
-status: planned
-updated: '2026-10-06'
+status: in-progress
+updated: '2026-10-07'
 ---
 
 # Traveller Sudoku: Sprint 4: Hints and Postcards (Thu 8 Oct 2026)
 
 **Goal:** the game teaches and rewards.
-**Tickets:** 9 (TS-25 to TS-33).
+**Tickets:** 9 (TS-25 to TS-33). **Progress:** 1 / 9 done (Story 2.1 built early, on Wed 7 Oct).
 
 - **Epic 2, Stories 2.1 to 2.4:** nudge and explanation, "Show me the move", Technique definitions, Mistake Hints and "Something doesn't fit yet".
 - **Epic 3, Stories 3.1 to 3.5:** City catalogue and pre-built City Puzzles, choosing from the Album, receiving a Postcard, revisiting and replaying, picking up where you left off.
@@ -16,15 +16,16 @@ updated: '2026-10-06'
 **Done when:** you can choose Lisbon, get stuck, learn the Technique from a Hint, solve it and watch the Postcard arrive.
 **Risks:** the heaviest sprint (9 stories); deploys stay blocked until the City content is complete.
 
-## Tickets done (0 / 9)
+## Tickets done (1 / 9)
 
-None yet.
+| ID | Ticket | Type | Size | Owner | Status | Done on |
+|---|---|---|---|---|---|---|
+| TS-25 | [Story 2.1: Get a nudge and an explanation for the next move](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct (early) |
 
-## Tickets not done yet (9)
+## Tickets not done yet (8)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-25 | [Story 2.1: Get a nudge and an explanation for the next move](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.8 |
 | TS-26 | [Story 2.2: Show me the move](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 2.1 |
 | TS-27 | [Story 2.3: What's a [Technique]?](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 2.1 |
 | TS-28 | [Story 2.4: Hints that find Mistakes, and "Something doesn't fit yet"](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 2.2 |

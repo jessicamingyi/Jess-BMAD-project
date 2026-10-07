@@ -52,7 +52,17 @@ updated: '2026-10-07'
   - "Puzzle" in the nav is shown but disabled until a Puzzle exists.
   - The start button reads "Start a Puzzle", with a warm error line.
   - A new Puzzle that arrives while you're on another screen waits under "Puzzle".
-- Every story is committed locally on stacked `story/1-x-…` branches; nothing is pushed or deployed yet.
+- Epic 1 was merged to `main` and pushed on 7 Oct. CI is green, and Pages publishing waits for the `PAGES_ENABLED` repository variable (the repo stays private for now).
+
+## Pulled forward from Sprint 4 (built Wed 7 Oct)
+
+- **TS-25 Story 2.1, Nudge and explanation:**
+  - **Hint panel:** the first Hint step names an area to look at ("Look for a hidden single in row 3."). The second explains the move in one or two sentences, with the relevant cells ringed on the grid.
+  - **Keys:** H steps through the Hint and Esc sets it aside. The Hint resets when digits change.
+  - **"Show me the move":** shown but inactive until Story 2.2.
+  - **Review:** 3 reviews and 7 fixes, plus a real-browser check in Chrome and Edge in both themes.
+  - **Commit:** committed locally as `272835f`, on `story/2-1-nudge-and-explanation`. Not yet merged to `main`.
+  - The ticket is counted in Sprint 4.
 
 ## Tickets done (8 / 10)
 
