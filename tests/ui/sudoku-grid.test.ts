@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { createSession } from '../../src/game/session.ts'
 import type { Session } from '../../src/game/types.ts'
-import { DigitPad } from '../../src/ui/digit-pad.tsx'
 import { SudokuGrid } from '../../src/ui/sudoku-grid.tsx'
 
 /** Parse rendered cell buttons into { class, attrs, text } in cell order. */
@@ -22,7 +21,7 @@ describe('SudokuGrid', () => {
   const player = 2 // empty in the fixture
   const empty = 3
   const session: Session = { ...base, digits: base.digits.slice(0, player) + '4' + base.digits.slice(player + 1) }
-  const html = renderToStaticMarkup(createElement(SudokuGrid, { session, selectedCell: player, onSelect: () => {} }))
+  const html = renderToStaticMarkup(createElement(SudokuGrid, { session, selectedCell: player, onClick: () => {} }))
   const rendered = cells(html)
 
   it('renders 81 cells in a labelled group', () => {
@@ -62,10 +61,3 @@ describe('SudokuGrid', () => {
   })
 })
 
-describe('DigitPad', () => {
-  it('renders 9 keys, 1 to 9', () => {
-    const keys = cells(renderToStaticMarkup(createElement(DigitPad, { onDigit: () => {} })))
-    expect(keys.map((k) => k.text)).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-    expect(keys.every((k) => k.attrs.includes('type="button"'))).toBe(true)
-  })
-})

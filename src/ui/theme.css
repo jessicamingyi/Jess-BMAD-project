@@ -43,6 +43,8 @@
   --type-button-letter-spacing: 0.08em;
   --type-meta-size: 14px;
   --type-meta-line-height: 1.4;
+  --type-meta-status-style: italic;
+  --type-pad-digit-style: normal;
   --type-caption-size: 12px;
   --type-caption-style: italic;
   --type-cell-given-size: 30px;
@@ -70,6 +72,7 @@
   --size-app-gutter-y: 26px;
   --size-side-column-max: 440px;
   --size-min-target: 24px;
+  --size-pad-gap: 10px;
   --rule-thin: 1px;
   --rule-box: 2px;
   --rule-frame: 3px;

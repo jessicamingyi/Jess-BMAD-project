@@ -94,33 +94,138 @@
   box-shadow: inset 0 0 0 var(--rule-frame) var(--color-airmail-red);
 }
 
+/* Notes (UX-DR10): 3x3 mini-grid, Note n in slot n */
+.cell-note {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-note);
+  font-size: var(--type-cell-note-size);
+  font-style: var(--type-cell-note-style);
+  line-height: 1;
+}
+
 .sudoku-cell:focus-visible,
-.digit-pad-key:focus-visible {
+.digit-pad-key:focus-visible,
+.segment:focus-visible {
   position: relative;
   z-index: 1;
   outline: var(--rule-frame) solid var(--color-focus);
   outline-offset: var(--rule-frame);
 }
 
-/* Digit pad (UX-DR8): 3x3 keys */
+/* Mode indicator (UX-DR12): segmented controls plus an italic status line */
+.mode-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mode-indicator-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.segmented {
+  display: flex;
+  align-items: center;
+}
+
+.segment {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border: var(--rule-thin) solid var(--color-ink);
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-button-size);
+  font-variant: var(--type-button-variant);
+  letter-spacing: var(--type-button-letter-spacing);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.segment + .segment {
+  border-left: 0;
+}
+
+.segment--active {
+  background-color: var(--color-ink);
+  color: var(--color-card);
+}
+
+.segmented-caption {
+  margin-left: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+}
+
+.mode-status {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  font-style: var(--type-meta-status-style);
+}
+
+/* Digit pad (UX-DR11): 3x3 keys with remaining counts */
 .digit-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2);
+  gap: var(--size-pad-gap);
 }
 
 .digit-pad-key {
   min-width: var(--size-min-target);
   min-height: var(--size-cell);
   padding: var(--space-2);
-  border: var(--rule-thin) solid var(--color-rule-box);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border: var(--rule-box) dashed var(--color-rule-thin);
   border-radius: var(--rounded-none);
   background-color: var(--color-card);
   color: var(--color-ink);
   font-family: var(--font-family);
-  font-size: var(--type-cell-player-size);
-  line-height: 1;
   cursor: pointer;
+}
+
+.digit-pad-digit {
+  font-size: var(--type-cell-player-size);
+  font-style: var(--type-pad-digit-style);
+  line-height: 1;
+}
+
+.digit-pad-count {
+  color: var(--color-ink-muted);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+  line-height: 1;
+}
+
+.digit-pad-key--done .digit-pad-digit {
+  color: var(--color-ink-muted);
+  text-decoration: line-through;
+}
+
+.digit-pad-key--current {
+  border: var(--rule-box) solid var(--color-airmail-red);
+  background-color: var(--color-fill-highlight);
 }
 
 /* Calm solve line (UX-DR37) */

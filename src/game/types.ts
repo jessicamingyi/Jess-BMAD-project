@@ -30,8 +30,18 @@ export type Meta = {
   readonly lastPlayedKey: string | null
 }
 
+/** Digit places digits; Notes toggles pencil marks. */
+export type EntryMode = 'digit' | 'notes'
+
+/** cellFirst: pick a cell, then a digit. numberFirst: pick a digit, then click cells. */
+export type InputMode = 'cellFirst' | 'numberFirst'
+
 export type UiState = {
   readonly selectedCell: number | null
+  readonly entryMode: EntryMode
+  readonly inputMode: InputMode
+  /** The chosen digit in number-first input; null until one is chosen. */
+  readonly currentDigit: number | null
 }
 
 export type AppState = {
@@ -45,3 +55,7 @@ export type AppState = {
 export type Action =
   | { readonly type: 'cellSelected'; readonly cell: number }
   | { readonly type: 'digitEntered'; readonly digit: number }
+  | { readonly type: 'cellClicked'; readonly cell: number }
+  | { readonly type: 'entryModeChosen'; readonly mode: EntryMode }
+  | { readonly type: 'inputModeChosen'; readonly mode: InputMode }
+  | { readonly type: 'inputModeToggled' }
