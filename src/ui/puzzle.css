@@ -1,0 +1,133 @@
+/* Puzzle screen: grid card left, side column right; stacks below 1100px. Tokens only. */
+
+.puzzle-screen {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-7);
+}
+
+.side-column {
+  flex: 1 1 auto;
+  max-width: var(--size-side-column-max);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1099.98px) {
+  .puzzle-screen {
+    flex-direction: column;
+  }
+
+  .side-column {
+    width: 100%;
+  }
+}
+
+/* Grid card (UX-DR7) */
+.grid-card {
+  flex: none;
+  padding: var(--size-grid-pad);
+  background-color: var(--color-card);
+  border: var(--rule-frame) solid var(--color-rule-box);
+  border-radius: var(--rounded-none);
+  box-shadow: var(--shadow-grid-frame);
+  transform: rotate(var(--grid-frame-tilt));
+}
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, auto);
+}
+
+/* Cells keep 58px of face at every width; rules sit outside that face. */
+.sudoku-cell {
+  box-sizing: content-box;
+  width: var(--size-cell);
+  height: var(--size-cell);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  font-family: var(--font-family);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sudoku-cell--thin-left {
+  border-left: var(--rule-thin) solid var(--color-rule-thin);
+}
+
+.sudoku-cell--box-left {
+  border-left: var(--rule-box) solid var(--color-rule-box);
+}
+
+.sudoku-cell--thin-top {
+  border-top: var(--rule-thin) solid var(--color-rule-thin);
+}
+
+.sudoku-cell--box-top {
+  border-top: var(--rule-box) solid var(--color-rule-box);
+}
+
+.sudoku-cell--given {
+  color: var(--color-given);
+  font-size: var(--type-cell-given-size);
+  font-weight: var(--type-cell-given-weight);
+  font-style: var(--type-cell-given-style);
+}
+
+.sudoku-cell--player {
+  color: var(--color-player-ink);
+  font-size: var(--type-cell-player-size);
+  font-weight: var(--type-cell-player-weight);
+  font-style: var(--type-cell-player-style);
+}
+
+.sudoku-cell--selected {
+  background-color: var(--color-fill-selected);
+  box-shadow: inset 0 0 0 var(--rule-frame) var(--color-airmail-red);
+}
+
+.sudoku-cell:focus-visible,
+.digit-pad-key:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+/* Digit pad (UX-DR8): 3x3 keys */
+.digit-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.digit-pad-key {
+  min-width: var(--size-min-target);
+  min-height: var(--size-cell);
+  padding: var(--space-2);
+  border: var(--rule-thin) solid var(--color-rule-box);
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-cell-player-size);
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Calm solve line (UX-DR37) */
+.puzzle-status {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  font-style: italic;
+}

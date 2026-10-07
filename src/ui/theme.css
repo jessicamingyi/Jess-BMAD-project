@@ -49,6 +49,7 @@
   --type-cell-given-weight: 700;
   --type-cell-given-style: normal;
   --type-cell-player-size: 30px;
+  --type-cell-player-weight: 400;
   --type-cell-player-style: italic;
   --type-cell-note-size: 12px;
   --type-cell-note-style: normal;
@@ -77,6 +78,10 @@
   --rounded-none: 0;
   --rounded-sm: 2px;
   --rounded-full: 9999px;
+
+  /* Grid frame (UX-DR7): ink shadow at 18%, paper tilted -0.4deg */
+  --shadow-grid-frame: 0 6px 18px color-mix(in srgb, var(--color-ink) 18%, transparent);
+  --grid-frame-tilt: -0.4deg;
 
   /* Paper grain on the desk (UX-DR6): ink-tinted hatch at ~3% and a soft top-left glow */
   --desk-hatch: color-mix(in srgb, var(--color-ink) 3%, transparent);

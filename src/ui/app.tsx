@@ -1,3 +1,5 @@
+import { PuzzleScreen } from './puzzle-screen.tsx'
+
 export function App() {
   return (
     <div className="app">
@@ -5,7 +7,9 @@ export function App() {
         <p className="app-wordmark">Traveller Sudoku</p>
         <p className="app-tagline">correspondence by puzzle</p>
       </header>
-      <main className="app-main" />
+      <main className="app-main">
+        <PuzzleScreen />
+      </main>
     </div>
   )
 }
