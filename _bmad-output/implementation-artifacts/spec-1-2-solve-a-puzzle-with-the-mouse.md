@@ -2,7 +2,7 @@
 title: 'Story 1.2: Solve a puzzle with the mouse'
 type: 'feature'
 created: '2026-10-06'
-status: 'in-review'
+status: 'done'
 baseline_commit: '6b7d6aba2306bf37d366434d5d66a5f841d5daa4'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -67,6 +67,8 @@ context:
 - Given the Puzzle is solved, then the grid stays visible, pad clicks change nothing, and the side column shows the italic line "Solved." with no other effect.
 
 ## Implementation Notes
+
+- Review pass 1 patches applied: `tests/ui/sudoku-grid.test.ts` (renderToStaticMarkup), `copy.cellLabel` (given / your digit / empty), grid `role="group"` + `aria-current`, no-op guard tests, `--type-cell-player-weight`; `tsconfig.node.json` gains `jsx: react-jsx` so tests can import .tsx. 64/64 tests pass.
 
 ## Spec Change Log
 
