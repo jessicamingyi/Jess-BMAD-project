@@ -1,4 +1,4 @@
-import type { AppState, Puzzle, Session } from './types.ts'
+import type { AppState, Puzzle, Session, Settings } from './types.ts'
 
 export const FREE_PLAY_KEY = 'free'
 
@@ -15,13 +15,22 @@ export function createSession(key: string, puzzle: Puzzle): Session {
   }
 }
 
+/** Settings defaults (FR-20): Mistake Off, same digit On, row/column/box On, Lamplight Off. */
+export const DEFAULT_SETTINGS: Settings = {
+  mistakeHighlighting: false,
+  sameDigitHighlighting: true,
+  unitHighlighting: true,
+  lamplight: false,
+}
+
 export function createInitialState(puzzle: Puzzle): AppState {
   return {
     album: {},
     sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) },
-    settings: {},
+    settings: DEFAULT_SETTINGS,
     meta: { lastPlayedKey: null },
     ui: {
+      screen: 'puzzle',
       selectedCell: null,
       entryMode: 'digit',
       inputMode: 'cellFirst',

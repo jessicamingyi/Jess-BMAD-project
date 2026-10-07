@@ -8,13 +8,37 @@ export const copy = {
   /**
    * e.g. "Row 4, column 6, 7, given" / "…, 7, your digit" / "…, notes 3, 7" / "…, empty".
    * Row and column are 1-based; `notes` is only read for kind 'notes'.
+   * `mistake` appends ", mistake" to a player digit (only when the Mistake Assist is On).
    */
-  cellLabel: (row: number, col: number, value: string, kind: CellKind, notes: readonly number[] = []): string => {
+  cellLabel: (
+    row: number,
+    col: number,
+    value: string,
+    kind: CellKind,
+    notes: readonly number[] = [],
+    mistake = false,
+  ): string => {
     const where = `Row ${row}, column ${col}`
     if (kind === 'empty') return `${where}, empty`
     if (kind === 'notes') return `${where}, notes ${notes.join(', ')}`
-    return `${where}, ${value}, ${kind === 'given' ? 'given' : 'your digit'}`
+    if (kind === 'given') return `${where}, ${value}, given`
+    return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}`
   },
+
+  /** Header nav ("Puzzle · Settings"). */
+  navLabel: 'Main',
+  navPuzzle: 'Puzzle',
+  navSettings: 'Settings',
+
+  /** Settings screen. */
+  settingsHeading: 'Settings',
+  settingsAssists: 'Assists',
+  settingMistakeHighlighting: 'Mistake highlighting',
+  settingSameDigitHighlighting: 'Same-digit highlighting',
+  settingUnitHighlighting: 'Row, column and box highlighting',
+  settingLamplight: 'Lamplight',
+  settingOn: 'On',
+  settingOff: 'Off',
 
   /** Digit pad captions and accessible names. */
   padRemaining: (n: number): string => `${n} left`,

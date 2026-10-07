@@ -1,14 +1,13 @@
-import { useReducer, useRef } from 'react'
+import { useRef } from 'react'
 import { copy } from '../content/copy.ts'
-import { samplePuzzle } from '../content/sample-puzzle.ts'
+import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
-import { withAnnouncement } from '../game/announce.ts'
-import { createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
+import { FREE_PLAY_KEY } from '../game/session.ts'
+import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
 import { DigitPad } from './digit-pad.tsx'
 import { isMacPlatform, keyCaption } from './key-caption.ts'
 import { useKeyboard } from './keyboard.ts'
-import { LiveRegion } from './live-region.tsx'
 import { ModeIndicator } from './mode-indicator.tsx'
 import { SudokuGrid } from './sudoku-grid.tsx'
 import './puzzle.css'
@@ -16,8 +15,13 @@ import './puzzle.css'
 const platform = typeof navigator === 'undefined' ? '' : (navigator.platform ?? '')
 const isMac = isMacPlatform(platform)
 
-export function PuzzleScreen() {
-  const [state, dispatch] = useReducer(withAnnouncement, samplePuzzle, createInitialState)
+type Props = {
+  /** AppState and dispatch are owned by `App`, so the Session outlives a visit to Settings. */
+  state: AppState
+  dispatch: (action: Action) => void
+}
+
+export function PuzzleScreen({ state, dispatch }: Props) {
   const session = state.sessions[FREE_PLAY_KEY]
   const { ui } = state
   const screenRef = useRef<HTMLDivElement>(null)
@@ -33,6 +37,7 @@ export function PuzzleScreen() {
       <SudokuGrid
         session={session}
         selectedCell={ui.selectedCell}
+        marks={cellMarks(session, ui.selectedCell, state.settings)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
       />
@@ -61,7 +66,6 @@ export function PuzzleScreen() {
         />
         {session.status === 'solved' && <p className="puzzle-status">{copy.solvedSample}</p>}
       </div>
-      <LiveRegion announcement={ui.announcement} />
     </div>
   )
 }

@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { ActionRow } from '../../src/ui/action-row.tsx'
 import { isMacPlatform, keyCaption } from '../../src/ui/key-caption.ts'
+import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
+import { createInitialState } from '../../src/game/session.ts'
 import { PuzzleScreen } from '../../src/ui/puzzle-screen.tsx'
 
 const noop = () => {}
@@ -87,7 +89,7 @@ describe('isMacPlatform', () => {
 
 describe('PuzzleScreen action row', () => {
   it('renders the action row after the digit pad in the side column', () => {
-    const html = renderToStaticMarkup(createElement(PuzzleScreen))
+    const html = renderToStaticMarkup(createElement(PuzzleScreen, { state: createInitialState(samplePuzzle), dispatch: () => {} }))
     const side = html.indexOf('class="side-column"')
     const pad = html.indexOf('class="digit-pad"')
     const row = html.indexOf('class="action-row"')

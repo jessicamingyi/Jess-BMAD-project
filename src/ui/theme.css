@@ -1,8 +1,13 @@
 /*
- * Airmail tokens (DESIGN). Daylight is the default and only theme in Story 1.1;
- * Lamplight twins arrive in Story 1.6. Components reference these tokens, never raw hex.
+ * Airmail tokens (DESIGN). Daylight is the default theme. Lamplight twins
+ * (`--color-*-lamplight`) take over every colour role only when the Settings
+ * toggle sets `data-theme="lamplight"` on <html>; the system colour scheme is
+ * ignored and the swap is instant (no transition). Components reference these
+ * tokens, never raw hex. tests/ui/contrast.test.ts checks the DESIGN pairs in both themes.
  */
 :root {
+  color-scheme: light;
+
   /* Colour roles, Daylight (UX-DR1) */
   --color-desk: #F5EFDF;
   --color-card: #FFFAF0;
@@ -20,6 +25,24 @@
   --color-airmail-red: #B3262F;
   --color-postmark: #3C4A6E;
   --color-focus: #1F3A7A;
+
+  /* Colour roles, Lamplight twins (UX-DR2) */
+  --color-desk-lamplight: #1B1A21;
+  --color-card-lamplight: #25242C;
+  --color-ink-lamplight: #F4ECD8;
+  --color-ink-muted-lamplight: #C8C0AD;
+  --color-given-lamplight: #F6EFDC;
+  --color-player-ink-lamplight: #A9C0F5;
+  --color-note-lamplight: #B8B4C4;
+  --color-rule-thin-lamplight: #8E8CA0;
+  --color-rule-box-lamplight: #D8D2C0;
+  --color-fill-selected-lamplight: #5A2A30;
+  --color-fill-highlight-lamplight: #2E3348;
+  --color-fill-same-digit-lamplight: #343A55;
+  --color-mistake-lamplight: #E8B07A;
+  --color-airmail-red-lamplight: #F08A8F;
+  --color-postmark-lamplight: #A8B6E0;
+  --color-focus-lamplight: #FFD27A;
 
   /* Typography (UX-DR4): one system serif family, no downloaded fonts */
   --font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
@@ -73,6 +96,13 @@
   --size-side-column-max: 440px;
   --size-min-target: 24px;
   --size-pad-gap: 10px;
+  /* Assist marks (UX-DR8): frame triangles 12x7px, box L-ticks 8px, 2px strokes, 6px Mistake dot */
+  --size-tick-length: 12px;
+  --size-tick-depth: 7px;
+  --size-box-tick: 8px;
+  --size-mark-stroke: 2px;
+  --size-underline-offset: 4px;
+  --size-mistake-dot: 6px;
   --rule-thin: 1px;
   --rule-box: 2px;
   --rule-frame: 3px;
@@ -89,6 +119,29 @@
   /* Paper grain on the desk (UX-DR6): ink-tinted hatch at ~3% and a soft top-left glow */
   --desk-hatch: color-mix(in srgb, var(--color-ink) 3%, transparent);
   --desk-glow: color-mix(in srgb, var(--color-card) 70%, transparent);
+}
+
+/* Lamplight: every colour role takes its twin; shadows are black at the same alpha. */
+:root[data-theme='lamplight'] {
+  color-scheme: dark;
+  --color-desk: var(--color-desk-lamplight);
+  --color-card: var(--color-card-lamplight);
+  --color-ink: var(--color-ink-lamplight);
+  --color-ink-muted: var(--color-ink-muted-lamplight);
+  --color-given: var(--color-given-lamplight);
+  --color-player-ink: var(--color-player-ink-lamplight);
+  --color-note: var(--color-note-lamplight);
+  --color-rule-thin: var(--color-rule-thin-lamplight);
+  --color-rule-box: var(--color-rule-box-lamplight);
+  --color-fill-selected: var(--color-fill-selected-lamplight);
+  --color-fill-highlight: var(--color-fill-highlight-lamplight);
+  --color-fill-same-digit: var(--color-fill-same-digit-lamplight);
+  --color-mistake: var(--color-mistake-lamplight);
+  --color-airmail-red: var(--color-airmail-red-lamplight);
+  --color-postmark: var(--color-postmark-lamplight);
+  --color-focus: var(--color-focus-lamplight);
+
+  --shadow-grid-frame: 0 6px 18px color-mix(in srgb, black 18%, transparent);
 }
 
 *,
@@ -151,6 +204,54 @@ body {
 
 .app-main {
   padding-top: var(--space-5);
+}
+
+/* Header nav (UX-DR14): small-caps links, current one airmail-red and underlined. */
+.app-nav {
+  margin-left: auto;
+}
+
+.app-nav-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-nav-separator {
+  color: var(--color-ink-muted);
+}
+
+.nav-link {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.nav-link[aria-current='page'] {
+  color: var(--color-airmail-red);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-airmail-red);
+  text-decoration-thickness: var(--rule-thin);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+.nav-link:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
 }
 
 /* Hidden from sight, still read by screen readers (live region). */

@@ -24,7 +24,18 @@ export type Session = {
 }
 
 export type Album = Readonly<Record<string, never>>
-export type Settings = Readonly<Record<string, never>>
+/** Player preferences (Assists and Lamplight). Reset on every load in Epic 1; saving is Epic 4. */
+export type Settings = {
+  readonly mistakeHighlighting: boolean
+  readonly sameDigitHighlighting: boolean
+  readonly unitHighlighting: boolean
+  readonly lamplight: boolean
+}
+
+export type SettingName = keyof Settings
+
+/** The screen shown under the header; switched by state, no router. */
+export type Screen = 'puzzle' | 'settings'
 
 export type Meta = {
   readonly lastPlayedKey: string | null
@@ -43,6 +54,7 @@ export type UndoEntry = {
 }
 
 export type UiState = {
+  readonly screen: Screen
   readonly selectedCell: number | null
   readonly entryMode: EntryMode
   readonly inputMode: InputMode
@@ -88,3 +100,7 @@ export type Action =
   | { readonly type: 'restartRequested' }
   | { readonly type: 'restartCancelled' }
   | { readonly type: 'restartConfirmed' }
+  /** Flip one Settings switch. Never recorded in Undo. */
+  | { readonly type: 'settingToggled'; readonly setting: SettingName }
+  /** Header nav: show the Puzzle or Settings screen. */
+  | { readonly type: 'screenChosen'; readonly screen: Screen }

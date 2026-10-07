@@ -1,0 +1,78 @@
+/* Settings screen (UX-DR17): heading, Assists group, hairline rule, Lamplight. Tokens only. */
+
+.settings-screen {
+  max-width: var(--size-side-column-max);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings-heading {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-city-title-size);
+  font-weight: normal;
+  line-height: var(--type-city-title-line-height);
+}
+
+.settings-heading:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-group-label {
+  margin: 0;
+  color: var(--color-airmail-red);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+.settings-rule {
+  width: 100%;
+  margin: var(--space-2) 0;
+  border: 0;
+  border-top: var(--rule-thin) solid var(--color-rule-thin);
+}
+
+.settings-toggle {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-2) 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-toggle:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+.settings-toggle-state {
+  color: var(--color-ink-muted);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+.settings-toggle-state--on {
+  color: var(--color-ink);
+}

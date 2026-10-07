@@ -274,10 +274,12 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(second).not.toBe(first)
   })
 
-  it('Tab order: grid, entry segments, input segments, pad keys, Undo, Restart', () => {
+  it('Tab order: nav links, grid, entry segments, input segments, pad keys, Undo, Restart', () => {
     const tabbable = [...host.querySelectorAll<HTMLElement>('button, [tabindex]')].filter((el) => el.tabIndex >= 0)
     const names = tabbable.map((el) => (el.getAttribute('role') === 'gridcell' ? 'grid' : el.textContent))
     expect(names).toEqual([
+      'Puzzle',
+      'Settings',
       'grid',
       'Digit',
       'Notes',

@@ -33,6 +33,7 @@
 
 /* Grid card (UX-DR7) */
 .grid-card {
+  position: relative;
   flex: none;
   padding: var(--size-grid-pad);
   background-color: var(--color-card);
@@ -91,6 +92,7 @@
   font-variant-numeric: lining-nums tabular-nums;
   line-height: 1;
   cursor: pointer;
+  position: relative;
 }
 
 .sudoku-cell--thin-left {
@@ -123,9 +125,144 @@
   font-style: var(--type-cell-player-style);
 }
 
+/*
+ * Assist marks (FR-20, UX-DR8). Every soft fill is paired with a mark; marks are
+ * drawn with decorations, shadows and absolutely positioned pseudo-elements so a
+ * cell never changes size and its digit never moves.
+ * Fill precedence by source order: selected > same digit > highlight.
+ */
+.sudoku-cell--highlight {
+  background-color: var(--color-fill-highlight);
+}
+
+.sudoku-cell--same-digit {
+  background-color: var(--color-fill-same-digit);
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: var(--color-airmail-red);
+  text-decoration-thickness: var(--size-mark-stroke);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+/* Mistake: umber digit, dotted underline (replaces the same-digit one), corner dot. */
+.sudoku-cell--mistake {
+  color: var(--color-mistake);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--color-mistake);
+  text-decoration-thickness: var(--size-mark-stroke);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+.sudoku-cell--mistake::after {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: var(--size-mistake-dot);
+  height: var(--size-mistake-dot);
+  border-radius: var(--rounded-full);
+  background-color: var(--color-mistake);
+}
+
 .sudoku-cell--selected {
   background-color: var(--color-fill-selected);
   box-shadow: inset 0 0 0 var(--rule-frame) var(--color-airmail-red);
+}
+
+/* Active box: L-shaped airmail-red ticks inside its four corners. */
+.sudoku-cell--box-corner-tl::before,
+.sudoku-cell--box-corner-tr::before,
+.sudoku-cell--box-corner-bl::before,
+.sudoku-cell--box-corner-br::before {
+  content: '';
+  position: absolute;
+  width: var(--size-box-tick);
+  height: var(--size-box-tick);
+  border: 0 solid var(--color-airmail-red);
+  pointer-events: none;
+}
+
+.sudoku-cell--box-corner-tl::before {
+  top: 0;
+  left: 0;
+  border-top-width: var(--size-mark-stroke);
+  border-left-width: var(--size-mark-stroke);
+}
+
+.sudoku-cell--box-corner-tr::before {
+  top: 0;
+  right: 0;
+  border-top-width: var(--size-mark-stroke);
+  border-right-width: var(--size-mark-stroke);
+}
+
+.sudoku-cell--box-corner-bl::before {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: var(--size-mark-stroke);
+  border-left-width: var(--size-mark-stroke);
+}
+
+.sudoku-cell--box-corner-br::before {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: var(--size-mark-stroke);
+  border-right-width: var(--size-mark-stroke);
+}
+
+/*
+ * Row and column ticks: airmail-red triangles in the grid pad pointing in at the
+ * active row (left edge) and column (top edge). The offset of cell i's centre is
+ * pad + i cells + the thin and box rules before it + half a cell.
+ */
+.frame-tick {
+  --tick-offset: calc(
+    var(--size-grid-pad) + var(--tick-index) * var(--size-cell) +
+      (var(--tick-index) - var(--tick-box-rules)) * var(--rule-thin) + var(--tick-box-rules) * var(--rule-box) +
+      (var(--size-cell) - var(--size-tick-length)) / 2
+  );
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0 solid transparent;
+  pointer-events: none;
+}
+
+.frame-tick--row {
+  top: var(--tick-offset);
+  left: calc((var(--size-grid-pad) - var(--size-tick-depth)) / 2);
+  border-top-width: calc(var(--size-tick-length) / 2);
+  border-bottom-width: calc(var(--size-tick-length) / 2);
+  border-left: var(--size-tick-depth) solid var(--color-airmail-red);
+}
+
+.frame-tick--col {
+  top: calc((var(--size-grid-pad) - var(--size-tick-depth)) / 2);
+  left: var(--tick-offset);
+  border-left-width: calc(var(--size-tick-length) / 2);
+  border-right-width: calc(var(--size-tick-length) / 2);
+  border-top: var(--size-tick-depth) solid var(--color-airmail-red);
+}
+
+/* Top-right box corner: move the dot inward past the L-tick. */
+.sudoku-cell--mistake.sudoku-cell--box-corner-tr::after {
+  top: var(--size-box-tick);
+  right: var(--size-box-tick);
+}
+
+@media (forced-colors: active) {
+  .sudoku-cell--mistake::after {
+    background-color: CanvasText;
+  }
+
+  .frame-tick--row {
+    border-left-color: CanvasText;
+  }
+
+  .frame-tick--col {
+    border-top-color: CanvasText;
+  }
 }
 
 /* Notes (UX-DR10): 3x3 mini-grid, Note n in slot n */

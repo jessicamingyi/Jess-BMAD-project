@@ -70,6 +70,7 @@ describe('game reducer', () => {
       hintsUsed: 0,
     })
     expect(state.ui).toEqual({
+      screen: 'puzzle',
       selectedCell: null,
       entryMode: 'digit',
       inputMode: 'cellFirst',
@@ -578,5 +579,80 @@ describe('remainingByDigit', () => {
     expect(remainingByDigit('7'.repeat(81))[1]).toBe(9)
     const mistake = givens.slice(0, firstEmpty) + '5' + givens.slice(firstEmpty + 1)
     expect(remainingByDigit(mistake)[5]).toBe(fromGivens[5] - 1)
+  })
+})
+
+describe('settings and screens (Story 1.6)', () => {
+  const toggle = (setting: 'mistakeHighlighting' | 'sameDigitHighlighting' | 'unitHighlighting' | 'lamplight'): Action => ({
+    type: 'settingToggled',
+    setting,
+  })
+
+  it('defaults: Mistake Off, same digit On, row/column/box On, Lamplight Off; Puzzle screen', () => {
+    const state = fresh()
+    expect(state.settings).toEqual({
+      mistakeHighlighting: false,
+      sameDigitHighlighting: true,
+      unitHighlighting: true,
+      lamplight: false,
+    })
+    expect(state.ui.screen).toBe('puzzle')
+  })
+
+  it('settingToggled flips one switch and back', () => {
+    const once = run(fresh(), toggle('mistakeHighlighting'))
+    expect(once.settings).toEqual({ ...fresh().settings, mistakeHighlighting: true })
+    expect(run(once, toggle('mistakeHighlighting')).settings).toEqual(fresh().settings)
+    expect(run(fresh(), toggle('lamplight')).settings.lamplight).toBe(true)
+    expect(run(fresh(), toggle('sameDigitHighlighting')).settings.sameDigitHighlighting).toBe(false)
+    expect(run(fresh(), toggle('unitHighlighting')).settings.unitHighlighting).toBe(false)
+  })
+
+  it('settingToggled records no Undo and leaves the Session untouched', () => {
+    const played = run(fresh(), select(firstEmpty), enter(Number(solution[firstEmpty])))
+    const next = run(played, toggle('mistakeHighlighting'), toggle('lamplight'))
+    expect(next.ui.undo).toBe(played.ui.undo)
+    expect(next.sessions).toBe(played.sessions)
+    expect(next.meta).toBe(played.meta)
+  })
+
+  it('settingToggled ignores unknown settings', () => {
+    const state = fresh()
+    expect(reducer(state, { type: 'settingToggled', setting: 'toString' } as unknown as Action)).toBe(state)
+  })
+
+  it('screenChosen switches screens with no Undo; choosing the current screen is a no-op', () => {
+    const state = fresh()
+    expect(reducer(state, { type: 'screenChosen', screen: 'puzzle' })).toBe(state)
+    const settings = reducer(state, { type: 'screenChosen', screen: 'settings' })
+    expect(settings.ui.screen).toBe('settings')
+    expect(settings.ui.undo).toBe(state.ui.undo)
+    expect(settings.sessions).toBe(state.sessions)
+    expect(reducer(state, { type: 'screenChosen', screen: 'album' } as unknown as Action)).toBe(state)
+  })
+
+  it('screenChosen closes an open Restart confirm; choosing the current screen leaves it', () => {
+    const played = run(fresh(), select(firstEmpty), enter(Number(solution[firstEmpty])), { type: 'restartRequested' })
+    expect(played.ui.restartConfirming).toBe(true)
+    expect(reducer(played, { type: 'screenChosen', screen: 'puzzle' })).toBe(played)
+    const away = reducer(played, { type: 'screenChosen', screen: 'settings' })
+    expect(away.ui.restartConfirming).toBe(false)
+    expect(away.sessions).toBe(played.sessions)
+    expect(away.ui.undo).toBe(played.ui.undo)
+  })
+
+  it('round trip keeps the grid, Notes, selection and Undo history', () => {
+    const played = run(
+      fresh(),
+      select(firstEmpty),
+      enter(Number(solution[firstEmpty])),
+      select(emptyCells[1]),
+      notesMode,
+      enter(3),
+    )
+    const back = run(played, { type: 'screenChosen', screen: 'settings' }, { type: 'screenChosen', screen: 'puzzle' })
+    expect(back.sessions).toBe(played.sessions)
+    expect(back.ui).toEqual(played.ui)
+    expect(run(back, { type: 'undoRequested' }).sessions.free.notes[emptyCells[1]]).toBe(0)
   })
 })

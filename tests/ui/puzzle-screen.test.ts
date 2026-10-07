@@ -3,10 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { remainingByDigit } from '../../src/game/digit-counts.ts'
+import { createInitialState } from '../../src/game/session.ts'
 import { PuzzleScreen } from '../../src/ui/puzzle-screen.tsx'
 
 describe('PuzzleScreen', () => {
-  const html = renderToStaticMarkup(createElement(PuzzleScreen))
+  const html = renderToStaticMarkup(createElement(PuzzleScreen, { state: createInitialState(samplePuzzle), dispatch: () => {} }))
 
   it('puts the mode indicator above the digit pad in the side column', () => {
     const side = html.indexOf('class="side-column"')

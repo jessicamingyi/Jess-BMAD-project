@@ -202,6 +202,17 @@ function step(state: AppState, action: Action): AppState {
       if (cell === null) return state
       return clearCell(state, cell)
     }
+    case 'settingToggled': {
+      const { setting } = action
+      if (!Object.hasOwn(state.settings, setting)) return state
+      return { ...state, settings: { ...state.settings, [setting]: !state.settings[setting] } }
+    }
+    case 'screenChosen': {
+      if (action.screen !== 'puzzle' && action.screen !== 'settings') return state
+      if (state.ui.screen === action.screen) return state
+      // Leaving or entering a screen closes any open Restart confirm.
+      return { ...state, ui: { ...state.ui, screen: action.screen, restartConfirming: false } }
+    }
     case 'currentDigitPlaced': {
       const { inputMode, currentDigit, selectedCell } = state.ui
       if (inputMode !== 'numberFirst' || currentDigit === null || selectedCell === null) return state
