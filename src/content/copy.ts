@@ -38,4 +38,14 @@ export const copy = {
   statusCell: (row: number, col: number): string => `row ${row}, column ${col}`,
   statusChooseCell: 'choose a cell',
   statusChooseDigit: 'choose a digit',
+
+  /** Action row: Undo · Restart, and the inline Restart confirm. */
+  actionRowLabel: 'Puzzle actions',
+  undo: 'Undo',
+  restart: 'Restart',
+  undoKeyMac: '⌘Z',
+  undoKeyOther: 'Ctrl+Z',
+  restartConfirmLabel: 'Restart the Puzzle?',
+  restartConfirmText: 'Clear your digits and Notes? The Givens stay.',
+  keepGoing: 'Keep going',
 } as const

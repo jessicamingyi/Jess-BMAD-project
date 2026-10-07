@@ -69,7 +69,14 @@ describe('game reducer', () => {
       difficulty: 'easy',
       hintsUsed: 0,
     })
-    expect(state.ui).toEqual({ selectedCell: null, entryMode: 'digit', inputMode: 'cellFirst', currentDigit: null })
+    expect(state.ui).toEqual({
+      selectedCell: null,
+      entryMode: 'digit',
+      inputMode: 'cellFirst',
+      currentDigit: null,
+      undo: [],
+      restartConfirming: false,
+    })
     expect(state.meta.lastPlayedKey).toBeNull()
   })
 
@@ -332,6 +339,151 @@ describe('Notes and number-first entry', () => {
     expect(solved.sessions.free.status).toBe('solved')
     const after = run(solved, toggleInput, enter(1), click(firstEmpty), notesMode, click(firstEmpty))
     expect(after.sessions.free).toBe(solved.sessions.free)
+  })
+})
+
+describe('Undo and Restart', () => {
+  const undo: Action = { type: 'undoRequested' }
+  const restartRequested: Action = { type: 'restartRequested' }
+  const restartCancelled: Action = { type: 'restartCancelled' }
+  const restartConfirmed: Action = { type: 'restartConfirmed' }
+  const secondEmpty = emptyCells[1]
+  const zeros = Array(81).fill(0)
+  const grid = (s: AppState) => ({ digits: s.sessions.free.digits, notes: s.sessions.free.notes })
+
+  /** A digit and a Note on the grid. */
+  const messy = () =>
+    deepFreeze(run(fresh(), select(firstEmpty), enter(5), notesMode, select(secondEmpty), enter(3), digitMode))
+
+  it('undo chain: each Undo reverts exactly one change, in reverse, back to the Givens', () => {
+    const s1 = run(fresh(), select(firstEmpty), enter(5))
+    const s2 = run(s1, select(secondEmpty), enter(8))
+    const s3 = run(s2, notesMode, select(emptyCells[2]), enter(3))
+    const s4 = run(s3, digitMode, select(secondEmpty), enter(8))
+    expect(s4.sessions.free.digits[secondEmpty]).toBe('0')
+    expect(s4.ui.undo).toHaveLength(4)
+
+    const u1 = reducer(deepFreeze(s4), undo)
+    expect(grid(u1)).toEqual(grid(s3))
+    const u2 = reducer(deepFreeze(u1), undo)
+    expect(grid(u2)).toEqual(grid(s2))
+    const u3 = reducer(deepFreeze(u2), undo)
+    expect(grid(u3)).toEqual(grid(s1))
+    const u4 = reducer(deepFreeze(u3), undo)
+    expect(u4.sessions.free.digits).toBe(givens)
+    expect(u4.sessions.free.notes).toEqual(zeros)
+    expect(u4.ui.undo).toEqual([])
+    expect(u4.sessions.free.status).toBe('inProgress')
+    expect(u4.meta.lastPlayedKey).toBe('free')
+  })
+
+  it('undo never touches the selection or the modes', () => {
+    const state = deepFreeze(
+      run(fresh(), select(firstEmpty), enter(5), toggleInput, notesMode, enter(4), select(secondEmpty)),
+    )
+    const undone = reducer(state, undo)
+    expect(undone.ui).toEqual({ ...state.ui, undo: [] })
+  })
+
+  it('no-op records nothing: digit on a Given, cellSelected, mode switch', () => {
+    const state = deepFreeze(run(fresh(), select(firstEmpty), enter(5), select(firstGiven)))
+    expect(state.ui.undo).toHaveLength(1)
+    expect(reducer(state, enter(3))).toBe(state)
+    expect(reducer(state, select(firstGiven))).toBe(state)
+    expect(reducer(state, digitMode)).toBe(state)
+    expect(reducer(state, select(firstEmpty)).ui.undo).toBe(state.ui.undo)
+    expect(reducer(state, notesMode).ui.undo).toBe(state.ui.undo)
+    expect(reducer(state, toggleInput).ui.undo).toBe(state.ui.undo)
+  })
+
+  it('empty history: undoRequested returns the same state object', () => {
+    const state = fresh()
+    expect(reducer(state, undo)).toBe(state)
+  })
+
+  it('confirm open / keep going: toggles ui.restartConfirming, sessions untouched', () => {
+    const state = messy()
+    const open = deepFreeze(reducer(state, restartRequested))
+    expect(open.ui.restartConfirming).toBe(true)
+    expect(open.sessions).toBe(state.sessions)
+    expect(open.ui.undo).toBe(state.ui.undo)
+    expect(reducer(open, restartRequested)).toBe(open)
+    const closed = reducer(open, restartCancelled)
+    expect(closed.ui.restartConfirming).toBe(false)
+    expect(closed.sessions).toBe(state.sessions)
+    expect(reducer(state, restartCancelled)).toBe(state)
+  })
+
+  it('restart: Givens, every mask 0, inProgress; confirm closed; one snapshot pushed', () => {
+    const state = deepFreeze(reducer(messy(), restartRequested))
+    const restarted = reducer(state, restartConfirmed)
+    expect(restarted.sessions.free.digits).toBe(givens)
+    expect(restarted.sessions.free.notes).toEqual(zeros)
+    expect(restarted.sessions.free.status).toBe('inProgress')
+    expect(restarted.ui.restartConfirming).toBe(false)
+    expect(restarted.ui.undo).toHaveLength(state.ui.undo.length + 1)
+    expect(restarted.ui.undo.at(-1)).toEqual(grid(state))
+    expect(restarted.ui.selectedCell).toBe(state.ui.selectedCell)
+  })
+
+  it('undo restart: one Undo brings the full pre-restart digits and Notes back', () => {
+    const state = messy()
+    const back = run(state, restartRequested, restartConfirmed, undo)
+    expect(grid(back)).toEqual(grid(state))
+    expect(back.ui.undo).toEqual(state.ui.undo)
+  })
+
+  it('restart on a clean grid: confirm closes, no undo entry', () => {
+    const open = deepFreeze(reducer(fresh(), restartRequested))
+    const closed = reducer(open, restartConfirmed)
+    expect(closed.ui.restartConfirming).toBe(false)
+    expect(closed.ui.undo).toBe(open.ui.undo)
+    expect(closed.sessions).toBe(open.sessions)
+  })
+
+  it('restart with Notes only: resets every mask to 0, pushes one snapshot; Undo restores the Notes', () => {
+    const noted = deepFreeze(run(fresh(), notesMode, select(firstEmpty), enter(2), enter(6), digitMode))
+    expect(noted.sessions.free.digits).toBe(givens)
+    expect(noted.sessions.free.notes[firstEmpty]).toBe((1 << 1) | (1 << 5))
+    const restarted = deepFreeze(run(noted, restartRequested, restartConfirmed))
+    expect(restarted.sessions.free.notes).toEqual(zeros)
+    expect(restarted.ui.undo).toHaveLength(noted.ui.undo.length + 1)
+    const back = reducer(restarted, undo)
+    expect(back.sessions.free.notes).toEqual(noted.sessions.free.notes)
+  })
+
+  it('confirm open + a placed digit: the confirm closes', () => {
+    const open = deepFreeze(run(messy(), restartRequested, select(emptyCells[3])))
+    expect(open.ui.restartConfirming).toBe(true)
+    const placed = reducer(open, enter(7))
+    expect(placed.sessions.free.digits[emptyCells[3]]).toBe('7')
+    expect(placed.ui.restartConfirming).toBe(false)
+  })
+
+  it('confirm open + Undo: the confirm closes', () => {
+    const open = deepFreeze(reducer(messy(), restartRequested))
+    const undone = reducer(open, undo)
+    expect(undone.ui.restartConfirming).toBe(false)
+    expect(undone.ui.undo).toHaveLength(open.ui.undo.length - 1)
+  })
+
+  it('confirm open + the final correct digit: solved, and the confirm closes', () => {
+    const last = emptyCells[emptyCells.length - 1]
+    const open = deepFreeze(run(fillAllBut(fresh(), last), select(last), restartRequested))
+    expect(open.ui.restartConfirming).toBe(true)
+    const solved = reducer(open, enter(Number(solution[last])))
+    expect(solved.sessions.free.status).toBe('solved')
+    expect(solved.ui.restartConfirming).toBe(false)
+  })
+
+  it('solved: undoRequested / restartRequested / restartConfirmed return the same state object', () => {
+    const last = emptyCells[emptyCells.length - 1]
+    const solved = deepFreeze(run(fillAllBut(fresh(), last), select(last), enter(Number(solution[last]))))
+    expect(solved.ui.undo.length).toBeGreaterThan(0)
+    expect(reducer(solved, undo)).toBe(solved)
+    expect(reducer(solved, restartRequested)).toBe(solved)
+    expect(reducer(solved, restartConfirmed)).toBe(solved)
+    expect(solved.sessions.free.status).toBe('solved')
   })
 })
 

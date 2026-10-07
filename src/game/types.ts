@@ -36,12 +36,22 @@ export type EntryMode = 'digit' | 'notes'
 /** cellFirst: pick a cell, then a digit. numberFirst: pick a digit, then click cells. */
 export type InputMode = 'cellFirst' | 'numberFirst'
 
+/** A snapshot of the grid taken before a change, restored by Undo. */
+export type UndoEntry = {
+  readonly digits: string
+  readonly notes: readonly number[]
+}
+
 export type UiState = {
   readonly selectedCell: number | null
   readonly entryMode: EntryMode
   readonly inputMode: InputMode
   /** The chosen digit in number-first input; null until one is chosen. */
   readonly currentDigit: number | null
+  /** Unlimited Undo history, oldest first; lives only here, never saved. */
+  readonly undo: readonly UndoEntry[]
+  /** The Restart confirm is showing in place of the action row. */
+  readonly restartConfirming: boolean
 }
 
 export type AppState = {
@@ -59,3 +69,7 @@ export type Action =
   | { readonly type: 'entryModeChosen'; readonly mode: EntryMode }
   | { readonly type: 'inputModeChosen'; readonly mode: InputMode }
   | { readonly type: 'inputModeToggled' }
+  | { readonly type: 'undoRequested' }
+  | { readonly type: 'restartRequested' }
+  | { readonly type: 'restartCancelled' }
+  | { readonly type: 'restartConfirmed' }

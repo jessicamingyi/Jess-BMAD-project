@@ -21,6 +21,13 @@ export function createInitialState(puzzle: Puzzle): AppState {
     sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) },
     settings: {},
     meta: { lastPlayedKey: null },
-    ui: { selectedCell: null, entryMode: 'digit', inputMode: 'cellFirst', currentDigit: null },
+    ui: {
+      selectedCell: null,
+      entryMode: 'digit',
+      inputMode: 'cellFirst',
+      currentDigit: null,
+      undo: [],
+      restartConfirming: false,
+    },
   }
 }

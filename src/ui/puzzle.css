@@ -115,7 +115,8 @@
 
 .sudoku-cell:focus-visible,
 .digit-pad-key:focus-visible,
-.segment:focus-visible {
+.segment:focus-visible,
+.button:focus-visible {
   position: relative;
   z-index: 1;
   outline: var(--rule-frame) solid var(--color-focus);
@@ -226,6 +227,72 @@
 .digit-pad-key--current {
   border: var(--rule-box) solid var(--color-airmail-red);
   background-color: var(--color-fill-highlight);
+}
+
+/*
+ * Action row (UX-DR13): Undo · Restart. The Restart confirm replaces it inline;
+ * both states share one min-height so nothing below or beside it shifts.
+ */
+.action-row {
+  min-height: calc(2 * var(--space-7));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-2);
+}
+
+.action-row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.action-row-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  font-style: var(--type-meta-status-style);
+}
+
+/* Default button: transparent, ink text, double box rule, small caps, square corners */
+.button {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  border: var(--rule-frame) double var(--color-rule-box);
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-button-size);
+  font-variant: var(--type-button-variant);
+  letter-spacing: var(--type-button-letter-spacing);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.button-caption {
+  color: var(--color-ink-muted);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+  font-variant: normal;
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+/* Primary button: ink fill, card text, double card border inside a solid ink outline */
+.button--primary {
+  border-color: var(--color-card);
+  background-color: var(--color-ink);
+  color: var(--color-card);
+  outline: var(--rule-box) solid var(--color-ink);
 }
 
 /* Calm solve line (UX-DR37) */
