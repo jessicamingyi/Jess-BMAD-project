@@ -6,6 +6,17 @@
   gap: var(--space-7);
 }
 
+/* Puzzle header title (DESIGN › Header): city-title type, on its own line beneath the wordmark. No Stamp in Free Play. */
+.puzzle-title {
+  flex-basis: 100%;
+  order: 1;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-city-title-size);
+  font-weight: var(--type-city-title-weight);
+  line-height: var(--type-city-title-line-height);
+}
+
 .side-column {
   flex: 1 1 auto;
   max-width: var(--size-side-column-max);

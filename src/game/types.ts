@@ -1,4 +1,7 @@
-export type Difficulty = 'easy' | 'medium' | 'hard'
+import type { Difficulty } from '../engine/grader.ts'
+
+/** Difficulty is owned by the engine (the grader); re-exported for game and ui. */
+export type { Difficulty } from '../engine/grader.ts'
 
 export type SessionStatus = 'inProgress' | 'solved'
 

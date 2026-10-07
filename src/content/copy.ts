@@ -1,8 +1,14 @@
 export type CellKind = 'given' | 'player' | 'notes' | 'empty'
 
+/** Difficulty names (content may not import engine/game, so the union is restated here). */
+const DIFFICULTY_NAMES = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const
+
 /** User-facing strings, kept in one place. */
 export const copy = {
   solvedSample: 'Solved.',
+
+  /** Puzzle header title in Free Play, e.g. "Free Play · Easy" (no Stamp). */
+  freePlayTitle: (difficulty: keyof typeof DIFFICULTY_NAMES): string => `Free Play · ${DIFFICULTY_NAMES[difficulty]}`,
   digitPadLabel: 'Digits',
   gridLabel: 'Sudoku grid',
   /**

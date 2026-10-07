@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { checkArchitecture, layerOf, type SourceFile } from './check-architecture.ts'
+import { checkArchitecture, checkBruteImports, layerOf, type SourceFile } from './check-architecture.ts'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -172,5 +172,45 @@ describe('AD-1 architecture of the real tree', () => {
     // Guard against vacuous passes: some real file must land in a checked layer.
     expect(files.some((f) => !['entry', 'outside'].includes(layerOf(f.path)))).toBe(true)
     expect(messages(files)).toEqual([])
+  })
+
+  it('only the generator imports engine/brute', () => {
+    const files = collect(join(ROOT, 'src'))
+    expect(files.some((f) => f.path === 'src/engine/brute.ts')).toBe(true)
+    expect(checkBruteImports(files)).toEqual([])
+  })
+})
+
+describe('brute import guard', () => {
+  it('flags the solver importing engine/brute, naming the file', () => {
+    const v = checkBruteImports([{ path: 'src/engine/solver.ts', source: "import { countSolutions } from './brute.ts'" }])
+    expect(v).toHaveLength(1)
+    expect(v[0]).toMatchObject({ file: 'src/engine/solver.ts', kind: 'brute', name: './brute.ts' })
+    expect(v[0].message).toContain('src/engine/solver.ts')
+  })
+
+  it.each([
+    ['src/engine/grader.ts', "export * from './brute'"],
+    ['src/engine/index.ts', "export { countSolutions } from './brute.ts'"],
+    ['src/engine/hints/next.ts', "import '../brute'"],
+    ['src/workers/generate.ts', "const b = () => import('../engine/brute.ts')"],
+    ['src/ui/app.tsx', "import '../engine/brute'"],
+  ])('flags %s', (path, source) => {
+    const v = checkBruteImports([{ path, source }])
+    expect(v).toHaveLength(1)
+    expect(v[0].file).toBe(path)
+  })
+
+  it('allows the generator (and brute itself), and ignores look-alikes and files outside src/', () => {
+    expect(
+      checkBruteImports([
+        { path: 'src/engine/generator.ts', source: "import { countSolutions } from './brute.ts'" },
+        { path: 'src/engine/generator-helpers.ts', source: "import './brute'" },
+        { path: 'src/engine/brute.ts', source: "import './candidates.ts'" },
+        { path: 'src/engine/solver.ts', source: "import './brute-force-notes.ts'\nimport './grid.ts'" },
+        { path: 'tests/engine/brute.test.ts', source: "import '../../src/engine/brute.ts'" },
+        { path: 'scripts/verify.ts', source: "import '../src/engine/brute.ts'" },
+      ]),
+    ).toEqual([])
   })
 })

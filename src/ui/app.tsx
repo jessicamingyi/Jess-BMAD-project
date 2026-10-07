@@ -1,11 +1,12 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { samplePuzzle } from '../content/sample-puzzle.ts'
 import { withAnnouncement } from '../game/announce.ts'
-import { createInitialState } from '../game/session.ts'
+import { createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
 import type { Screen } from '../game/types.ts'
 import { AppNav } from './app-nav.tsx'
 import { LiveRegion } from './live-region.tsx'
 import { PuzzleScreen } from './puzzle-screen.tsx'
+import { PuzzleTitle } from './puzzle-title.tsx'
 import { SettingsScreen } from './settings-screen.tsx'
 
 /**
@@ -52,6 +53,8 @@ export function App() {
         <p className="app-wordmark">Traveller Sudoku</p>
         <p className="app-tagline">correspondence by puzzle</p>
         <AppNav current={screen} onChoose={choose} />
+        {/* Puzzle screen only: the title sits on its own line beneath the wordmark (Settings has its own h1). */}
+        {screen === 'puzzle' && <PuzzleTitle difficulty={state.sessions[FREE_PLAY_KEY].difficulty} />}
       </header>
       <main className="app-main" ref={mainRef}>
         {screen === 'settings' ? (

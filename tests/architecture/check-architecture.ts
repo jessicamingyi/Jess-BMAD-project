@@ -11,7 +11,7 @@ export type SourceFile = { path: string; source: string }
 
 export type Violation = {
   file: string
-  kind: 'import' | 'package' | 'global' | 'key'
+  kind: 'import' | 'package' | 'global' | 'key' | 'brute'
   /** The import specifier or global name that broke the rule. */
   name: string
   message: string
@@ -309,6 +309,35 @@ export function checkKeyHandlers(files: readonly SourceFile[]): Violation[] {
         kind: 'key',
         name,
         message: `${path} uses ${name}; keyboard handling belongs only in src/ui/keyboard* (one handler)`,
+      })
+    }
+  }
+  return violations
+}
+
+/** The solution counter; only the generator (and brute itself) may import it (AD-5). */
+const BRUTE_TARGET = /^src\/engine\/brute(?:\.[a-z]+)?$/
+const BRUTE_ALLOWED = /^src\/engine\/(?:brute|generator)[^/]*$/
+
+/**
+ * Brute guard: any `src/**` file other than `src/engine/brute*` and
+ * `src/engine/generator*` that imports `engine/brute` is a violation naming the
+ * file. Keeps the solution counter away from the solver, grader and Hints. Pure.
+ */
+export function checkBruteImports(files: readonly SourceFile[]): Violation[] {
+  const violations: Violation[] = []
+  for (const file of files) {
+    const path = normalize(file.path)
+    if (!path.startsWith('src/') || BRUTE_ALLOWED.test(path)) continue
+    const sf = ts.createSourceFile(path, file.source, ts.ScriptTarget.Latest, true, scriptKindFor(path))
+    for (const spec of collectImports(sf)) {
+      if (!isRelative(spec)) continue
+      if (!BRUTE_TARGET.test(normalize(`${dirname(path)}/${spec}`))) continue
+      violations.push({
+        file: path,
+        kind: 'brute',
+        name: spec,
+        message: `${path} imports '${spec}'; engine/brute is for the generator only (never solver, grader or Hints)`,
       })
     }
   }
