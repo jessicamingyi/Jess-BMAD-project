@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Puzzle - Lisbon - Traveller Sudoku key screen</title>
+<style>
+/* KEY SCREEN: Puzzle screen, Lisbon (Mid · Medium), mid-game, Hint step 2 "Explain it".
+   Governing spine sections:
+   DESIGN.md  > Layout & Spacing (two columns, side column order), Components > Grid (cell states: given, player,
+                notes, selected, row/col/box highlight + edge ticks, same digit, hint focus), Digit pad, Mode indicator,
+                Button / primary, Header, Stamp, Postmark, Hint panel, Elevation & Depth, Colors > Highlight approach.
+   EXPERIENCE.md > Component Patterns (Grid, Digit pad, Mode indicator, Button, Hint panel, Header),
+                Interaction Primitives > Hint, 3 steps (step 2) + Keyboard map captions, Key Flows > UJ-1 step 5,
+                Voice and Tone (hint steps, Technique link, "Esc to set aside"), Accessibility Floor (cell labels).
+   Second section: same moment in Lamplight (DESIGN Colors -lamplight twins), scaled 60%.
+   Tokens: DESIGN.md frontmatter (Airmail palette; Daylight = .day, Lamplight = .lamplight twins).
+   Browser chrome and the grey page behind it are mock framing only, not product UI.
+   Contrast (WCAG 2.x, scripted) for every text/mark pair used here: see bottom of file. */
+
+.day{--desk:#F5EFDF;--card:#FFFAF0;--ink:#1F2A44;--ink-muted:#4E5670;--given:#1A2036;--player-ink:#24418A;--note:#5A6178;--rule-thin:#73799A;--rule-box:#1F2A44;--fill-selected:#F6D3D0;--fill-highlight:#E6EAF5;--fill-same-digit:#DFE4F4;--mistake:#8A4B16;--airmail-red:#B3262F;--postmark:#3C4A6E;--focus:#1F3A7A;--shadow:31,42,68;--tex:rgba(31,42,68,.03);--glow:rgba(255,255,255,.45)}
+.lamplight{--desk:#1B1A21;--card:#25242C;--ink:#F4ECD8;--ink-muted:#C8C0AD;--given:#F6EFDC;--player-ink:#A9C0F5;--note:#B8B4C4;--rule-thin:#838196;--rule-box:#D8D2C0;--fill-selected:#5A2A30;--fill-highlight:#2E3348;--fill-same-digit:#343A55;--mistake:#E8B07A;--airmail-red:#F08A8F;--postmark:#A8B6E0;--focus:#FFD27A;--shadow:0,0,0;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 32px 48px;background:#cfcfd4;color:#1f2a44;font-family:Georgia,'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,serif}
+.mocknote{width:1280px;margin:0 auto 12px;font-size:14px;font-style:italic;color:#2b2f3a}
+.browser{width:1280px;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.30);background:#e9e9ec}
+.chrome{height:40px;background:#e9e9ec;border-bottom:1px solid #c4c4ca;display:flex;align-items:center;gap:8px;padding:0 14px;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#2b2f3a}
+.chrome .d{width:12px;height:12px;border-radius:50%;background:#b9b9c0}
+.chrome .url{margin-left:18px;flex:1;background:#fff;border-radius:6px;padding:5px 12px}
+/* paper on a desk: glow top-left + faint diagonal hatch of ink ~3% (DESIGN Colors > Paper grain) */
+.app{position:relative;min-height:820px;padding:26px 44px;color:var(--ink);font-family:Georgia,'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,serif;
+  background:radial-gradient(ellipse at 15% 10%,var(--glow),transparent 45%),
+  repeating-linear-gradient(83deg,var(--tex) 0 2px,transparent 2px 7px),
+  repeating-linear-gradient(-12deg,var(--tex) 0 1px,transparent 1px 5px),var(--desk)}
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px double var(--ink);padding-bottom:12px;min-height:104px}
+.brand{font-style:italic;font-size:24px;line-height:1.2}
+.brand small{display:block;font-style:normal;font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--airmail-red)}
+.nav{display:flex;gap:26px}
+.nav a{font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+.nav a.on{color:var(--airmail-red);border-bottom-color:var(--airmail-red)}
+.nav a[aria-disabled="true"]{color:var(--ink-muted)}
+.dest{display:flex;align-items:center;gap:18px}
+.dest .city{font-size:30px;line-height:1;text-align:right}
+.dest .meta{font-size:15px;line-height:1.5;color:var(--ink-muted);margin-top:4px;text-align:right}
+.stamp{width:74px;height:88px;background:var(--card);border:5px dotted var(--desk);outline:2px solid var(--card);padding:4px;transform:rotate(3deg);box-shadow:0 2px 6px rgba(var(--shadow),.25);flex:none}
+.stamp div{height:100%;background:var(--airmail-red);color:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 2px;font-size:9px;letter-spacing:.06em;text-align:center}
+.stamp b{font-size:20px;font-weight:normal}
+.stamp.sm{width:52px;height:62px;border-width:4px;padding:3px}
+.stamp.sm div{font-size:7px;padding:2px 0}.stamp.sm b{font-size:15px}
+/* buttons */
+.btn{font-family:inherit;background:transparent;color:var(--ink);border:3px double var(--rule-box);border-radius:0;padding:9px 16px;font-size:16px;font-variant:small-caps;letter-spacing:.08em;cursor:pointer}
+.btn kbd{font-family:inherit;font-size:12px;font-style:italic;font-variant:normal;letter-spacing:0;color:var(--ink-muted);margin-left:6px}
+.btn.primary{background:var(--ink);color:var(--card);border-color:var(--card);outline:2px solid var(--ink)}
+.btn.primary kbd{color:var(--card)}
+.focus{outline:3px solid var(--focus)!important;outline-offset:3px}
+.link{color:var(--airmail-red);text-decoration:underline;text-underline-offset:3px}
+
+.main{position:relative;display:flex;gap:44px;margin-top:22px;align-items:flex-start}
+.gridwrap{position:relative;flex:none;padding:14px;background:var(--card);box-shadow:0 6px 18px rgba(var(--shadow),.18);transform:rotate(-.4deg)}
+.postmark{position:absolute;right:-128px;top:-46px;opacity:.75;pointer-events:none}
+.grid{border:3px solid var(--rule-box);background:var(--card)}
+.grow{display:grid;grid-template-columns:repeat(9,58px)}
+.cell{position:relative;height:58px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--rule-thin);border-bottom:1px solid var(--rule-thin);font-size:30px;line-height:1;background:var(--card)}
+.cell.br{border-right:2px solid var(--rule-box)}.cell.bb{border-bottom:2px solid var(--rule-box)}
+.grow .cell:nth-child(9){border-right:0}.grow:last-child .cell{border-bottom:0}
+.given{font-weight:700;color:var(--given)}
+.player{font-style:italic;color:var(--player-ink)}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;height:100%;padding:3px;font-size:12px;color:var(--note)}
+.notes i{font-style:normal;display:flex;align-items:center;justify-content:center}
+.cell.hl{background:var(--fill-highlight)}
+.cell.same{background:var(--fill-same-digit)}
+.cell.same span{text-decoration:underline 2px var(--airmail-red);text-underline-offset:4px}
+.cell.sel{background:var(--fill-selected);box-shadow:inset 0 0 0 3px var(--airmail-red)}
+.cell.hf::after{content:"";position:absolute;inset:5px;border:2px dashed var(--postmark);pointer-events:none}
+.tick{position:absolute;background:var(--airmail-red)}
+.tick.col{top:4px;width:12px;height:7px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.tick.row{left:4px;width:7px;height:12px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.side{flex:1;display:flex;flex-direction:column;gap:18px;max-width:440px}
+.label{font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--airmail-red)}
+.hintcard{position:relative;background:var(--card);border:1px solid var(--rule-thin);padding:16px 18px 14px;box-shadow:3px 4px 0 var(--fill-highlight)}
+.hintcard::before{content:"";position:absolute;inset:6px;border:1px solid var(--fill-highlight);pointer-events:none}
+.hintcard p{margin:6px 0 12px;font-size:18px;line-height:1.45}
+.hintcard .steps{display:flex;gap:10px;margin-bottom:12px}
+.hintcard .row{display:flex;justify-content:space-between;align-items:center;font-size:14px;line-height:1.4}
+.muted{color:var(--ink-muted)}
+.mode{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seg{display:inline-flex;border:1px solid var(--ink)}
+.seg span{padding:6px 14px;font-size:15px}
+.seg .on{background:var(--ink);color:var(--card)}
+.modeline{font-size:14px;line-height:1.4;color:var(--ink-muted);font-style:italic}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.key{font-family:inherit;background:var(--card);border:2px dashed var(--rule-thin);color:var(--ink);padding:8px 0 6px;display:flex;flex-direction:column;align-items:center}
+.key b{font-size:30px;font-weight:normal;line-height:1.1}
+.key small{font-size:12px;font-style:italic;color:var(--ink-muted)}
+.key.done b{color:var(--ink-muted);text-decoration:line-through}
+.actions{display:flex;gap:10px}
+.actions .btn{flex:1;padding:9px 0}
+
+.lampwrap{width:1280px;margin:40px auto 0}
+.lampwrap .scaler{width:768px;height:530px;overflow:hidden;border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.30)}
+.lampwrap .browser{transform:scale(.6);transform-origin:0 0;box-shadow:none}
+
+</style></head>
+<body>
+<div class="browser"><div class="chrome" aria-hidden="true"><span class="d"></span><span class="d"></span><span class="d"></span><span class="url">travellersudoku.app/play/lisbon</span></div>
+<div class="app day">
+<header class="top">
+  <div class="brand">Traveller Sudoku<small>correspondence by puzzle</small></div>
+  <div class="dest"><div><div class="city">Lisbon &middot; Mid &middot; Medium</div><div class="meta">Portugal &mdash; Europe, card 5 of 10</div></div><div class="stamp" aria-hidden="true"><div><span>PORTUGAL</span><b>&#9973;</b><span>MID</span></div></div></div>
+  <nav class="nav" aria-label="Main"><a href="#" class="on" aria-current="page">Puzzle</a><a href="#">Album</a><a href="#">Free Play</a><a href="#">Settings</a></nav>
+</header>
+<main class="main">
+  <div class="gridwrap">
+    <svg class="postmark" width="150" height="110" viewBox="0 0 150 110" aria-hidden="true">
+<circle cx="45" cy="55" r="38" fill="none" style="stroke:var(--postmark)" stroke-width="2"/>
+<circle cx="45" cy="55" r="30" fill="none" style="stroke:var(--postmark)" stroke-width="1"/>
+<text x="45" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="11" letter-spacing="2" style="fill:var(--postmark)">LISBON</text>
+<text x="45" y="67" text-anchor="middle" font-family="Georgia,serif" font-size="9" style="fill:var(--postmark)">06 OCT 26</text>
+<path d="M88 35 q8 -6 16 0 t16 0 t16 0 M88 47 q8 -6 16 0 t16 0 t16 0 M88 59 q8 -6 16 0 t16 0 t16 0 M88 71 q8 -6 16 0 t16 0 t16 0" fill="none" style="stroke:var(--postmark)" stroke-width="2"/>
+</svg>
+    <div class="tick col" style="left:330px" aria-hidden="true"></div><div class="tick row" style="top:214px" aria-hidden="true"></div>
+    <div class="grid" role="grid" aria-label="Sudoku grid, Lisbon"><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 1, column 1, 5, given"><span class="given">5</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 2, 3, given"><span class="given">3</span></div><div class="cell br" role="gridcell" aria-label="Row 1, column 3, 4, your digit"><span class="player">4</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 4, notes 6"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 1, column 5, 7, given"><span class="given">7</span></div><div class="cell br hl" role="gridcell" aria-label="Row 1, column 6, 8, your digit"><span class="player">8</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 7, empty"></div><div class="cell" role="gridcell" aria-label="Row 1, column 8, notes 1"><span class="notes" aria-hidden="true"><i>1</i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 1, column 9, 2, your digit"><span class="player">2</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 2, column 1, 6, given"><span class="given">6</span></div><div class="cell hf" role="gridcell" aria-label="Row 2, column 2, 7, your digit, hint"><span class="player">7</span></div><div class="cell br" role="gridcell" aria-label="Row 2, column 3, empty"></div><div class="cell same" role="gridcell" aria-label="Row 2, column 4, 1, given"><span class="given">1</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 5, 9, given"><span class="given">9</span></div><div class="cell br hl" role="gridcell" aria-label="Row 2, column 6, 5, given"><span class="given">5</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 7, notes 3"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 2, column 8, 4, your digit"><span class="player">4</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 9, empty"></div></div><div role="row" class="grow"><div class="cell bb" role="gridcell" aria-label="Row 3, column 1, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 2, 9, given"><span class="given">9</span></div><div class="cell br bb" role="gridcell" aria-label="Row 3, column 3, 8, given"><span class="given">8</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 4, 3, your digit"><span class="player">3</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 5, notes 4"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i>4</i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell br bb hl" role="gridcell" aria-label="Row 3, column 6, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 7, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 8, 6, given"><span class="given">6</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 9, 7, your digit"><span class="player">7</span></div></div><div role="row" class="grow"><div class="cell hl" role="gridcell" aria-label="Row 4, column 1, 8, given"><span class="given">8</span></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 2, notes 2, 5, hint"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl hf" role="gridcell" aria-label="Row 4, column 3, empty, hint"></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 4, notes 5, 7, 9, hint"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i>5</i><i></i><i>7</i><i></i><i>9</i></span></div><div class="cell hl" role="gridcell" aria-label="Row 4, column 5, 6, given"><span class="given">6</span></div><div class="cell br sel" role="gridcell" aria-label="Row 4, column 6, 1, your digit" aria-selected="true"><span class="player">1</span></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 7, empty, hint"></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 8, notes 2, 5, hint"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell hl" role="gridcell" aria-label="Row 4, column 9, 3, given"><span class="given">3</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 5, column 1, 4, given"><span class="given">4</span></div><div class="cell" role="gridcell" aria-label="Row 5, column 2, empty"></div><div class="cell br" role="gridcell" aria-label="Row 5, column 3, 6, your digit"><span class="player">6</span></div><div class="cell hl" role="gridcell" aria-label="Row 5, column 4, 8, given"><span class="given">8</span></div><div class="cell hl" role="gridcell" aria-label="Row 5, column 5, notes 5"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl" role="gridcell" aria-label="Row 5, column 6, 3, given"><span class="given">3</span></div><div class="cell hf" role="gridcell" aria-label="Row 5, column 7, 7, your digit, hint"><span class="player">7</span></div><div class="cell" role="gridcell" aria-label="Row 5, column 8, 9, your digit"><span class="player">9</span></div><div class="cell same" role="gridcell" aria-label="Row 5, column 9, 1, given"><span class="given">1</span></div></div><div role="row" class="grow"><div class="cell bb" role="gridcell" aria-label="Row 6, column 1, 7, given"><span class="given">7</span></div><div class="cell bb same" role="gridcell" aria-label="Row 6, column 2, 1, your digit"><span class="player">1</span></div><div class="cell br bb" role="gridcell" aria-label="Row 6, column 3, notes 3, 5, 9"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i>5</i><i></i><i></i><i></i><i>9</i></span></div><div class="cell bb hl" role="gridcell" aria-label="Row 6, column 4, empty"></div><div class="cell bb hl" role="gridcell" aria-label="Row 6, column 5, 2, given"><span class="given">2</span></div><div class="cell br bb hl" role="gridcell" aria-label="Row 6, column 6, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 7, 8, your digit"><span class="player">8</span></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 8, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 9, 6, given"><span class="given">6</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 7, column 1, notes 9"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i>9</i></span></div><div class="cell" role="gridcell" aria-label="Row 7, column 2, 6, given"><span class="given">6</span></div><div class="cell br same" role="gridcell" aria-label="Row 7, column 3, 1, your digit"><span class="player">1</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 4, empty"></div><div class="cell" role="gridcell" aria-label="Row 7, column 5, notes 3, 5"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl" role="gridcell" aria-label="Row 7, column 6, 7, your digit"><span class="player">7</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 7, 2, given"><span class="given">2</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 8, 8, given"><span class="given">8</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 9, empty"></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 8, column 1, empty"></div><div class="cell" role="gridcell" aria-label="Row 8, column 2, 8, your digit"><span class="player">8</span></div><div class="cell br hf" role="gridcell" aria-label="Row 8, column 3, 7, given, hint"><span class="given">7</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 4, 4, given"><span class="given">4</span></div><div class="cell same" role="gridcell" aria-label="Row 8, column 5, 1, given"><span class="given">1</span></div><div class="cell br hl" role="gridcell" aria-label="Row 8, column 6, 9, given"><span class="given">9</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 7, notes 6"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 8, column 8, 3, your digit"><span class="player">3</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 9, 5, given"><span class="given">5</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 9, column 1, 3, your digit"><span class="player">3</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 2, notes 2, 4, 5"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i>4</i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br" role="gridcell" aria-label="Row 9, column 3, empty"></div><div class="cell" role="gridcell" aria-label="Row 9, column 4, empty"></div><div class="cell" role="gridcell" aria-label="Row 9, column 5, 8, given"><span class="given">8</span></div><div class="cell br hl" role="gridcell" aria-label="Row 9, column 6, 6, your digit"><span class="player">6</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 7, empty"></div><div class="cell hf" role="gridcell" aria-label="Row 9, column 8, 7, given, hint"><span class="given">7</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 9, 9, given"><span class="given">9</span></div></div></div>
+  </div>
+  
+  <aside class="side">
+<section class="hintcard" aria-label="Hint" aria-live="polite">
+  <div class="label">Explain it</div>
+  <p>In row 4, a 7 fits only in column 4. Every other empty cell in the row already has a 7 in its column.</p>
+  <div class="steps"><button class="btn">Show me the move</button></div>
+  <div class="row"><a href="#" class="link">What&rsquo;s a hidden single?</a><span class="muted">Esc to set aside</span></div>
+</section>
+<div class="mode"><span class="seg" role="group" aria-label="Input mode"><span class="on" aria-pressed="true">Digit</span><span aria-pressed="false">Notes (N)</span></span><span class="modeline">Cell first &middot; Digit &mdash; row 4, column 6</span></div>
+<div class="pad" role="group" aria-label="Digit pad"><button class="key" aria-label="1, 3 left"><b>1</b><small>3 left</small></button><button class="key" aria-label="2, 6 left"><b>2</b><small>6 left</small></button><button class="key" aria-label="3, 3 left"><b>3</b><small>3 left</small></button><button class="key" aria-label="4, 5 left"><b>4</b><small>5 left</small></button><button class="key" aria-label="5, 6 left"><b>5</b><small>6 left</small></button><button class="key" aria-label="6, 2 left"><b>6</b><small>2 left</small></button><button class="key" aria-label="7, 1 left"><b>7</b><small>1 left</small></button><button class="key" aria-label="8, 1 left"><b>8</b><small>1 left</small></button><button class="key" aria-label="9, 4 left"><b>9</b><small>4 left</small></button></div>
+<div class="actions"><button class="btn">Undo<kbd>Ctrl Z</kbd></button><button class="btn primary">Hint<kbd>H</kbd></button><button class="btn">Restart</button></div>
+</aside>
+</main>
+</div>
+</div><div class="lampwrap"><p class="mocknote">Lamplight (Settings switch) &middot; same moment, shown at 60%</p><div class="scaler"><div class="browser"><div class="chrome" aria-hidden="true"><span class="d"></span><span class="d"></span><span class="d"></span><span class="url">travellersudoku.app/play/lisbon</span></div>
+<div class="app lamplight">
+<header class="top">
+  <div class="brand">Traveller Sudoku<small>correspondence by puzzle</small></div>
+  <div class="dest"><div><div class="city">Lisbon &middot; Mid &middot; Medium</div><div class="meta">Portugal &mdash; Europe, card 5 of 10</div></div><div class="stamp" aria-hidden="true"><div><span>PORTUGAL</span><b>&#9973;</b><span>MID</span></div></div></div>
+  <nav class="nav" aria-label="Main"><a href="#" class="on" aria-current="page">Puzzle</a><a href="#">Album</a><a href="#">Free Play</a><a href="#">Settings</a></nav>
+</header>
+<main class="main">
+  <div class="gridwrap">
+    <svg class="postmark" width="150" height="110" viewBox="0 0 150 110" aria-hidden="true">
+<circle cx="45" cy="55" r="38" fill="none" style="stroke:var(--postmark)" stroke-width="2"/>
+<circle cx="45" cy="55" r="30" fill="none" style="stroke:var(--postmark)" stroke-width="1"/>
+<text x="45" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="11" letter-spacing="2" style="fill:var(--postmark)">LISBON</text>
+<text x="45" y="67" text-anchor="middle" font-family="Georgia,serif" font-size="9" style="fill:var(--postmark)">06 OCT 26</text>
+<path d="M88 35 q8 -6 16 0 t16 0 t16 0 M88 47 q8 -6 16 0 t16 0 t16 0 M88 59 q8 -6 16 0 t16 0 t16 0 M88 71 q8 -6 16 0 t16 0 t16 0" fill="none" style="stroke:var(--postmark)" stroke-width="2"/>
+</svg>
+    <div class="tick col" style="left:330px" aria-hidden="true"></div><div class="tick row" style="top:214px" aria-hidden="true"></div>
+    <div class="grid" role="grid" aria-label="Sudoku grid, Lisbon"><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 1, column 1, 5, given"><span class="given">5</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 2, 3, given"><span class="given">3</span></div><div class="cell br" role="gridcell" aria-label="Row 1, column 3, 4, your digit"><span class="player">4</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 4, notes 6"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 1, column 5, 7, given"><span class="given">7</span></div><div class="cell br hl" role="gridcell" aria-label="Row 1, column 6, 8, your digit"><span class="player">8</span></div><div class="cell" role="gridcell" aria-label="Row 1, column 7, empty"></div><div class="cell" role="gridcell" aria-label="Row 1, column 8, notes 1"><span class="notes" aria-hidden="true"><i>1</i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 1, column 9, 2, your digit"><span class="player">2</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 2, column 1, 6, given"><span class="given">6</span></div><div class="cell hf" role="gridcell" aria-label="Row 2, column 2, 7, your digit, hint"><span class="player">7</span></div><div class="cell br" role="gridcell" aria-label="Row 2, column 3, empty"></div><div class="cell same" role="gridcell" aria-label="Row 2, column 4, 1, given"><span class="given">1</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 5, 9, given"><span class="given">9</span></div><div class="cell br hl" role="gridcell" aria-label="Row 2, column 6, 5, given"><span class="given">5</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 7, notes 3"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 2, column 8, 4, your digit"><span class="player">4</span></div><div class="cell" role="gridcell" aria-label="Row 2, column 9, empty"></div></div><div role="row" class="grow"><div class="cell bb" role="gridcell" aria-label="Row 3, column 1, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 2, 9, given"><span class="given">9</span></div><div class="cell br bb" role="gridcell" aria-label="Row 3, column 3, 8, given"><span class="given">8</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 4, 3, your digit"><span class="player">3</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 5, notes 4"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i>4</i><i></i><i></i><i></i><i></i><i></i></span></div><div class="cell br bb hl" role="gridcell" aria-label="Row 3, column 6, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 7, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 8, 6, given"><span class="given">6</span></div><div class="cell bb" role="gridcell" aria-label="Row 3, column 9, 7, your digit"><span class="player">7</span></div></div><div role="row" class="grow"><div class="cell hl" role="gridcell" aria-label="Row 4, column 1, 8, given"><span class="given">8</span></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 2, notes 2, 5, hint"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl hf" role="gridcell" aria-label="Row 4, column 3, empty, hint"></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 4, notes 5, 7, 9, hint"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i>5</i><i></i><i>7</i><i></i><i>9</i></span></div><div class="cell hl" role="gridcell" aria-label="Row 4, column 5, 6, given"><span class="given">6</span></div><div class="cell br sel" role="gridcell" aria-label="Row 4, column 6, 1, your digit" aria-selected="true"><span class="player">1</span></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 7, empty, hint"></div><div class="cell hl hf" role="gridcell" aria-label="Row 4, column 8, notes 2, 5, hint"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell hl" role="gridcell" aria-label="Row 4, column 9, 3, given"><span class="given">3</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 5, column 1, 4, given"><span class="given">4</span></div><div class="cell" role="gridcell" aria-label="Row 5, column 2, empty"></div><div class="cell br" role="gridcell" aria-label="Row 5, column 3, 6, your digit"><span class="player">6</span></div><div class="cell hl" role="gridcell" aria-label="Row 5, column 4, 8, given"><span class="given">8</span></div><div class="cell hl" role="gridcell" aria-label="Row 5, column 5, notes 5"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl" role="gridcell" aria-label="Row 5, column 6, 3, given"><span class="given">3</span></div><div class="cell hf" role="gridcell" aria-label="Row 5, column 7, 7, your digit, hint"><span class="player">7</span></div><div class="cell" role="gridcell" aria-label="Row 5, column 8, 9, your digit"><span class="player">9</span></div><div class="cell same" role="gridcell" aria-label="Row 5, column 9, 1, given"><span class="given">1</span></div></div><div role="row" class="grow"><div class="cell bb" role="gridcell" aria-label="Row 6, column 1, 7, given"><span class="given">7</span></div><div class="cell bb same" role="gridcell" aria-label="Row 6, column 2, 1, your digit"><span class="player">1</span></div><div class="cell br bb" role="gridcell" aria-label="Row 6, column 3, notes 3, 5, 9"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i>5</i><i></i><i></i><i></i><i>9</i></span></div><div class="cell bb hl" role="gridcell" aria-label="Row 6, column 4, empty"></div><div class="cell bb hl" role="gridcell" aria-label="Row 6, column 5, 2, given"><span class="given">2</span></div><div class="cell br bb hl" role="gridcell" aria-label="Row 6, column 6, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 7, 8, your digit"><span class="player">8</span></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 8, empty"></div><div class="cell bb" role="gridcell" aria-label="Row 6, column 9, 6, given"><span class="given">6</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 7, column 1, notes 9"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i>9</i></span></div><div class="cell" role="gridcell" aria-label="Row 7, column 2, 6, given"><span class="given">6</span></div><div class="cell br same" role="gridcell" aria-label="Row 7, column 3, 1, your digit"><span class="player">1</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 4, empty"></div><div class="cell" role="gridcell" aria-label="Row 7, column 5, notes 3, 5"><span class="notes" aria-hidden="true"><i></i><i></i><i>3</i><i></i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br hl" role="gridcell" aria-label="Row 7, column 6, 7, your digit"><span class="player">7</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 7, 2, given"><span class="given">2</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 8, 8, given"><span class="given">8</span></div><div class="cell" role="gridcell" aria-label="Row 7, column 9, empty"></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 8, column 1, empty"></div><div class="cell" role="gridcell" aria-label="Row 8, column 2, 8, your digit"><span class="player">8</span></div><div class="cell br hf" role="gridcell" aria-label="Row 8, column 3, 7, given, hint"><span class="given">7</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 4, 4, given"><span class="given">4</span></div><div class="cell same" role="gridcell" aria-label="Row 8, column 5, 1, given"><span class="given">1</span></div><div class="cell br hl" role="gridcell" aria-label="Row 8, column 6, 9, given"><span class="given">9</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 7, notes 6"><span class="notes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></span></div><div class="cell" role="gridcell" aria-label="Row 8, column 8, 3, your digit"><span class="player">3</span></div><div class="cell" role="gridcell" aria-label="Row 8, column 9, 5, given"><span class="given">5</span></div></div><div role="row" class="grow"><div class="cell" role="gridcell" aria-label="Row 9, column 1, 3, your digit"><span class="player">3</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 2, notes 2, 4, 5"><span class="notes" aria-hidden="true"><i></i><i>2</i><i></i><i>4</i><i>5</i><i></i><i></i><i></i><i></i></span></div><div class="cell br" role="gridcell" aria-label="Row 9, column 3, empty"></div><div class="cell" role="gridcell" aria-label="Row 9, column 4, empty"></div><div class="cell" role="gridcell" aria-label="Row 9, column 5, 8, given"><span class="given">8</span></div><div class="cell br hl" role="gridcell" aria-label="Row 9, column 6, 6, your digit"><span class="player">6</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 7, empty"></div><div class="cell hf" role="gridcell" aria-label="Row 9, column 8, 7, given, hint"><span class="given">7</span></div><div class="cell" role="gridcell" aria-label="Row 9, column 9, 9, given"><span class="given">9</span></div></div></div>
+  </div>
+  
+  <aside class="side">
+<section class="hintcard" aria-label="Hint" aria-live="polite">
+  <div class="label">Explain it</div>
+  <p>In row 4, a 7 fits only in column 4. Every other empty cell in the row already has a 7 in its column.</p>
+  <div class="steps"><button class="btn">Show me the move</button></div>
+  <div class="row"><a href="#" class="link">What&rsquo;s a hidden single?</a><span class="muted">Esc to set aside</span></div>
+</section>
+<div class="mode"><span class="seg" role="group" aria-label="Input mode"><span class="on" aria-pressed="true">Digit</span><span aria-pressed="false">Notes (N)</span></span><span class="modeline">Cell first &middot; Digit &mdash; row 4, column 6</span></div>
+<div class="pad" role="group" aria-label="Digit pad"><button class="key" aria-label="1, 3 left"><b>1</b><small>3 left</small></button><button class="key" aria-label="2, 6 left"><b>2</b><small>6 left</small></button><button class="key" aria-label="3, 3 left"><b>3</b><small>3 left</small></button><button class="key" aria-label="4, 5 left"><b>4</b><small>5 left</small></button><button class="key" aria-label="5, 6 left"><b>5</b><small>6 left</small></button><button class="key" aria-label="6, 2 left"><b>6</b><small>2 left</small></button><button class="key" aria-label="7, 1 left"><b>7</b><small>1 left</small></button><button class="key" aria-label="8, 1 left"><b>8</b><small>1 left</small></button><button class="key" aria-label="9, 4 left"><b>9</b><small>4 left</small></button></div>
+<div class="actions"><button class="btn">Undo<kbd>Ctrl Z</kbd></button><button class="btn primary">Hint<kbd>H</kbd></button><button class="btn">Restart</button></div>
+</aside>
+</main>
+</div>
+</div></div></div>
+<!-- Contrast check (scripted, WCAG 2.x relative luminance):
+Daylight text ink on desk: 12.42 PASS
+Daylight text ink on card: 13.70 PASS
+Daylight text ink_muted on desk: 6.33 PASS
+Daylight text ink_muted on card: 6.99 PASS
+Daylight text airmail_red on desk: 5.66 PASS
+Daylight text airmail_red on card: 6.24 PASS
+Daylight text card on ink: 13.70 PASS
+Daylight text card on airmail_red: 6.24 PASS
+Daylight text given on card: 15.48 PASS
+Daylight text given on fill_highlight: 13.39 PASS
+Daylight text given on fill_same_digit: 12.69 PASS
+Daylight text given on fill_selected: 11.62 PASS
+Daylight text player_ink on card: 9.18 PASS
+Daylight text player_ink on fill_highlight: 7.94 PASS
+Daylight text player_ink on fill_same_digit: 7.53 PASS
+Daylight text player_ink on fill_selected: 6.89 PASS
+Daylight text note on card: 5.91 PASS
+Daylight text note on fill_highlight: 5.11 PASS
+Daylight text ink on fill_highlight: 11.85 PASS
+Daylight text ink_muted on fill_highlight: 6.04 PASS
+Daylight non-text postmark vs card: 8.42 PASS
+Daylight non-text postmark vs fill_highlight: 7.28 PASS
+Daylight non-text postmark vs fill_selected: 6.32 PASS
+Daylight non-text airmail_red vs card: 6.24 PASS
+Daylight non-text airmail_red vs fill_selected: 4.68 PASS
+Daylight non-text airmail_red vs fill_same_digit: 5.11 PASS
+Daylight non-text focus vs card: 10.38 PASS
+Daylight non-text focus vs desk: 9.41 PASS
+Daylight non-text focus vs ink: 1.32 FAIL
+Daylight non-text rule_box vs card: 13.70 PASS
+Daylight non-text rule_thin vs card: 4.09 PASS
+Daylight non-text rule_thin vs desk: 3.71 PASS
+Daylight non-text postmark vs desk: 7.63 PASS
+Lamplight text ink on desk: 14.66 PASS
+Lamplight text ink on card: 13.04 PASS
+Lamplight text ink_muted on desk: 9.54 PASS
+Lamplight text ink_muted on card: 8.48 PASS
+Lamplight text airmail_red on desk: 7.18 PASS
+Lamplight text airmail_red on card: 6.39 PASS
+Lamplight text card on ink: 13.04 PASS
+Lamplight text card on airmail_red: 6.39 PASS
+Lamplight text given on card: 13.38 PASS
+Lamplight text given on fill_highlight: 10.87 PASS
+Lamplight text given on fill_same_digit: 9.72 PASS
+Lamplight text given on fill_selected: 10.12 PASS
+Lamplight text player_ink on card: 8.44 PASS
+Lamplight text player_ink on fill_highlight: 6.86 PASS
+Lamplight text player_ink on fill_same_digit: 6.13 PASS
+Lamplight text player_ink on fill_selected: 6.38 PASS
+Lamplight text note on card: 7.58 PASS
+Lamplight text note on fill_highlight: 6.16 PASS
+Lamplight text ink on fill_highlight: 10.60 PASS
+Lamplight text ink_muted on fill_highlight: 6.89 PASS
+Lamplight non-text postmark vs card: 7.63 PASS
+Lamplight non-text postmark vs fill_highlight: 6.20 PASS
+Lamplight non-text postmark vs fill_selected: 5.77 PASS
+Lamplight non-text airmail_red vs card: 6.39 PASS
+Lamplight non-text airmail_red vs fill_selected: 4.83 PASS
+Lamplight non-text airmail_red vs fill_same_digit: 4.64 PASS
+Lamplight non-text focus vs card: 10.79 PASS
+Lamplight non-text focus vs desk: 12.13 PASS
+Lamplight non-text focus vs ink: 1.21 FAIL
+Lamplight non-text rule_box vs card: 10.17 PASS
+Lamplight non-text rule_thin vs card: 4.06 PASS
+Lamplight non-text rule_thin vs desk: 4.56 PASS
+Lamplight non-text postmark vs desk: 8.58 PASS
+-->
+</body></html>

@@ -1,0 +1,48 @@
+# Digest D — Daily/social & progress (round 2)
+
+Scope: N6 (shared daily / sharing / friends-family / leaderboards) and N5 (streaks / stats / daily completion, incl. streak anxiety). Accessed 2026-10-05. 13 tool calls, 7 distinct sources (NYT Games App Store RSS p1–p2, Good Sudoku App Store RSS, Sudoku.com App Store RSS p3–p4, "Sudoku - No Ads & Offline" App Store page, HN Algolia comment search x4 + item fetch, web search). Usernames omitted.
+
+Distinct voices counted: 15 (6 NYT Games reviews, 4 Good Sudoku reviews, 1 Sudoku No Ads review, 4 HN comments). Only 7 of them are Sudoku-specific; the rest are adjacent daily-puzzle players (Wordle / Crossword / Connections) and are tagged that way.
+
+## Claims
+
+- Players use Good Sudoku's daily tournaments and daily rank, and complain when the tournament scoring or ranking breaks. This is Sudoku-specific evidence that some players care about a shared daily competition. | "I used to enjoy the daily tournaments, but now my score is recorded as just '1' most of the time, when my real score might have been 98K." | Good Sudoku review "Please fix tournament scoring" (4★) | Apple App Store (RSS) | https://itunes.apple.com/us/rss/customerreviews/id=1489118195/sortby=mostrecent/json | 2026-02-11 | accessed 2026-10-05 | medium | user voice, Sudoku | N6
+  - Supporting voices from the same app: "no longer tells me how I ranked on yesterday's daily puzzles" (review "_purple", 4★, 2026-01-15); "it never seems to record when I complete daily tournaments" (review "Still Very Broken", 1★, 2026-09-16); "the daily results don't work. On the good and arcade ones you can win medals but it doesn't show on your medal count" (review "Daily results don't work", 1★, 2026-05-26). That makes 4 voices, all from one community.
+- Daily-only Sudoku access in NYT Games is a pain point. Players want to play outside the day's single puzzle, or at least have the day roll over in their own time zone. | "Love it but calendar / time zone is frustrating for Sudoko. They must use UTC. Unlike most other games offered, you can only play Sudoku for that given day." | NYT Games review "Soduko" (4★) | Apple App Store (RSS) | https://itunes.apple.com/us/rss/customerreviews/id=307569751/sortby=mostrecent/json | 2026-09-21 | accessed 2026-10-05 | medium (1 voice) | user voice, Sudoku | N6/N5, new need (archive / local-time day)
+- Stats and seeing improvement are valued by at least some Sudoku players. | "it's fun to look at the stats and see gradual improvements over time" | Sudoku - No Ads & Offline review "Great App, One Suggestion" (5★) | Apple App Store | https://apps.apple.com/us/app/sudoku-no-ads-offline/id6502922368 | 2025-10-12 | accessed 2026-10-05 | low-medium (1 voice) | user voice, Sudoku | N5
+- Daily-puzzle players protest when comparative stats are removed. This is NYT Games generally, and the review is not explicitly about Sudoku. | "Give us our Stats Back! … We used to get told at puzzle completion how our time compared to our average. As of 6.40, no longer." | NYT Games review (4★) | Apple App Store (RSS p2) | https://itunes.apple.com/us/rss/customerreviews/page=2/id=307569751/sortby=mostrecent/json | 2026-09-07 | accessed 2026-10-05 | medium | user voice, adjacent (NYT Games) | N5
+  - Related: "I still wish the stats were better, and I wish you could see your performance vs the world (percentile)" (NYT Games 5★, 2026-10-03; about the crossword).
+- Streaks motivate some daily-puzzle players. Evidence is adjacent only (crossword); no Sudoku-specific streak praise was found. | "I've got a four-year streak going with crosswords, so I'm not stopping now." | NYT Games review (5★) | Apple App Store (RSS) | https://itunes.apple.com/us/rss/customerreviews/id=307569751/sortby=mostrecent/json | 2026-10-03 | accessed 2026-10-05 | low for Sudoku | user voice, adjacent | N5
+- Streak anxiety and rejection of streaks appear in the daily-puzzle crowd. The evidence is adjacent: Wordle and daily games in general, not Sudoku. | "the retention strategies, such as streaks, are just as manipulative. I wanna play a game when and how often I like and not be forced into a daily pattern and be made to feel awful if I miss it just once." | HN comment on "Why I collect DLES" | Hacker News | https://hn.algolia.com/api/v1/items/48329953 | 2026-05-29 | accessed 2026-10-05 | medium (adjacent) | user voice, adjacent | N5
+  - Supporting: "I found it really annoying when I lost my wordle streak." (HN, 2025-07-17, objectID 44591074); "I am worried about losing my streak." (HN, AWS outage thread, 2025-10-20, objectID 45644152; the game is not named in the excerpt). A reply in the DLES thread said streaks and leaderboards are debated among game makers and can cause stress and player abandonment. That reply was summarised by the fetch tool rather than quoted verbatim, so treat it as paraphrase.
+  - Two communities (App Store and HN) both show strong feelings about streaks, but only for adjacent games. This does not establish prevalence for Sudoku.
+- Family and friends competing on daily puzzles is real, but the examples are Wordle and Connections, not Sudoku. | "During the week, mom and my brother and me compete on Wordle and Connections." | NYT Games review "Sunday Funday!" (5★) | Apple App Store (RSS p2) | https://itunes.apple.com/us/rss/customerreviews/page=2/id=307569751/sortby=mostrecent/json | 2026-09-13 | accessed 2026-10-05 | medium (adjacent) | user voice, adjacent | N6
+  - Supporting: "I play everyday and compete with my friends! Love it!" (NYT Games 5★, 2026-09-21, game not specified); "Me and my friends got addicted to Wordle...it somehow became part of our daily routine." (HN, 2026-04-01, objectID 47595904; the fetch tool's excerpt includes an ellipsis).
+- A daily puzzle as a routine ritual is part of the value. This is NYT Games generally. | "Part of the daily routine. Must have app and subscription. Great value." | NYT Games review (5★) | Apple App Store (RSS) | https://itunes.apple.com/us/rss/customerreviews/id=307569751/sortby=mostrecent/json | 2026-10-02 | accessed 2026-10-05 | medium | user voice, adjacent | N5/N6
+- Supply side: vendors now sell streaks and "Streak Shield" forgiveness as a feature. | "A Streak Shield covers you if you miss a day." | Sudoku - No Ads & Offline app description | Apple App Store (developer copy) | https://apps.apple.com/us/app/sudoku-no-ads-offline/id6502922368 | n.d. | accessed 2026-10-05 | n/a | supply-side, NOT user voice | N5
+  - A web search also surfaced "Sudoku Streak - Daily Puzzle" (id6759477833, not enough ratings yet) and "Sodu - Daily Sudoku" ("the same one for everyone"). Both are vendor copy only.
+
+## Verdict N6
+
+Partial support, and it is concentrated in a niche. Sudoku-specific social evidence is limited to Good Sudoku's daily tournaments and rankings. Four players in one community care enough to complain when scoring or rank breaks, which points to a competitive daily segment. Friends-and-family competition and sharing are clearly valued by NYT Games daily-puzzle players, but every example is Wordle or Connections, never Sudoku. No user voice was found asking for Wordle-style shareable Sudoku results. No Sudoku player was found rejecting social features. One NYT player complained about the opposite constraint: Sudoku being locked to a single UTC day. Conclusion: social features are a valued add-on for the daily-puzzle-habit segment, with Sudoku-specific demand unproven. It is reasonable to treat the competitive daily tournament as a niche segment; it should not be a core priority on this evidence.
+
+## Verdict N5
+
+Mixed, and mostly adjacent. Round 1 found no praise of streaks and no stress complaints about them. Round 2 found both, but not from Sudoku players. Streak praise came from one crossword player. Streak anxiety and rejection came from three HN voices about Wordle and daily games. Stats are valued with two-community support (NYT Games and a standalone Sudoku app). Players want to see improvement and compare against their average or the world, and they protest when comparisons are removed. Conclusion: stats and progress tracking are a supported need. Streaks are a double-edged hypothesis with no direct Sudoku evidence. If a product ships streaks, offering forgiveness (as vendors already do with shields) or making them opt-in is consistent with the anxiety voices, but this remains an unverified inference.
+
+## New needs
+
+- N-new-a: archive or replay of past daily puzzles, and a daily boundary based on local time rather than UTC (NYT Sudoku, 1 voice).
+- N-new-b: comparative performance, meaning vs own average and percentile vs other players (NYT, 2 voices, adjacent).
+- N-new-c: reliable scoring and ranking for daily competitions; breakage drives 1★ reviews (Good Sudoku, 3–4 voices).
+
+## Looked for but could not find
+
+- Any Sudoku player praising streaks or expressing streak anxiety specifically about Sudoku.
+- Any Sudoku player asking for Wordle-style shareable result grids.
+- Any Sudoku player explicitly rejecting leaderboards or social features.
+- Sudoku.com reviews (RSS p3 had no matches; p4 returned no entries) on daily challenges, trophies, or events. The ad and coin complaints still dominate.
+- The Pogo Daily Sudoku streak forum thread (forums.ea.com) returned HTTP 403 and was not retrieved.
+- HN query "streak anxiety puzzle" (2025+) returned 0 hits. HN "sudoku streak" returned only a platform feature list, which is not user voice.
+- Microsoft Sudoku / Solitaire Collection reviews were not reached within the budget.
+- Mastodon, Threads, and news features quoting Sudoku players were not reached within the budget.
