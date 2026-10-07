@@ -68,6 +68,14 @@ updated: '2026-10-07'
   - **Your decisions:** the action-row Hint applies the move at step 2, and the solve message names both the move and "Solved".
   - **Review:** 3 reviews and 5 fixes; the browser check solved a whole Puzzle with H alone.
   - **Commit:** committed locally on `story/2-2-show-me-the-move`, stacked on 2.1; not yet on `main`.
+- **TS-27 Story 2.3, What's a [Technique]?:**
+  - **The link:** the Hint panel shows "What's a naked pair?", "What's pointing?" and so on. It names the same Technique as the nudge and opens a short definition below the Hint text.
+  - **Choices made on your behalf (you were away):**
+    - Link wording is per Technique.
+    - The definition sits below the Hint text, and the link toggles it.
+    - The drafted definitions are used as written.
+    - The link names the nudge's Technique. This was amended from "hardest Technique" after the browser check showed a confusing mismatch.
+  - **Review:** 3 reviews and 5 fixes, plus a browser check.
 
 ## Tickets done (8 / 10)
 
