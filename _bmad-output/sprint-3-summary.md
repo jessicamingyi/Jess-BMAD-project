@@ -8,14 +8,14 @@ updated: '2026-10-07'
 # Traveller Sudoku: Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** a playable, live Free Play Sudoku.
-**Tickets:** 10 (TS-15 to TS-24). **Progress:** 5 / 10 done.
+**Tickets:** 10 (TS-15 to TS-24). **Progress:** 8 / 10 done. Epic 1 code is complete.
 
 - Readiness check (`bmad-sprint-planning`).
 - **Epic 1, Stories 1.1 to 1.8:** project shell live on GitHub Pages; mouse play; Notes and number-first entry; Undo and Restart; keyboard and screen-reader play; Assists and Lamplight; Technique solver and grader; Free Play at a chosen Difficulty.
 - **Creator:** write the 30 Cities and Postcard lines and settle their tone.
 
 **Done when:** you can open the live site and play a fair Easy, Medium or Hard Puzzle with mouse or keyboard, in either theme.
-**Risks:** 8 stories in a day is heavy; Stories 1.7 and 1.8 are large. Going live needs the repo made public for GitHub Pages.
+**Risks:** Going live needs the repo made public for GitHub Pages (and the City content before Epic 3 deploys).
 
 ## Progress so far
 
@@ -27,11 +27,34 @@ updated: '2026-10-07'
   - **Tests:** DOM tests run in jsdom.
   - **Review:** 3 parallel reviews and 5 fixes. Lint, 163 tests and the build pass. Committed locally (`3a21b87`).
   - **Follow-ups:**
-    - Real-browser check that Space places a digit once (logged in `deferred-work.md`).
+    - Real-browser check that Space places a digit once: verified in Chrome and Edge on 7 Oct; Firefox not checked.
     - Open question: should Undo, Restart, a refused Note and a deselected current digit be announced?
-- Every story is committed locally only; nothing is pushed or deployed yet.
+- **Story 1.6, Assists and Lamplight (Wed 7 Oct):**
+  - **Assists:** Mistake highlighting (Off by default), same-digit (On) and row/column/box (On), each paired with a non-colour mark.
+  - **Settings:** a screen with the Assists grouped and Lamplight below, plus "Puzzle · Settings" nav.
+  - **Lamplight:** a dark theme twin, switched only from Settings.
+  - **Contrast:** a WCAG contrast test checks both themes.
+  - **Review:** 3 reviews, 8 fixes; committed `6ad0b3e`.
+- **Story 1.7, Technique solver and grader (Wed 7 Oct):**
+  - **Engine:** a pure engine with the five Techniques in one ordered registry, `solve`, and `grade` (Easy/Medium/Hard, or "not gradeable" for puzzles beyond them).
+  - **Brute counter:** a solution counter only the generator may import.
+  - **Header:** reads "Free Play · {Difficulty}".
+  - **Review:** 3 reviews, 6 fixes, including 3 test gaps proved by mutation; committed `4e4abc9`.
+- **Story 1.8, Start a Free Play Puzzle (Wed 7 Oct):**
+  - **Generator:** seeded, deterministic, and keeps only unique puzzles graded to the chosen Difficulty. It runs in a Web Worker.
+  - **Entry screen:** Difficulty picker, "Start a Puzzle", "Carry on" / "Start a new one" with an inline confirm, and a calm error line.
+  - **Nav:** "Puzzle · Free Play · Settings".
+  - **Startup:** the sample Puzzle no longer loads; it's a test fixture only.
+  - **Review:** 3 reviews and 6 fixes, plus a real-browser smoke test in Chrome and Edge with no errors. Hard generates in under 0.1 s. Committed `e556c6f`.
+- **Your decisions today:**
+  - Same-digit marks follow the selected cell.
+  - Settings are grouped.
+  - "Puzzle" in the nav is shown but disabled until a Puzzle exists.
+  - The start button reads "Start a Puzzle", with a warm error line.
+  - A new Puzzle that arrives while you're on another screen waits under "Puzzle".
+- Every story is committed locally on stacked `story/1-x-…` branches; nothing is pushed or deployed yet.
 
-## Tickets done (5 / 10)
+## Tickets done (8 / 10)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
@@ -40,15 +63,15 @@ updated: '2026-10-07'
 | TS-18 | [Story 1.3: Notes and number-first entry](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Tue 6 Oct (early) |
 | TS-19 | [Story 1.4: Undo and Restart](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Tue 6 Oct (early) |
 | TS-20 | [Story 1.5: Play with the keyboard and a screen reader](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct |
+| TS-21 | [Story 1.6: Assists and Lamplight](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Wed 7 Oct |
+| TS-22 | [Story 1.7: Fair puzzles: Technique solver and grader](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct |
+| TS-23 | [Story 1.8: Start a Free Play Puzzle](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Wed 7 Oct |
 
-## Tickets not done yet (5)
+## Tickets not done yet (2)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
 | TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | To do | - |
-| TS-21 | [Story 1.6: Assists and Lamplight](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.5 |
-| TS-22 | [Story 1.7: Fair puzzles: Technique solver and grader](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.2 |
-| TS-23 | [Story 1.8: Start a Free Play Puzzle](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.7 |
 | TS-24 | Write the 30 Cities and Postcard lines, settle their tone | Content | M | Jessica | To do | Needed before Story 3.1; deploys are blocked while placeholders exist |
 
 ---
