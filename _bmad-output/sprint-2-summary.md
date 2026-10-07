@@ -2,7 +2,7 @@
 title: 'Traveller Sudoku: Sprint 2: Design and backlog (Tue 6 Oct 2026)'
 sprint: 2
 status: complete
-updated: '2026-10-06'
+updated: '2026-10-07'
 ---
 
 # Traveller Sudoku: Sprint 2: Design and backlog (Tue 6 Oct 2026)
@@ -19,6 +19,15 @@ updated: '2026-10-06'
 - **Backlog and board:** 39 tickets across 5 sprints.
 
 **Carried forward:** the City content is now on the critical path for Sprint 4.
+
+## Pulled forward from Sprint 3 (built Tue 6 Oct evening)
+
+With planning finished, the first four Epic 1 stories were built early with `bmad-build`. Each has a spec, passed review, and was committed locally on stacked `story/1-x-…` branches; none is pushed yet. Their tickets stay in Sprint 3 and are counted there.
+
+- **TS-16 Story 1.1, Publish the shell:** React + Vite + TypeScript app shell, Airmail theme tokens, architecture tests. The GitHub Pages deploy waits on the repo being made public.
+- **TS-17 Story 1.2, Solve with the mouse:** a sample Puzzle, cell selection, digit pad, and Solved detection.
+- **TS-18 Story 1.3, Notes and number-first:** Notes (pencil marks) and both input modes (cell-first and number-first).
+- **TS-19 Story 1.4, Undo and Restart:** unlimited Undo, and Restart with an inline confirm.
 
 ## Tickets done (7 / 7)
 

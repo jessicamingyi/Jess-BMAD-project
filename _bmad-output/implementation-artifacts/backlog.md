@@ -1,6 +1,6 @@
 ---
 title: 'Traveller Sudoku: backlog and sprint board'
-updated: '2026-10-06'
+updated: '2026-10-07'
 sprint_length: 1 day
 sprints: 5
 ---
@@ -44,16 +44,16 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** Readiness check, Epic 1 (playable Free Play Sudoku, live on GitHub Pages), and the City content.  
-**Progress:** 0 / 10 done
+**Progress:** 5 / 10 done (Stories 1.1–1.4 built early, on Tue 6 Oct)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
 | TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | To do | - |
-| TS-16 | [Story 1.1: Publish the Traveller Sudoku shell](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | - |
-| TS-17 | [Story 1.2: Solve a puzzle with the mouse](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.1 |
-| TS-18 | [Story 1.3: Notes and number-first entry](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.2 |
-| TS-19 | [Story 1.4: Undo and Restart](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 1.3 |
-| TS-20 | [Story 1.5: Play with the keyboard and a screen reader](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.4 |
+| TS-16 | [Story 1.1: Publish the Traveller Sudoku shell](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | - |
+| TS-17 | [Story 1.2: Solve a puzzle with the mouse](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.1 |
+| TS-18 | [Story 1.3: Notes and number-first entry](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.2 |
+| TS-19 | [Story 1.4: Undo and Restart](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 1.3 |
+| TS-20 | [Story 1.5: Play with the keyboard and a screen reader](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Story 1.4 |
 | TS-21 | [Story 1.6: Assists and Lamplight](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.5 |
 | TS-22 | [Story 1.7: Fair puzzles: Technique solver and grader](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.2 |
 | TS-23 | [Story 1.8: Start a Free Play Puzzle](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 1.7 |
