@@ -27,16 +27,19 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
-      - if: github.ref == 'refs/heads/main'
+      # Publishing is opt-in: set the repository variable PAGES_ENABLED=true once the
+      # repo can serve Pages (Settings → Pages → Source: GitHub Actions). Until then CI
+      # still runs install, lint, test and build on every push and pull request.
+      - if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
         uses: actions/configure-pages@v5
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
       pages: write

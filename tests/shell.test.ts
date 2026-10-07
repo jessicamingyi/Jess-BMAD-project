@@ -99,4 +99,14 @@ describe('CI/CD workflow', () => {
     expect(deploy).toContain("if: github.ref == 'refs/heads/main'")
     expect(deploy).toContain('actions/deploy-pages')
   })
+
+  it('publishes to Pages only when the PAGES_ENABLED repository variable is true', () => {
+    const gate = "if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'"
+    const deploy = workflow.slice(workflow.indexOf('\n  deploy:'))
+    expect(deploy).toContain(gate)
+    for (const action of ['actions/configure-pages', 'actions/upload-pages-artifact']) {
+      const at = workflow.indexOf(action)
+      expect(workflow.lastIndexOf('- if: ', at), action).toBe(workflow.lastIndexOf(`- ${gate}`, at))
+    }
+  })
 })
