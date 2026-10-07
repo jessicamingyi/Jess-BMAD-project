@@ -76,6 +76,16 @@ updated: '2026-10-07'
     - The drafted definitions are used as written.
     - The link names the nudge's Technique. This was amended from "hardest Technique" after the browser check showed a confusing mismatch.
   - **Review:** 3 reviews and 5 fixes, plus a browser check.
+- **TS-28 Story 2.4, Mistake Hints and "Something doesn't fit yet":**
+  - **Mistakes first:** Hints check for Mistakes before anything else. Step 1 reads "One of your digits doesn't fit — look at row 1.", step 2 gives the calm explanation, and step 3 clears the digit (Undo brings it back).
+  - **Full-but-wrong grid:** shows the inline line "Something doesn't fit yet — want a hint?" with its own Hint button.
+  - **Choices made on your behalf:**
+    - The epic's draft Mistake wording, word for word.
+    - The line sits below the action row.
+    - The line's Hint behaves like every other Hint control.
+    - Screen readers hear "7. Something doesn't fit yet — want a hint?" once.
+  - **Review:** 3 reviews and 5 fixes, plus a browser check in both themes.
+- **Epic 2 (Hints) is code-complete.** Stories 2.1–2.4 are committed locally on stacked branches up to `story/2-4-mistake-hints`; not yet on `main`.
 
 ## Tickets done (8 / 10)
 
