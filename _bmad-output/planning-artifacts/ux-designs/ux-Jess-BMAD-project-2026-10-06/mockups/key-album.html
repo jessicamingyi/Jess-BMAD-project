@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Album - Europe - Traveller Sudoku key screen</title>
+<style>
+/* KEY SCREEN: Album, Europe Region page, right after Lisbon's Postcard was added.
+   Governing spine sections:
+   DESIGN.md  > Layout & Spacing > Album (one Region per page, 10 slots, 5 columns, 12px gap, Near > Mid > Far),
+                Components > Album slot (Collected, Collected just arrived, Reachable, Reachable in progress, Locked),
+                Region tabs, Header (nav), airmail-stripe, Shapes (square corners).
+   EXPERIENCE.md > Information Architecture (Album as destination chooser, no map), Component Patterns > Album slot,
+                Region tabs, Header; State Patterns > In progress, Locked; Key Flows > UJ-1 step 7;
+                Voice and Tone ("Where to next?", "Travel here", "Carry on", "just arrived", Region count, locked line).
+   Slot content: Paris / Edinburgh / Amsterdam lines and Seville, Rome from the chosen direction mock;
+   "Vienna" is a placeholder - the City catalogue is not in the spines.
+   Tokens: DESIGN.md frontmatter (Airmail palette; Daylight = .day, Lamplight = .lamplight twins).
+   Browser chrome and the grey page behind it are mock framing only, not product UI.
+   Contrast (WCAG 2.x, scripted) for every text/mark pair used here: see bottom of file. */
+
+.day{--desk:#F5EFDF;--card:#FFFAF0;--ink:#1F2A44;--ink-muted:#4E5670;--given:#1A2036;--player-ink:#24418A;--note:#5A6178;--rule-thin:#73799A;--rule-box:#1F2A44;--fill-selected:#F6D3D0;--fill-highlight:#E6EAF5;--fill-same-digit:#DFE4F4;--mistake:#8A4B16;--airmail-red:#B3262F;--postmark:#3C4A6E;--focus:#1F3A7A;--shadow:31,42,68;--tex:rgba(31,42,68,.03);--glow:rgba(255,255,255,.45)}
+.lamplight{--desk:#1B1A21;--card:#25242C;--ink:#F4ECD8;--ink-muted:#C8C0AD;--given:#F6EFDC;--player-ink:#A9C0F5;--note:#B8B4C4;--rule-thin:#838196;--rule-box:#D8D2C0;--fill-selected:#5A2A30;--fill-highlight:#2E3348;--fill-same-digit:#343A55;--mistake:#E8B07A;--airmail-red:#F08A8F;--postmark:#A8B6E0;--focus:#FFD27A;--shadow:0,0,0;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 32px 48px;background:#cfcfd4;color:#1f2a44;font-family:Georgia,'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,serif}
+.mocknote{width:1280px;margin:0 auto 12px;font-size:14px;font-style:italic;color:#2b2f3a}
+.browser{width:1280px;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.30);background:#e9e9ec}
+.chrome{height:40px;background:#e9e9ec;border-bottom:1px solid #c4c4ca;display:flex;align-items:center;gap:8px;padding:0 14px;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#2b2f3a}
+.chrome .d{width:12px;height:12px;border-radius:50%;background:#b9b9c0}
+.chrome .url{margin-left:18px;flex:1;background:#fff;border-radius:6px;padding:5px 12px}
+/* paper on a desk: glow top-left + faint diagonal hatch of ink ~3% (DESIGN Colors > Paper grain) */
+.app{position:relative;min-height:820px;padding:26px 44px;color:var(--ink);font-family:Georgia,'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,serif;
+  background:radial-gradient(ellipse at 15% 10%,var(--glow),transparent 45%),
+  repeating-linear-gradient(83deg,var(--tex) 0 2px,transparent 2px 7px),
+  repeating-linear-gradient(-12deg,var(--tex) 0 1px,transparent 1px 5px),var(--desk)}
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;border-bottom:3px double var(--ink);padding-bottom:12px;min-height:104px}
+.brand{font-style:italic;font-size:24px;line-height:1.2}
+.brand small{display:block;font-style:normal;font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--airmail-red)}
+.nav{display:flex;gap:26px}
+.nav a{font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+.nav a.on{color:var(--airmail-red);border-bottom-color:var(--airmail-red)}
+.nav a[aria-disabled="true"]{color:var(--ink-muted)}
+.dest{display:flex;align-items:center;gap:18px}
+.dest .city{font-size:30px;line-height:1;text-align:right}
+.dest .meta{font-size:15px;line-height:1.5;color:var(--ink-muted);margin-top:4px;text-align:right}
+.stamp{width:74px;height:88px;background:var(--card);border:5px dotted var(--desk);outline:2px solid var(--card);padding:4px;transform:rotate(3deg);box-shadow:0 2px 6px rgba(var(--shadow),.25);flex:none}
+.stamp div{height:100%;background:var(--airmail-red);color:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 2px;font-size:9px;letter-spacing:.06em;text-align:center}
+.stamp b{font-size:20px;font-weight:normal}
+.stamp.sm{width:52px;height:62px;border-width:4px;padding:3px}
+.stamp.sm div{font-size:7px;padding:2px 0}.stamp.sm b{font-size:15px}
+/* buttons */
+.btn{font-family:inherit;background:transparent;color:var(--ink);border:3px double var(--rule-box);border-radius:0;padding:9px 16px;font-size:16px;font-variant:small-caps;letter-spacing:.08em;cursor:pointer}
+.btn kbd{font-family:inherit;font-size:12px;font-style:italic;font-variant:normal;letter-spacing:0;color:var(--ink-muted);margin-left:6px}
+.btn.primary{background:var(--ink);color:var(--card);border-color:var(--card);outline:2px solid var(--ink)}
+.btn.primary kbd{color:var(--card)}
+.focus{outline:3px solid var(--focus)!important;outline-offset:3px}
+.link{color:var(--airmail-red);text-decoration:underline;text-underline-offset:3px}
+
+.page{margin-top:22px}
+.page h1{margin:0 0 14px;font-weight:400;font-size:30px;line-height:1}
+.tabs{display:flex;gap:30px;border-bottom:1px solid var(--rule-thin);margin-bottom:18px}
+.tab{padding:0 0 8px;text-decoration:none;color:var(--ink);border-bottom:3px double transparent;margin-bottom:-1px}
+.tab .nm{font-variant:small-caps;letter-spacing:.12em;font-size:15px}
+.tab .ct{font-size:14px;color:var(--ink-muted);margin-left:6px}
+.tab.on{border-bottom-color:var(--ink)}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.slot{position:relative;min-height:168px;padding:14px 14px 12px;display:flex;flex-direction:column;text-decoration:none;color:var(--ink)}
+.slot .city{font-size:15px;line-height:1.5}
+.slot .meta{font-size:12px;font-style:italic;color:var(--ink-muted)}
+.slot .line{margin-top:8px;font-size:14px;line-height:1.4;font-style:italic;color:var(--ink)}
+.slot.collected,.slot.reachable{background:var(--card);border:1px solid var(--rule-thin)}
+.slot.collected{padding-top:18px}
+.slot.collected::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:repeating-linear-gradient(-45deg,var(--airmail-red) 0 12px,var(--desk) 12px 20px,var(--rule-box) 20px 32px,var(--desk) 32px 40px)}
+.slot.new{outline:2px solid var(--airmail-red);outline-offset:0}
+.slot .arrived{margin-top:auto;font-size:12px;font-style:italic;color:var(--airmail-red)}
+.slot .cta{margin-top:auto;font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:var(--airmail-red)}
+.slot.locked{background:transparent;border:1px dashed var(--rule-thin);align-items:center;justify-content:center;text-align:center}
+.slot.locked .why{font-size:12px;font-style:italic;color:var(--ink-muted)}
+.notice{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:18px;background:var(--card);
+  border:1px solid var(--rule-thin);border-left:4px solid var(--postmark);padding:12px 16px 12px 18px}
+.notice p{margin:0;font-size:15px;line-height:1.5}
+
+</style></head>
+<body>
+<div class="browser"><div class="chrome" aria-hidden="true"><span class="d"></span><span class="d"></span><span class="d"></span><span class="url">travellersudoku.app/album/europe</span></div>
+<div class="app day">
+<header class="top">
+  <div class="brand">Traveller Sudoku<small>correspondence by puzzle</small></div>
+  <nav class="nav" aria-label="Main"><a href="#">Puzzle</a><a href="#" class="on" aria-current="page">Album</a><a href="#">Free Play</a><a href="#">Settings</a></nav>
+</header>
+<main class="page">
+  <h1 tabindex="-1">Where to next?</h1>
+  <nav class="tabs" aria-label="Regions">
+  <a href="#" class="tab on" aria-current="page"><span class="nm">Europe</span><span class="ct">4 / 10</span></a>
+  <a href="#" class="tab"><span class="nm">Asia</span><span class="ct">2 / 10</span></a>
+  <a href="#" class="tab"><span class="nm">The Americas</span><span class="ct">2 / 10</span></a>
+</nav>
+  <div class="slots"><a href="#" class="slot collected" aria-label="Paris, collected"><span class="city">Paris</span><span class="meta">France &middot; Near</span><span class="line">Bought bread at seven, ate it by eight.</span></a><a href="#" class="slot collected" aria-label="Edinburgh, collected"><span class="city">Edinburgh</span><span class="meta">Scotland &middot; Near</span><span class="line">The castle wears the fog like a scarf.</span></a><a href="#" class="slot collected" aria-label="Amsterdam, collected"><span class="city">Amsterdam</span><span class="meta">Netherlands &middot; Near</span><span class="line">Bicycles, even in dreams.</span></a><a href="#" class="slot reachable"><span class="city">Seville</span><span class="meta">Spain &middot; Near</span><span class="cta">Carry on</span></a><a href="#" class="slot collected new" aria-label="Lisbon, collected, just arrived"><span class="city">Lisbon</span><span class="meta">Portugal &middot; Mid</span><span class="line">The trams climb hills that would tire a goat. Wish you were here.</span><span class="arrived">just arrived</span></a><a href="#" class="slot reachable"><span class="city">Rome</span><span class="meta">Italy &middot; Mid</span><span class="cta">Travel here</span></a><a href="#" class="slot reachable"><span class="city">Vienna</span><span class="meta">Austria &middot; Mid</span><span class="cta">Travel here</span></a><div class="slot locked" tabindex="0"><span class="why">Opens after 3 Mid postcards</span></div><div class="slot locked" tabindex="0"><span class="why">Opens after 3 Mid postcards</span></div><div class="slot locked" tabindex="0"><span class="why">Opens after 3 Mid postcards</span></div></div>
+</main>
+</div>
+</div>
+<!-- Contrast check (scripted, WCAG 2.x relative luminance):
+Daylight text ink on desk: 12.42 PASS
+Daylight text ink on card: 13.70 PASS
+Daylight text ink_muted on desk: 6.33 PASS
+Daylight text ink_muted on card: 6.99 PASS
+Daylight text airmail_red on desk: 5.66 PASS
+Daylight text airmail_red on card: 6.24 PASS
+Daylight text card on ink: 13.70 PASS
+Daylight text card on airmail_red: 6.24 PASS
+Daylight text given on card: 15.48 PASS
+Daylight text given on fill_highlight: 13.39 PASS
+Daylight text given on fill_same_digit: 12.69 PASS
+Daylight text given on fill_selected: 11.62 PASS
+Daylight text player_ink on card: 9.18 PASS
+Daylight text player_ink on fill_highlight: 7.94 PASS
+Daylight text player_ink on fill_same_digit: 7.53 PASS
+Daylight text player_ink on fill_selected: 6.89 PASS
+Daylight text note on card: 5.91 PASS
+Daylight text note on fill_highlight: 5.11 PASS
+Daylight text ink on fill_highlight: 11.85 PASS
+Daylight text ink_muted on fill_highlight: 6.04 PASS
+Daylight non-text postmark vs card: 8.42 PASS
+Daylight non-text postmark vs fill_highlight: 7.28 PASS
+Daylight non-text postmark vs fill_selected: 6.32 PASS
+Daylight non-text airmail_red vs card: 6.24 PASS
+Daylight non-text airmail_red vs fill_selected: 4.68 PASS
+Daylight non-text airmail_red vs fill_same_digit: 5.11 PASS
+Daylight non-text focus vs card: 10.38 PASS
+Daylight non-text focus vs desk: 9.41 PASS
+Daylight non-text focus vs ink: 1.32 FAIL
+Daylight non-text rule_box vs card: 13.70 PASS
+Daylight non-text rule_thin vs card: 4.09 PASS
+Daylight non-text rule_thin vs desk: 3.71 PASS
+Daylight non-text postmark vs desk: 7.63 PASS
+Lamplight text ink on desk: 14.66 PASS
+Lamplight text ink on card: 13.04 PASS
+Lamplight text ink_muted on desk: 9.54 PASS
+Lamplight text ink_muted on card: 8.48 PASS
+Lamplight text airmail_red on desk: 7.18 PASS
+Lamplight text airmail_red on card: 6.39 PASS
+Lamplight text card on ink: 13.04 PASS
+Lamplight text card on airmail_red: 6.39 PASS
+Lamplight text given on card: 13.38 PASS
+Lamplight text given on fill_highlight: 10.87 PASS
+Lamplight text given on fill_same_digit: 9.72 PASS
+Lamplight text given on fill_selected: 10.12 PASS
+Lamplight text player_ink on card: 8.44 PASS
+Lamplight text player_ink on fill_highlight: 6.86 PASS
+Lamplight text player_ink on fill_same_digit: 6.13 PASS
+Lamplight text player_ink on fill_selected: 6.38 PASS
+Lamplight text note on card: 7.58 PASS
+Lamplight text note on fill_highlight: 6.16 PASS
+Lamplight text ink on fill_highlight: 10.60 PASS
+Lamplight text ink_muted on fill_highlight: 6.89 PASS
+Lamplight non-text postmark vs card: 7.63 PASS
+Lamplight non-text postmark vs fill_highlight: 6.20 PASS
+Lamplight non-text postmark vs fill_selected: 5.77 PASS
+Lamplight non-text airmail_red vs card: 6.39 PASS
+Lamplight non-text airmail_red vs fill_selected: 4.83 PASS
+Lamplight non-text airmail_red vs fill_same_digit: 4.64 PASS
+Lamplight non-text focus vs card: 10.79 PASS
+Lamplight non-text focus vs desk: 12.13 PASS
+Lamplight non-text focus vs ink: 1.21 FAIL
+Lamplight non-text rule_box vs card: 10.17 PASS
+Lamplight non-text rule_thin vs card: 4.06 PASS
+Lamplight non-text rule_thin vs desk: 4.56 PASS
+Lamplight non-text postmark vs desk: 8.58 PASS
+-->
+</body></html>

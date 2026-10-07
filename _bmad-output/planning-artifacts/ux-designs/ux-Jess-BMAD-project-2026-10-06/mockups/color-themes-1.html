@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Colour themes - Vintage Postcard - Traveller Sudoku</title>
+<style>
+/* COLOR THEMES 1 - Vintage Postcard direction, 5 palette registers x light/dark.
+   Contrast computed with WCAG 2.x relative luminance (scripted). Text >= 4.5:1; grid lines, box borders,
+   selection ring / row-col ticks / same-digit underline, mistake mark and focus ring >= 3:1 vs adjacent colours.
+   Soft fills (highlight, same-digit, selected) are deliberately quiet; each state also carries a >= 3:1 non-fill cue.
+   Mistake is never colour-only: dotted underline + corner dot. */
+
+*{box-sizing:border-box}
+body{margin:0;padding:28px 28px 60px;background:#d9cbac;color:#3b2a1a;font-family:Georgia,"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,serif}
+.intro{max-width:1500px;margin:0 auto 22px}
+.intro h1{font-weight:normal;font-size:24px;margin:0 0 6px;letter-spacing:.03em}
+.intro h1 span{font-variant:small-caps;color:#7f2f20;letter-spacing:.1em}
+.intro p{margin:0;font-size:15px;line-height:1.5;max-width:1000px}
+section.var{max-width:1500px;margin:0 auto 34px;background:#efe4c9;padding:18px 20px 22px;box-shadow:0 8px 24px rgba(59,42,26,.25)}
+section.var>header{display:flex;align-items:baseline;gap:16px;border-bottom:3px double #3b2a1a;padding-bottom:8px;margin-bottom:14px}
+section.var>header h2{margin:0;font-weight:normal;font-size:22px}
+section.var>header h2 small{font-variant:small-caps;letter-spacing:.12em;color:#7f2f20;font-size:15px;margin-right:8px}
+section.var>header p{margin:0;font-style:italic;font-size:15px;color:#4e3d2a}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{color:var(--text);padding:16px 16px 18px;border-radius:2px;
+  background:radial-gradient(ellipse at 18% 8%,var(--glow),transparent 50%),repeating-linear-gradient(83deg,var(--tex) 0 2px,transparent 2px 7px),repeating-linear-gradient(-12deg,var(--tex) 0 1px,transparent 1px 5px),var(--bg)}
+.panel.air{border:8px solid transparent;border-image:repeating-linear-gradient(-45deg,var(--accent) 0 12px,var(--bg) 12px 20px,var(--box) 20px 32px,var(--bg) 32px 40px) 8}
+.ph{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.ph .mode{font-variant:small-caps;letter-spacing:.12em;font-size:17px;color:var(--accent)}
+.ph .sub{font-style:italic;font-size:13px;color:var(--text2)}
+.chips{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+.chips li{display:grid;grid-template-columns:22px 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;font-size:12.5px;padding:3px 0;border-bottom:1px dotted var(--thin)}
+.chips .sw{grid-row:span 2;width:22px;height:22px;border:1px solid var(--text2);box-shadow:inset 0 0 0 2px var(--surface)}
+.chips .rn{color:var(--text)}
+.chips code{font-family:Consolas,"Courier New",monospace;font-size:12px;color:var(--text2)}
+.chips .rt{grid-column:2/4;font-size:11.5px;font-style:italic;color:var(--text2)}
+.snip{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.gw{position:relative;background:var(--surface);padding:16px 14px 10px 18px;box-shadow:0 4px 12px rgba(0,0,0,.18);transform:rotate(-.4deg)}
+.g{display:grid;grid-template-columns:repeat(4,46px);grid-auto-rows:46px;border-top:3px solid var(--box);border-left:3px solid var(--box);background:var(--surface)}
+.c{position:relative;display:flex;align-items:center;justify-content:center;font-size:25px;border-right:1px solid var(--thin);border-bottom:1px solid var(--thin)}
+.c.bR{border-right:3px solid var(--box)}.c.bB{border-bottom:3px solid var(--box)}
+.c b{font-weight:bold;color:var(--given)}
+.c em{font-style:italic;color:var(--player)}
+.c.hl{background:var(--hl)}
+.c.sel{background:var(--selected);box-shadow:inset 0 0 0 3px var(--accent)}
+.c.same{background:var(--same)}
+.c.same em{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:4px}
+.c.mis em{color:var(--mistake);text-decoration:underline dotted var(--mistake);text-decoration-thickness:2px;text-underline-offset:4px}
+.c.mis .dot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--mistake)}
+.nt{display:grid;grid-template-columns:repeat(3,1fr);width:100%;height:100%;padding:2px;font-size:11px;color:var(--note)}
+.nt i{font-style:normal;display:flex;align-items:center;justify-content:center}
+.tick{position:absolute;background:var(--accent)}
+.tick.tc{top:5px;left:calc(18px + 3px + 46px + 17px);width:12px;height:7px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.tick.tr{left:6px;top:calc(16px + 3px + 17px);width:7px;height:12px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.legend{max-width:190px;margin-top:8px;font-size:11px;line-height:1.35;color:var(--text2);font-style:italic}
+.legend .mk{color:var(--mistake);text-decoration:underline dotted;font-style:italic}
+.legend .sd{text-decoration-color:var(--accent)}
+.right{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pc{position:relative;background:var(--surface);display:grid;grid-template-columns:1fr 1px 1fr;gap:12px;padding:14px 14px 12px;box-shadow:0 6px 16px rgba(0,0,0,.22);transform:rotate(.6deg);min-height:150px}
+.pc .rule{background:var(--thin)}
+.pc .msg{font-style:italic;font-size:15px;line-height:1.45;color:var(--text)}
+.lbl{display:block;font-style:normal;font-variant:small-caps;letter-spacing:.1em;font-size:13px;color:var(--accent);margin-bottom:3px}
+.hint .lbl{display:inline;margin-right:6px}
+.pc .addr{position:relative;padding-top:74px}
+.pc .ln{border-bottom:1px solid var(--thin);font-size:12.5px;padding:4px 0 2px;color:var(--text2)}
+.stamp{position:absolute;top:0;right:0;width:52px;height:62px;background:var(--surface);border:4px dotted var(--bg);outline:2px solid var(--surface);padding:3px;transform:rotate(3deg);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.stamp div{height:100%;background:var(--accent);color:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:7px;letter-spacing:.05em;padding:2px 0}
+.stamp b{font-size:15px;font-weight:normal}
+.pc .pm{position:absolute;top:2px;right:30px;width:100px;height:66px}
+.hint{background:var(--surface);border:1px solid var(--thin);padding:8px 10px;font-size:14.5px;line-height:1.4;color:var(--text)}
+.btns{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{border:3px double var(--box);color:var(--text);padding:4px 12px;font-variant:small-caps;letter-spacing:.08em;font-size:14px;background:var(--surface)}
+.btn.focus{outline:3px solid var(--focus);outline-offset:3px}
+.fnote{font-size:11.5px;font-style:italic;color:var(--text2)}
+
+/* ===== V1 - Classic Sepia & Ink Blue =====
+   [LIGHT] hex:
+     bg=#f3e9d2  surface=#fbf4e2  text=#3b2a1a  text2=#6b5a45  given=#3b2a1a  player=#2b4a6f  note=#6b5a45  thin=#826e48  box=#3b2a1a  selected=#e2c98f  hl=#efe2c0  same=#f1dfb0  mistake=#7a3f5c  accent=#9c3b2a  postmark=#6a4a5a  focus=#2b4a6f
+   [LIGHT] measured contrast (min required in brackets):
+     text #3b2a1a on bg #f3e9d2 = 11.36:1 [4.5] PASS
+     text #3b2a1a on surface #fbf4e2 = 12.49:1 [4.5] PASS
+     text2 #6b5a45 on bg #f3e9d2 = 5.48:1 [4.5] PASS
+     text2 #6b5a45 on surface #fbf4e2 = 6.03:1 [4.5] PASS
+     given #3b2a1a on surface #fbf4e2 = 12.49:1 [4.5] PASS
+     given #3b2a1a on hl #efe2c0 = 10.65:1 [4.5] PASS
+     given #3b2a1a on selected #e2c98f = 8.48:1 [4.5] PASS
+     given #3b2a1a on same #f1dfb0 = 10.39:1 [4.5] PASS
+     player #2b4a6f on surface #fbf4e2 = 8.28:1 [4.5] PASS
+     player #2b4a6f on hl #efe2c0 = 7.06:1 [4.5] PASS
+     player #2b4a6f on selected #e2c98f = 5.62:1 [4.5] PASS
+     player #2b4a6f on same #f1dfb0 = 6.89:1 [4.5] PASS
+     note #6b5a45 on surface #fbf4e2 = 6.03:1 [4.5] PASS
+     note #6b5a45 on hl #efe2c0 = 5.14:1 [4.5] PASS
+     text2 #6b5a45 on hl #efe2c0 = 5.14:1 [4.5] PASS
+     mistake #7a3f5c on surface #fbf4e2 = 7.11:1 [4.5] PASS
+     mistake #7a3f5c on same #f1dfb0 = 5.91:1 [4.5] PASS
+     accent #9c3b2a on surface #fbf4e2 = 6.23:1 [4.5] PASS
+     accent #9c3b2a on bg #f3e9d2 = 5.66:1 [4.5] PASS
+     postmark #6a4a5a on surface #fbf4e2 = 6.99:1 [4.5] PASS
+     text #3b2a1a on hl #efe2c0 = 10.65:1 [4.5] PASS
+     thin #826e48 on surface #fbf4e2 = 4.48:1 [3.0] PASS
+     thin #826e48 on hl #efe2c0 = 3.82:1 [3.0] PASS
+     thin #826e48 on selected #e2c98f = 3.04:1 [3.0] PASS
+     box #3b2a1a on surface #fbf4e2 = 12.49:1 [3.0] PASS
+     box #3b2a1a on hl #efe2c0 = 10.65:1 [3.0] PASS
+     box #3b2a1a on same #f1dfb0 = 10.39:1 [3.0] PASS
+     accent #9c3b2a on selected #e2c98f = 4.23:1 [3.0] PASS
+     accent #9c3b2a on hl #efe2c0 = 5.31:1 [3.0] PASS
+     accent #9c3b2a on same #f1dfb0 = 5.18:1 [3.0] PASS
+     mistake #7a3f5c on hl #efe2c0 = 6.06:1 [3.0] PASS
+     focus #2b4a6f on surface #fbf4e2 = 8.28:1 [3.0] PASS
+     focus #2b4a6f on bg #f3e9d2 = 7.53:1 [3.0] PASS
+     focus #2b4a6f on selected #e2c98f = 5.62:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.17:1; same/surface 1.20:1; selected/surface 1.47:1
+   [DARK] hex:
+     bg=#1d1610  surface=#2a2118  text=#f0e3c6  text2=#c9b48f  given=#f3e6c8  player=#9cc0e6  note=#bfa98a  thin=#a59273  box=#e6d3ab  selected=#5a4526  hl=#3a2e20  same=#4a3a24  mistake=#e6a8c0  accent=#e08a6a  postmark=#c7a0b8  focus=#8fc0f0
+   [DARK] measured contrast (min required in brackets):
+     text #f0e3c6 on bg #1d1610 = 14.06:1 [4.5] PASS
+     text #f0e3c6 on surface #2a2118 = 12.42:1 [4.5] PASS
+     text2 #c9b48f on bg #1d1610 = 8.86:1 [4.5] PASS
+     text2 #c9b48f on surface #2a2118 = 7.83:1 [4.5] PASS
+     given #f3e6c8 on surface #2a2118 = 12.76:1 [4.5] PASS
+     given #f3e6c8 on hl #3a2e20 = 10.66:1 [4.5] PASS
+     given #f3e6c8 on selected #5a4526 = 7.33:1 [4.5] PASS
+     given #f3e6c8 on same #4a3a24 = 8.83:1 [4.5] PASS
+     player #9cc0e6 on surface #2a2118 = 8.35:1 [4.5] PASS
+     player #9cc0e6 on hl #3a2e20 = 6.97:1 [4.5] PASS
+     player #9cc0e6 on selected #5a4526 = 4.80:1 [4.5] PASS
+     player #9cc0e6 on same #4a3a24 = 5.77:1 [4.5] PASS
+     note #bfa98a on surface #2a2118 = 6.96:1 [4.5] PASS
+     note #bfa98a on hl #3a2e20 = 5.82:1 [4.5] PASS
+     text2 #c9b48f on hl #3a2e20 = 6.54:1 [4.5] PASS
+     mistake #e6a8c0 on surface #2a2118 = 8.07:1 [4.5] PASS
+     mistake #e6a8c0 on same #4a3a24 = 5.58:1 [4.5] PASS
+     accent #e08a6a on surface #2a2118 = 6.03:1 [4.5] PASS
+     accent #e08a6a on bg #1d1610 = 6.82:1 [4.5] PASS
+     postmark #c7a0b8 on surface #2a2118 = 6.88:1 [4.5] PASS
+     text #f0e3c6 on hl #3a2e20 = 10.37:1 [4.5] PASS
+     thin #a59273 on surface #2a2118 = 5.24:1 [3.0] PASS
+     thin #a59273 on hl #3a2e20 = 4.37:1 [3.0] PASS
+     thin #a59273 on selected #5a4526 = 3.01:1 [3.0] PASS
+     box #e6d3ab on surface #2a2118 = 10.74:1 [3.0] PASS
+     box #e6d3ab on hl #3a2e20 = 8.97:1 [3.0] PASS
+     box #e6d3ab on same #4a3a24 = 7.43:1 [3.0] PASS
+     accent #e08a6a on selected #5a4526 = 3.46:1 [3.0] PASS
+     accent #e08a6a on hl #3a2e20 = 5.03:1 [3.0] PASS
+     accent #e08a6a on same #4a3a24 = 4.17:1 [3.0] PASS
+     mistake #e6a8c0 on hl #3a2e20 = 6.74:1 [3.0] PASS
+     focus #8fc0f0 on surface #2a2118 = 8.25:1 [3.0] PASS
+     focus #8fc0f0 on bg #1d1610 = 9.34:1 [3.0] PASS
+     focus #8fc0f0 on selected #5a4526 = 4.74:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.20:1; same/surface 1.45:1; selected/surface 1.74:1
+*/
+.v1-light{--bg:#f3e9d2;--surface:#fbf4e2;--text:#3b2a1a;--text2:#6b5a45;--given:#3b2a1a;--player:#2b4a6f;--note:#6b5a45;--thin:#826e48;--box:#3b2a1a;--selected:#e2c98f;--hl:#efe2c0;--same:#f1dfb0;--mistake:#7a3f5c;--accent:#9c3b2a;--postmark:#6a4a5a;--focus:#2b4a6f;--tex:rgba(60,40,20,.03);--glow:rgba(255,255,255,.45)}
+.v1-dark{--bg:#1d1610;--surface:#2a2118;--text:#f0e3c6;--text2:#c9b48f;--given:#f3e6c8;--player:#9cc0e6;--note:#bfa98a;--thin:#a59273;--box:#e6d3ab;--selected:#5a4526;--hl:#3a2e20;--same:#4a3a24;--mistake:#e6a8c0;--accent:#e08a6a;--postmark:#c7a0b8;--focus:#8fc0f0;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+/* ===== V2 - Mediterranean =====
+   [LIGHT] hex:
+     bg=#f6efe1  surface=#fdf9f0  text=#2e2a26  text2=#5f574d  given=#2e2a26  player=#1d4f91  note=#5f6b78  thin=#6a7798  box=#1d3f6e  selected=#f2cfae  hl=#e3ecf6  same=#f6dcc2  mistake=#8c3b5a  accent=#b05129  postmark=#2a5a8a  focus=#1d4f91
+   [LIGHT] measured contrast (min required in brackets):
+     text #2e2a26 on bg #f6efe1 = 12.44:1 [4.5] PASS
+     text #2e2a26 on surface #fdf9f0 = 13.55:1 [4.5] PASS
+     text2 #5f574d on bg #f6efe1 = 6.21:1 [4.5] PASS
+     text2 #5f574d on surface #fdf9f0 = 6.76:1 [4.5] PASS
+     given #2e2a26 on surface #fdf9f0 = 13.55:1 [4.5] PASS
+     given #2e2a26 on hl #e3ecf6 = 11.93:1 [4.5] PASS
+     given #2e2a26 on selected #f2cfae = 9.70:1 [4.5] PASS
+     given #2e2a26 on same #f6dcc2 = 10.80:1 [4.5] PASS
+     player #1d4f91 on surface #fdf9f0 = 7.75:1 [4.5] PASS
+     player #1d4f91 on hl #e3ecf6 = 6.82:1 [4.5] PASS
+     player #1d4f91 on selected #f2cfae = 5.55:1 [4.5] PASS
+     player #1d4f91 on same #f6dcc2 = 6.18:1 [4.5] PASS
+     note #5f6b78 on surface #fdf9f0 = 5.18:1 [4.5] PASS
+     note #5f6b78 on hl #e3ecf6 = 4.56:1 [4.5] PASS
+     text2 #5f574d on hl #e3ecf6 = 5.95:1 [4.5] PASS
+     mistake #8c3b5a on surface #fdf9f0 = 6.92:1 [4.5] PASS
+     mistake #8c3b5a on same #f6dcc2 = 5.52:1 [4.5] PASS
+     accent #b05129 on surface #fdf9f0 = 4.93:1 [4.5] PASS
+     accent #b05129 on bg #f6efe1 = 4.53:1 [4.5] PASS
+     postmark #2a5a8a on surface #fdf9f0 = 6.83:1 [4.5] PASS
+     text #2e2a26 on hl #e3ecf6 = 11.93:1 [4.5] PASS
+     thin #6a7798 on surface #fdf9f0 = 4.25:1 [3.0] PASS
+     thin #6a7798 on hl #e3ecf6 = 3.74:1 [3.0] PASS
+     thin #6a7798 on selected #f2cfae = 3.04:1 [3.0] PASS
+     box #1d3f6e on surface #fdf9f0 = 10.05:1 [3.0] PASS
+     box #1d3f6e on hl #e3ecf6 = 8.85:1 [3.0] PASS
+     box #1d3f6e on same #f6dcc2 = 8.01:1 [3.0] PASS
+     accent #b05129 on selected #f2cfae = 3.53:1 [3.0] PASS
+     accent #b05129 on hl #e3ecf6 = 4.34:1 [3.0] PASS
+     accent #b05129 on same #f6dcc2 = 3.93:1 [3.0] PASS
+     mistake #8c3b5a on hl #e3ecf6 = 6.09:1 [3.0] PASS
+     focus #1d4f91 on surface #fdf9f0 = 7.75:1 [3.0] PASS
+     focus #1d4f91 on bg #f6efe1 = 7.11:1 [3.0] PASS
+     focus #1d4f91 on selected #f2cfae = 5.55:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.14:1; same/surface 1.25:1; selected/surface 1.40:1
+   [DARK] hex:
+     bg=#1e1a16  surface=#29231d  text=#f3eadb  text2=#cbbfae  given=#f6eedf  player=#8fb8ea  note=#b0bccb  thin=#808e9b  box=#c9d6e8  selected=#5c3a22  hl=#26303c  same=#4a3424  mistake=#eaa6c0  accent=#e8905e  postmark=#8cb6e0  focus=#f2c27a
+   [DARK] measured contrast (min required in brackets):
+     text #f3eadb on bg #1e1a16 = 14.49:1 [4.5] PASS
+     text #f3eadb on surface #29231d = 13.02:1 [4.5] PASS
+     text2 #cbbfae on bg #1e1a16 = 9.55:1 [4.5] PASS
+     text2 #cbbfae on surface #29231d = 8.58:1 [4.5] PASS
+     given #f6eedf on surface #29231d = 13.47:1 [4.5] PASS
+     given #f6eedf on hl #26303c = 11.60:1 [4.5] PASS
+     given #f6eedf on selected #5c3a22 = 8.74:1 [4.5] PASS
+     given #f6eedf on same #4a3424 = 10.07:1 [4.5] PASS
+     player #8fb8ea on surface #29231d = 7.55:1 [4.5] PASS
+     player #8fb8ea on hl #26303c = 6.50:1 [4.5] PASS
+     player #8fb8ea on selected #5c3a22 = 4.90:1 [4.5] PASS
+     player #8fb8ea on same #4a3424 = 5.65:1 [4.5] PASS
+     note #b0bccb on surface #29231d = 8.06:1 [4.5] PASS
+     note #b0bccb on hl #26303c = 6.94:1 [4.5] PASS
+     text2 #cbbfae on hl #26303c = 7.39:1 [4.5] PASS
+     mistake #eaa6c0 on surface #29231d = 7.92:1 [4.5] PASS
+     mistake #eaa6c0 on same #4a3424 = 5.93:1 [4.5] PASS
+     accent #e8905e on surface #29231d = 6.35:1 [4.5] PASS
+     accent #e8905e on bg #1e1a16 = 7.07:1 [4.5] PASS
+     postmark #8cb6e0 on surface #29231d = 7.31:1 [4.5] PASS
+     text #f3eadb on hl #26303c = 11.21:1 [4.5] PASS
+     thin #808e9b on surface #29231d = 4.63:1 [3.0] PASS
+     thin #808e9b on hl #26303c = 3.99:1 [3.0] PASS
+     thin #808e9b on selected #5c3a22 = 3.00:1 [3.0] PASS
+     box #c9d6e8 on surface #29231d = 10.55:1 [3.0] PASS
+     box #c9d6e8 on hl #26303c = 9.08:1 [3.0] PASS
+     box #c9d6e8 on same #4a3424 = 7.89:1 [3.0] PASS
+     accent #e8905e on selected #5c3a22 = 4.12:1 [3.0] PASS
+     accent #e8905e on hl #26303c = 5.46:1 [3.0] PASS
+     accent #e8905e on same #4a3424 = 4.75:1 [3.0] PASS
+     mistake #eaa6c0 on hl #26303c = 6.82:1 [3.0] PASS
+     focus #f2c27a on surface #29231d = 9.44:1 [3.0] PASS
+     focus #f2c27a on bg #1e1a16 = 10.52:1 [3.0] PASS
+     focus #f2c27a on selected #5c3a22 = 6.13:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.16:1; same/surface 1.34:1; selected/surface 1.54:1
+*/
+.v2-light{--bg:#f6efe1;--surface:#fdf9f0;--text:#2e2a26;--text2:#5f574d;--given:#2e2a26;--player:#1d4f91;--note:#5f6b78;--thin:#6a7798;--box:#1d3f6e;--selected:#f2cfae;--hl:#e3ecf6;--same:#f6dcc2;--mistake:#8c3b5a;--accent:#b05129;--postmark:#2a5a8a;--focus:#1d4f91;--tex:rgba(60,40,20,.03);--glow:rgba(255,255,255,.45)}
+.v2-dark{--bg:#1e1a16;--surface:#29231d;--text:#f3eadb;--text2:#cbbfae;--given:#f6eedf;--player:#8fb8ea;--note:#b0bccb;--thin:#808e9b;--box:#c9d6e8;--selected:#5c3a22;--hl:#26303c;--same:#4a3424;--mistake:#eaa6c0;--accent:#e8905e;--postmark:#8cb6e0;--focus:#f2c27a;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+/* ===== V3 - Airmail =====
+   [LIGHT] hex:
+     bg=#f5efdf  surface=#fffaf0  text=#1f2a44  text2=#4e5670  given=#1a2036  player=#24418a  note=#5a6178  thin=#73799a  box=#1f2a44  selected=#f6d3d0  hl=#e6eaf5  same=#dfe4f4  mistake=#8a4b16  accent=#b3262f  postmark=#3c4a6e  focus=#1f3a7a
+   [LIGHT] measured contrast (min required in brackets):
+     text #1f2a44 on bg #f5efdf = 12.42:1 [4.5] PASS
+     text #1f2a44 on surface #fffaf0 = 13.70:1 [4.5] PASS
+     text2 #4e5670 on bg #f5efdf = 6.33:1 [4.5] PASS
+     text2 #4e5670 on surface #fffaf0 = 6.99:1 [4.5] PASS
+     given #1a2036 on surface #fffaf0 = 15.48:1 [4.5] PASS
+     given #1a2036 on hl #e6eaf5 = 13.39:1 [4.5] PASS
+     given #1a2036 on selected #f6d3d0 = 11.62:1 [4.5] PASS
+     given #1a2036 on same #dfe4f4 = 12.69:1 [4.5] PASS
+     player #24418a on surface #fffaf0 = 9.18:1 [4.5] PASS
+     player #24418a on hl #e6eaf5 = 7.94:1 [4.5] PASS
+     player #24418a on selected #f6d3d0 = 6.89:1 [4.5] PASS
+     player #24418a on same #dfe4f4 = 7.53:1 [4.5] PASS
+     note #5a6178 on surface #fffaf0 = 5.91:1 [4.5] PASS
+     note #5a6178 on hl #e6eaf5 = 5.11:1 [4.5] PASS
+     text2 #4e5670 on hl #e6eaf5 = 6.04:1 [4.5] PASS
+     mistake #8a4b16 on surface #fffaf0 = 6.51:1 [4.5] PASS
+     mistake #8a4b16 on same #dfe4f4 = 5.34:1 [4.5] PASS
+     accent #b3262f on surface #fffaf0 = 6.24:1 [4.5] PASS
+     accent #b3262f on bg #f5efdf = 5.66:1 [4.5] PASS
+     postmark #3c4a6e on surface #fffaf0 = 8.42:1 [4.5] PASS
+     text #1f2a44 on hl #e6eaf5 = 11.85:1 [4.5] PASS
+     thin #73799a on surface #fffaf0 = 4.09:1 [3.0] PASS
+     thin #73799a on hl #e6eaf5 = 3.54:1 [3.0] PASS
+     thin #73799a on selected #f6d3d0 = 3.07:1 [3.0] PASS
+     box #1f2a44 on surface #fffaf0 = 13.70:1 [3.0] PASS
+     box #1f2a44 on hl #e6eaf5 = 11.85:1 [3.0] PASS
+     box #1f2a44 on same #dfe4f4 = 11.23:1 [3.0] PASS
+     accent #b3262f on selected #f6d3d0 = 4.68:1 [3.0] PASS
+     accent #b3262f on hl #e6eaf5 = 5.39:1 [3.0] PASS
+     accent #b3262f on same #dfe4f4 = 5.11:1 [3.0] PASS
+     mistake #8a4b16 on hl #e6eaf5 = 5.63:1 [3.0] PASS
+     focus #1f3a7a on surface #fffaf0 = 10.38:1 [3.0] PASS
+     focus #1f3a7a on bg #f5efdf = 9.41:1 [3.0] PASS
+     focus #1f3a7a on selected #f6d3d0 = 7.79:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.16:1; same/surface 1.22:1; selected/surface 1.33:1
+   [DARK] hex:
+     bg=#1b1a21  surface=#25242c  text=#f4ecd8  text2=#c8c0ad  given=#f6efdc  player=#a9c0f5  note=#b8b4c4  thin=#838196  box=#d8d2c0  selected=#5a2a30  hl=#2e3348  same=#343a55  mistake=#e8b07a  accent=#f08a8f  postmark=#a8b6e0  focus=#ffd27a
+   [DARK] measured contrast (min required in brackets):
+     text #f4ecd8 on bg #1b1a21 = 14.66:1 [4.5] PASS
+     text #f4ecd8 on surface #25242c = 13.04:1 [4.5] PASS
+     text2 #c8c0ad on bg #1b1a21 = 9.54:1 [4.5] PASS
+     text2 #c8c0ad on surface #25242c = 8.48:1 [4.5] PASS
+     given #f6efdc on surface #25242c = 13.38:1 [4.5] PASS
+     given #f6efdc on hl #2e3348 = 10.87:1 [4.5] PASS
+     given #f6efdc on selected #5a2a30 = 10.12:1 [4.5] PASS
+     given #f6efdc on same #343a55 = 9.72:1 [4.5] PASS
+     player #a9c0f5 on surface #25242c = 8.44:1 [4.5] PASS
+     player #a9c0f5 on hl #2e3348 = 6.86:1 [4.5] PASS
+     player #a9c0f5 on selected #5a2a30 = 6.38:1 [4.5] PASS
+     player #a9c0f5 on same #343a55 = 6.13:1 [4.5] PASS
+     note #b8b4c4 on surface #25242c = 7.58:1 [4.5] PASS
+     note #b8b4c4 on hl #2e3348 = 6.16:1 [4.5] PASS
+     text2 #c8c0ad on hl #2e3348 = 6.89:1 [4.5] PASS
+     mistake #e8b07a on surface #25242c = 7.99:1 [4.5] PASS
+     mistake #e8b07a on same #343a55 = 5.80:1 [4.5] PASS
+     accent #f08a8f on surface #25242c = 6.39:1 [4.5] PASS
+     accent #f08a8f on bg #1b1a21 = 7.18:1 [4.5] PASS
+     postmark #a8b6e0 on surface #25242c = 7.63:1 [4.5] PASS
+     text #f4ecd8 on hl #2e3348 = 10.60:1 [4.5] PASS
+     thin #838196 on surface #25242c = 4.06:1 [3.0] PASS
+     thin #838196 on hl #2e3348 = 3.29:1 [3.0] PASS
+     thin #838196 on selected #5a2a30 = 3.07:1 [3.0] PASS
+     box #d8d2c0 on surface #25242c = 10.17:1 [3.0] PASS
+     box #d8d2c0 on hl #2e3348 = 8.26:1 [3.0] PASS
+     box #d8d2c0 on same #343a55 = 7.38:1 [3.0] PASS
+     accent #f08a8f on selected #5a2a30 = 4.83:1 [3.0] PASS
+     accent #f08a8f on hl #2e3348 = 5.19:1 [3.0] PASS
+     accent #f08a8f on same #343a55 = 4.64:1 [3.0] PASS
+     mistake #e8b07a on hl #2e3348 = 6.49:1 [3.0] PASS
+     focus #ffd27a on surface #25242c = 10.79:1 [3.0] PASS
+     focus #ffd27a on bg #1b1a21 = 12.13:1 [3.0] PASS
+     focus #ffd27a on selected #5a2a30 = 8.16:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.23:1; same/surface 1.38:1; selected/surface 1.32:1
+*/
+.v3-light{--bg:#f5efdf;--surface:#fffaf0;--text:#1f2a44;--text2:#4e5670;--given:#1a2036;--player:#24418a;--note:#5a6178;--thin:#73799a;--box:#1f2a44;--selected:#f6d3d0;--hl:#e6eaf5;--same:#dfe4f4;--mistake:#8a4b16;--accent:#b3262f;--postmark:#3c4a6e;--focus:#1f3a7a;--tex:rgba(60,40,20,.03);--glow:rgba(255,255,255,.45)}
+.v3-dark{--bg:#1b1a21;--surface:#25242c;--text:#f4ecd8;--text2:#c8c0ad;--given:#f6efdc;--player:#a9c0f5;--note:#b8b4c4;--thin:#838196;--box:#d8d2c0;--selected:#5a2a30;--hl:#2e3348;--same:#343a55;--mistake:#e8b07a;--accent:#f08a8f;--postmark:#a8b6e0;--focus:#ffd27a;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+/* ===== V4 - Botanical =====
+   [LIGHT] hex:
+     bg=#efe8d4  surface=#f9f4e6  text=#24301f  text2=#55604c  given=#24301f  player=#2f5a3a  note=#5e6a55  thin=#6a765a  box=#24301f  selected=#e9c9c4  hl=#e2e8d2  same=#f0d8d2  mistake=#7a3c66  accent=#9a4a58  postmark=#4a5e3c  focus=#3a6a46
+   [LIGHT] measured contrast (min required in brackets):
+     text #24301f on bg #efe8d4 = 11.31:1 [4.5] PASS
+     text #24301f on surface #f9f4e6 = 12.59:1 [4.5] PASS
+     text2 #55604c on bg #efe8d4 = 5.43:1 [4.5] PASS
+     text2 #55604c on surface #f9f4e6 = 6.04:1 [4.5] PASS
+     given #24301f on surface #f9f4e6 = 12.59:1 [4.5] PASS
+     given #24301f on hl #e2e8d2 = 11.01:1 [4.5] PASS
+     given #24301f on selected #e9c9c4 = 8.97:1 [4.5] PASS
+     given #24301f on same #f0d8d2 = 10.19:1 [4.5] PASS
+     player #2f5a3a on surface #f9f4e6 = 7.23:1 [4.5] PASS
+     player #2f5a3a on hl #e2e8d2 = 6.32:1 [4.5] PASS
+     player #2f5a3a on selected #e9c9c4 = 5.15:1 [4.5] PASS
+     player #2f5a3a on same #f0d8d2 = 5.85:1 [4.5] PASS
+     note #5e6a55 on surface #f9f4e6 = 5.21:1 [4.5] PASS
+     note #5e6a55 on hl #e2e8d2 = 4.55:1 [4.5] PASS
+     text2 #55604c on hl #e2e8d2 = 5.28:1 [4.5] PASS
+     mistake #7a3c66 on surface #f9f4e6 = 7.17:1 [4.5] PASS
+     mistake #7a3c66 on same #f0d8d2 = 5.80:1 [4.5] PASS
+     accent #9a4a58 on surface #f9f4e6 = 5.47:1 [4.5] PASS
+     accent #9a4a58 on bg #efe8d4 = 4.91:1 [4.5] PASS
+     postmark #4a5e3c on surface #f9f4e6 = 6.46:1 [4.5] PASS
+     text #24301f on hl #e2e8d2 = 11.01:1 [4.5] PASS
+     thin #6a765a on surface #f9f4e6 = 4.39:1 [3.0] PASS
+     thin #6a765a on hl #e2e8d2 = 3.84:1 [3.0] PASS
+     thin #6a765a on selected #e9c9c4 = 3.13:1 [3.0] PASS
+     box #24301f on surface #f9f4e6 = 12.59:1 [3.0] PASS
+     box #24301f on hl #e2e8d2 = 11.01:1 [3.0] PASS
+     box #24301f on same #f0d8d2 = 10.19:1 [3.0] PASS
+     accent #9a4a58 on selected #e9c9c4 = 3.90:1 [3.0] PASS
+     accent #9a4a58 on hl #e2e8d2 = 4.78:1 [3.0] PASS
+     accent #9a4a58 on same #f0d8d2 = 4.42:1 [3.0] PASS
+     mistake #7a3c66 on hl #e2e8d2 = 6.27:1 [3.0] PASS
+     focus #3a6a46 on surface #f9f4e6 = 5.74:1 [3.0] PASS
+     focus #3a6a46 on bg #efe8d4 = 5.15:1 [3.0] PASS
+     focus #3a6a46 on selected #e9c9c4 = 4.09:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.14:1; same/surface 1.24:1; selected/surface 1.40:1
+   [DARK] hex:
+     bg=#171c16  surface=#20271e  text=#ece6d2  text2=#c3c2a8  given=#efe9d5  player=#a6d4ae  note=#b7bfa6  thin=#809576  box=#d6dcc0  selected=#5a3a40  hl=#2c3628  same=#4a3438  mistake=#e2b0e0  accent=#e7a3ae  postmark=#a8c49a  focus=#f2d08a
+   [DARK] measured contrast (min required in brackets):
+     text #ece6d2 on bg #171c16 = 13.85:1 [4.5] PASS
+     text #ece6d2 on surface #20271e = 12.27:1 [4.5] PASS
+     text2 #c3c2a8 on bg #171c16 = 9.56:1 [4.5] PASS
+     text2 #c3c2a8 on surface #20271e = 8.47:1 [4.5] PASS
+     given #efe9d5 on surface #20271e = 12.61:1 [4.5] PASS
+     given #efe9d5 on hl #2c3628 = 10.38:1 [4.5] PASS
+     given #efe9d5 on selected #5a3a40 = 8.18:1 [4.5] PASS
+     given #efe9d5 on same #4a3438 = 9.40:1 [4.5] PASS
+     player #a6d4ae on surface #20271e = 9.23:1 [4.5] PASS
+     player #a6d4ae on hl #2c3628 = 7.60:1 [4.5] PASS
+     player #a6d4ae on selected #5a3a40 = 5.98:1 [4.5] PASS
+     player #a6d4ae on same #4a3438 = 6.88:1 [4.5] PASS
+     note #b7bfa6 on surface #20271e = 8.04:1 [4.5] PASS
+     note #b7bfa6 on hl #2c3628 = 6.61:1 [4.5] PASS
+     text2 #c3c2a8 on hl #2c3628 = 6.97:1 [4.5] PASS
+     mistake #e2b0e0 on surface #20271e = 8.41:1 [4.5] PASS
+     mistake #e2b0e0 on same #4a3438 = 6.26:1 [4.5] PASS
+     accent #e7a3ae on surface #20271e = 7.48:1 [4.5] PASS
+     accent #e7a3ae on bg #171c16 = 8.44:1 [4.5] PASS
+     postmark #a8c49a on surface #20271e = 8.05:1 [4.5] PASS
+     text #ece6d2 on hl #2c3628 = 10.10:1 [4.5] PASS
+     thin #809576 on surface #20271e = 4.73:1 [3.0] PASS
+     thin #809576 on hl #2c3628 = 3.89:1 [3.0] PASS
+     thin #809576 on selected #5a3a40 = 3.06:1 [3.0] PASS
+     box #d6dcc0 on surface #20271e = 10.84:1 [3.0] PASS
+     box #d6dcc0 on hl #2c3628 = 8.92:1 [3.0] PASS
+     box #d6dcc0 on same #4a3438 = 8.08:1 [3.0] PASS
+     accent #e7a3ae on selected #5a3a40 = 4.85:1 [3.0] PASS
+     accent #e7a3ae on hl #2c3628 = 6.15:1 [3.0] PASS
+     accent #e7a3ae on same #4a3438 = 5.57:1 [3.0] PASS
+     mistake #e2b0e0 on hl #2c3628 = 6.92:1 [3.0] PASS
+     focus #f2d08a on surface #20271e = 10.34:1 [3.0] PASS
+     focus #f2d08a on bg #171c16 = 11.67:1 [3.0] PASS
+     focus #f2d08a on selected #5a3a40 = 6.70:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.22:1; same/surface 1.34:1; selected/surface 1.54:1
+*/
+.v4-light{--bg:#efe8d4;--surface:#f9f4e6;--text:#24301f;--text2:#55604c;--given:#24301f;--player:#2f5a3a;--note:#5e6a55;--thin:#6a765a;--box:#24301f;--selected:#e9c9c4;--hl:#e2e8d2;--same:#f0d8d2;--mistake:#7a3c66;--accent:#9a4a58;--postmark:#4a5e3c;--focus:#3a6a46;--tex:rgba(60,40,20,.03);--glow:rgba(255,255,255,.45)}
+.v4-dark{--bg:#171c16;--surface:#20271e;--text:#ece6d2;--text2:#c3c2a8;--given:#efe9d5;--player:#a6d4ae;--note:#b7bfa6;--thin:#809576;--box:#d6dcc0;--selected:#5a3a40;--hl:#2c3628;--same:#4a3438;--mistake:#e2b0e0;--accent:#e7a3ae;--postmark:#a8c49a;--focus:#f2d08a;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+/* ===== V5 - Faded Photograph =====
+   [LIGHT] hex:
+     bg=#e9e6df  surface=#f5f3ee  text=#2b2b2b  text2=#5a5853  given=#262626  player=#1f5c63  note=#5d6261  thin=#726f65  box=#2b2b2b  selected=#d9c9a0  hl=#e0e6e4  same=#dfe9e8  mistake=#7a4552  accent=#7e6127  postmark=#4f5a5c  focus=#1f5c63
+   [LIGHT] measured contrast (min required in brackets):
+     text #2b2b2b on bg #e9e6df = 11.36:1 [4.5] PASS
+     text #2b2b2b on surface #f5f3ee = 12.77:1 [4.5] PASS
+     text2 #5a5853 on bg #e9e6df = 5.70:1 [4.5] PASS
+     text2 #5a5853 on surface #f5f3ee = 6.41:1 [4.5] PASS
+     given #262626 on surface #f5f3ee = 13.65:1 [4.5] PASS
+     given #262626 on hl #e0e6e4 = 11.97:1 [4.5] PASS
+     given #262626 on selected #d9c9a0 = 9.23:1 [4.5] PASS
+     given #262626 on same #dfe9e8 = 12.22:1 [4.5] PASS
+     player #1f5c63 on surface #f5f3ee = 6.84:1 [4.5] PASS
+     player #1f5c63 on hl #e0e6e4 = 6.00:1 [4.5] PASS
+     player #1f5c63 on selected #d9c9a0 = 4.63:1 [4.5] PASS
+     player #1f5c63 on same #dfe9e8 = 6.12:1 [4.5] PASS
+     note #5d6261 on surface #f5f3ee = 5.59:1 [4.5] PASS
+     note #5d6261 on hl #e0e6e4 = 4.91:1 [4.5] PASS
+     text2 #5a5853 on hl #e0e6e4 = 5.62:1 [4.5] PASS
+     mistake #7a4552 on surface #f5f3ee = 6.76:1 [4.5] PASS
+     mistake #7a4552 on same #dfe9e8 = 6.06:1 [4.5] PASS
+     accent #7e6127 on surface #f5f3ee = 5.22:1 [4.5] PASS
+     accent #7e6127 on bg #e9e6df = 4.65:1 [4.5] PASS
+     postmark #4f5a5c on surface #f5f3ee = 6.42:1 [4.5] PASS
+     text #2b2b2b on hl #e0e6e4 = 11.20:1 [4.5] PASS
+     thin #726f65 on surface #f5f3ee = 4.53:1 [3.0] PASS
+     thin #726f65 on hl #e0e6e4 = 3.98:1 [3.0] PASS
+     thin #726f65 on selected #d9c9a0 = 3.07:1 [3.0] PASS
+     box #2b2b2b on surface #f5f3ee = 12.77:1 [3.0] PASS
+     box #2b2b2b on hl #e0e6e4 = 11.20:1 [3.0] PASS
+     box #2b2b2b on same #dfe9e8 = 11.43:1 [3.0] PASS
+     accent #7e6127 on selected #d9c9a0 = 3.53:1 [3.0] PASS
+     accent #7e6127 on hl #e0e6e4 = 4.58:1 [3.0] PASS
+     accent #7e6127 on same #dfe9e8 = 4.68:1 [3.0] PASS
+     mistake #7a4552 on hl #e0e6e4 = 5.93:1 [3.0] PASS
+     focus #1f5c63 on surface #f5f3ee = 6.84:1 [3.0] PASS
+     focus #1f5c63 on bg #e9e6df = 6.08:1 [3.0] PASS
+     focus #1f5c63 on selected #d9c9a0 = 4.63:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.14:1; same/surface 1.12:1; selected/surface 1.48:1
+   [DARK] hex:
+     bg=#1a1917  surface=#24231f  text=#ebe7dd  text2=#bdb8ac  given=#efebe1  player=#8fcfd3  note=#b0b5b2  thin=#908e7c  box=#d8d3c6  selected=#4e4126  hl=#2c3332  same=#2e3a3a  mistake=#e6b0bd  accent=#d6b26a  postmark=#a9b8b9  focus=#f0d590
+   [DARK] measured contrast (min required in brackets):
+     text #ebe7dd on bg #1a1917 = 14.23:1 [4.5] PASS
+     text #ebe7dd on surface #24231f = 12.74:1 [4.5] PASS
+     text2 #bdb8ac on bg #1a1917 = 8.88:1 [4.5] PASS
+     text2 #bdb8ac on surface #24231f = 7.95:1 [4.5] PASS
+     given #efebe1 on surface #24231f = 13.21:1 [4.5] PASS
+     given #efebe1 on hl #2c3332 = 10.84:1 [4.5] PASS
+     given #efebe1 on selected #4e4126 = 8.37:1 [4.5] PASS
+     given #efebe1 on same #2e3a3a = 9.90:1 [4.5] PASS
+     player #8fcfd3 on surface #24231f = 9.01:1 [4.5] PASS
+     player #8fcfd3 on hl #2c3332 = 7.40:1 [4.5] PASS
+     player #8fcfd3 on selected #4e4126 = 5.71:1 [4.5] PASS
+     player #8fcfd3 on same #2e3a3a = 6.75:1 [4.5] PASS
+     note #b0b5b2 on surface #24231f = 7.56:1 [4.5] PASS
+     note #b0b5b2 on hl #2c3332 = 6.21:1 [4.5] PASS
+     text2 #bdb8ac on hl #2c3332 = 6.53:1 [4.5] PASS
+     mistake #e6b0bd on surface #24231f = 8.47:1 [4.5] PASS
+     mistake #e6b0bd on same #2e3a3a = 6.34:1 [4.5] PASS
+     accent #d6b26a on surface #24231f = 7.82:1 [4.5] PASS
+     accent #d6b26a on bg #1a1917 = 8.73:1 [4.5] PASS
+     postmark #a9b8b9 on surface #24231f = 7.67:1 [4.5] PASS
+     text #ebe7dd on hl #2c3332 = 10.45:1 [4.5] PASS
+     thin #908e7c on surface #24231f = 4.75:1 [3.0] PASS
+     thin #908e7c on hl #2c3332 = 3.90:1 [3.0] PASS
+     thin #908e7c on selected #4e4126 = 3.01:1 [3.0] PASS
+     box #d8d3c6 on surface #24231f = 10.52:1 [3.0] PASS
+     box #d8d3c6 on hl #2c3332 = 8.64:1 [3.0] PASS
+     box #d8d3c6 on same #2e3a3a = 7.88:1 [3.0] PASS
+     accent #d6b26a on selected #4e4126 = 4.95:1 [3.0] PASS
+     accent #d6b26a on hl #2c3332 = 6.42:1 [3.0] PASS
+     accent #d6b26a on same #2e3a3a = 5.85:1 [3.0] PASS
+     mistake #e6b0bd on hl #2c3332 = 6.95:1 [3.0] PASS
+     focus #f0d590 on surface #24231f = 10.95:1 [3.0] PASS
+     focus #f0d590 on bg #1a1917 = 12.24:1 [3.0] PASS
+     focus #f0d590 on selected #4e4126 = 6.94:1 [3.0] PASS
+     fills (informational, state carried by >=3:1 ring/tick/underline): hl/surface 1.22:1; same/surface 1.33:1; selected/surface 1.58:1
+*/
+.v5-light{--bg:#e9e6df;--surface:#f5f3ee;--text:#2b2b2b;--text2:#5a5853;--given:#262626;--player:#1f5c63;--note:#5d6261;--thin:#726f65;--box:#2b2b2b;--selected:#d9c9a0;--hl:#e0e6e4;--same:#dfe9e8;--mistake:#7a4552;--accent:#7e6127;--postmark:#4f5a5c;--focus:#1f5c63;--tex:rgba(60,40,20,.03);--glow:rgba(255,255,255,.45)}
+.v5-dark{--bg:#1a1917;--surface:#24231f;--text:#ebe7dd;--text2:#bdb8ac;--given:#efebe1;--player:#8fcfd3;--note:#b0b5b2;--thin:#908e7c;--box:#d8d3c6;--selected:#4e4126;--hl:#2c3332;--same:#2e3a3a;--mistake:#e6b0bd;--accent:#d6b26a;--postmark:#a9b8b9;--focus:#f0d590;--tex:rgba(255,240,210,.025);--glow:rgba(255,190,110,.10)}
+</style></head><body>
+<div class="intro"><h1><span>Colour Themes</span> &middot; Vintage Postcard, five registers</h1>
+<p>Same personality throughout - warm paper texture, Georgia serif with small caps, perforated stamp and postmark, givens bold upright, your digits in italic ink. Only the palette changes. Each palette shows daylight and lamplight (dark) side by side; all pairs are measured and the hex values and ratios are recorded in the style comments.</p></div>
+
+<section class="var" id="v1"><header><h2><small>Palette 1</small>Classic Sepia &amp; Ink Blue</h2><p>The original: a letter found in a grandparent's desk drawer - brown ink, blue fountain pen, a red postmark.</p></header>
+<div class="pair">
+<div class="panel v1-light">
+  <div class="ph"><span class="mode">Daylight</span> <span class="sub">light mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#f3e9d2"></span><span class="rn">Background (desk)</span><code>#f3e9d2</code><span class="rt">text 11.4:1</span></li><li><span class="sw" style="background:#fbf4e2"></span><span class="rn">Surface / paper</span><code>#fbf4e2</code><span class="rt">text 12.5:1</span></li><li><span class="sw" style="background:#3b2a1a"></span><span class="rn">Text primary</span><code>#3b2a1a</code><span class="rt">on paper 12.5:1</span></li><li><span class="sw" style="background:#6b5a45"></span><span class="rn">Text secondary</span><code>#6b5a45</code><span class="rt">on paper 6.0:1</span></li><li><span class="sw" style="background:#3b2a1a"></span><span class="rn">Given digit</span><code>#3b2a1a</code><span class="rt">on selected 8.5:1</span></li><li><span class="sw" style="background:#2b4a6f"></span><span class="rn">Player digit</span><code>#2b4a6f</code><span class="rt">on selected 5.6:1</span></li><li><span class="sw" style="background:#6b5a45"></span><span class="rn">Note digit</span><code>#6b5a45</code><span class="rt">on highlight 5.1:1</span></li><li><span class="sw" style="background:#826e48"></span><span class="rn">Grid line (thin)</span><code>#826e48</code><span class="rt">vs paper 4.5:1</span></li><li><span class="sw" style="background:#3b2a1a"></span><span class="rn">Box border (thick)</span><code>#3b2a1a</code><span class="rt">vs paper 12.5:1</span></li><li><span class="sw" style="background:#e2c98f"></span><span class="rn">Selected cell</span><code>#e2c98f</code><span class="rt">ring 4.2:1</span></li><li><span class="sw" style="background:#efe2c0"></span><span class="rn">Row/col/box highlight</span><code>#efe2c0</code><span class="rt">tick 5.3:1</span></li><li><span class="sw" style="background:#f1dfb0"></span><span class="rn">Same-digit highlight</span><code>#f1dfb0</code><span class="rt">underline 5.2:1</span></li><li><span class="sw" style="background:#7a3f5c"></span><span class="rn">Mistake (assist on)</span><code>#7a3f5c</code><span class="rt">on paper 7.1:1</span></li><li><span class="sw" style="background:#9c3b2a"></span><span class="rn">Accent / stamp</span><code>#9c3b2a</code><span class="rt">on paper 6.2:1</span></li><li><span class="sw" style="background:#6a4a5a"></span><span class="rn">Postmark</span><code>#6a4a5a</code><span class="rt">on paper 7.0:1</span></li><li><span class="sw" style="background:#2b4a6f"></span><span class="rn">Focus ring</span><code>#2b4a6f</code><span class="rt">vs paper 8.3:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div>
+<div class="panel v1-dark">
+  <div class="ph"><span class="mode">Lamplight</span> <span class="sub">dark mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#1d1610"></span><span class="rn">Background (desk)</span><code>#1d1610</code><span class="rt">text 14.1:1</span></li><li><span class="sw" style="background:#2a2118"></span><span class="rn">Surface / paper</span><code>#2a2118</code><span class="rt">text 12.4:1</span></li><li><span class="sw" style="background:#f0e3c6"></span><span class="rn">Text primary</span><code>#f0e3c6</code><span class="rt">on paper 12.4:1</span></li><li><span class="sw" style="background:#c9b48f"></span><span class="rn">Text secondary</span><code>#c9b48f</code><span class="rt">on paper 7.8:1</span></li><li><span class="sw" style="background:#f3e6c8"></span><span class="rn">Given digit</span><code>#f3e6c8</code><span class="rt">on selected 7.3:1</span></li><li><span class="sw" style="background:#9cc0e6"></span><span class="rn">Player digit</span><code>#9cc0e6</code><span class="rt">on selected 4.8:1</span></li><li><span class="sw" style="background:#bfa98a"></span><span class="rn">Note digit</span><code>#bfa98a</code><span class="rt">on highlight 5.8:1</span></li><li><span class="sw" style="background:#a59273"></span><span class="rn">Grid line (thin)</span><code>#a59273</code><span class="rt">vs paper 5.2:1</span></li><li><span class="sw" style="background:#e6d3ab"></span><span class="rn">Box border (thick)</span><code>#e6d3ab</code><span class="rt">vs paper 10.7:1</span></li><li><span class="sw" style="background:#5a4526"></span><span class="rn">Selected cell</span><code>#5a4526</code><span class="rt">ring 3.5:1</span></li><li><span class="sw" style="background:#3a2e20"></span><span class="rn">Row/col/box highlight</span><code>#3a2e20</code><span class="rt">tick 5.0:1</span></li><li><span class="sw" style="background:#4a3a24"></span><span class="rn">Same-digit highlight</span><code>#4a3a24</code><span class="rt">underline 4.2:1</span></li><li><span class="sw" style="background:#e6a8c0"></span><span class="rn">Mistake (assist on)</span><code>#e6a8c0</code><span class="rt">on paper 8.1:1</span></li><li><span class="sw" style="background:#e08a6a"></span><span class="rn">Accent / stamp</span><code>#e08a6a</code><span class="rt">on paper 6.0:1</span></li><li><span class="sw" style="background:#c7a0b8"></span><span class="rn">Postmark</span><code>#c7a0b8</code><span class="rt">on paper 6.9:1</span></li><li><span class="sw" style="background:#8fc0f0"></span><span class="rn">Focus ring</span><code>#8fc0f0</code><span class="rt">vs paper 8.3:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div></div></section>
+<section class="var" id="v2"><header><h2><small>Palette 2</small>Mediterranean</h2><p>Sun-bleached paper on a cafe table in Lisbon - terracotta roofs, azulejo blue, a long slow afternoon.</p></header>
+<div class="pair">
+<div class="panel v2-light">
+  <div class="ph"><span class="mode">Daylight</span> <span class="sub">light mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#f6efe1"></span><span class="rn">Background (desk)</span><code>#f6efe1</code><span class="rt">text 12.4:1</span></li><li><span class="sw" style="background:#fdf9f0"></span><span class="rn">Surface / paper</span><code>#fdf9f0</code><span class="rt">text 13.5:1</span></li><li><span class="sw" style="background:#2e2a26"></span><span class="rn">Text primary</span><code>#2e2a26</code><span class="rt">on paper 13.5:1</span></li><li><span class="sw" style="background:#5f574d"></span><span class="rn">Text secondary</span><code>#5f574d</code><span class="rt">on paper 6.8:1</span></li><li><span class="sw" style="background:#2e2a26"></span><span class="rn">Given digit</span><code>#2e2a26</code><span class="rt">on selected 9.7:1</span></li><li><span class="sw" style="background:#1d4f91"></span><span class="rn">Player digit</span><code>#1d4f91</code><span class="rt">on selected 5.5:1</span></li><li><span class="sw" style="background:#5f6b78"></span><span class="rn">Note digit</span><code>#5f6b78</code><span class="rt">on highlight 4.6:1</span></li><li><span class="sw" style="background:#6a7798"></span><span class="rn">Grid line (thin)</span><code>#6a7798</code><span class="rt">vs paper 4.2:1</span></li><li><span class="sw" style="background:#1d3f6e"></span><span class="rn">Box border (thick)</span><code>#1d3f6e</code><span class="rt">vs paper 10.1:1</span></li><li><span class="sw" style="background:#f2cfae"></span><span class="rn">Selected cell</span><code>#f2cfae</code><span class="rt">ring 3.5:1</span></li><li><span class="sw" style="background:#e3ecf6"></span><span class="rn">Row/col/box highlight</span><code>#e3ecf6</code><span class="rt">tick 4.3:1</span></li><li><span class="sw" style="background:#f6dcc2"></span><span class="rn">Same-digit highlight</span><code>#f6dcc2</code><span class="rt">underline 3.9:1</span></li><li><span class="sw" style="background:#8c3b5a"></span><span class="rn">Mistake (assist on)</span><code>#8c3b5a</code><span class="rt">on paper 6.9:1</span></li><li><span class="sw" style="background:#b05129"></span><span class="rn">Accent / stamp</span><code>#b05129</code><span class="rt">on paper 4.9:1</span></li><li><span class="sw" style="background:#2a5a8a"></span><span class="rn">Postmark</span><code>#2a5a8a</code><span class="rt">on paper 6.8:1</span></li><li><span class="sw" style="background:#1d4f91"></span><span class="rn">Focus ring</span><code>#1d4f91</code><span class="rt">vs paper 7.7:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div>
+<div class="panel v2-dark">
+  <div class="ph"><span class="mode">Lamplight</span> <span class="sub">dark mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#1e1a16"></span><span class="rn">Background (desk)</span><code>#1e1a16</code><span class="rt">text 14.5:1</span></li><li><span class="sw" style="background:#29231d"></span><span class="rn">Surface / paper</span><code>#29231d</code><span class="rt">text 13.0:1</span></li><li><span class="sw" style="background:#f3eadb"></span><span class="rn">Text primary</span><code>#f3eadb</code><span class="rt">on paper 13.0:1</span></li><li><span class="sw" style="background:#cbbfae"></span><span class="rn">Text secondary</span><code>#cbbfae</code><span class="rt">on paper 8.6:1</span></li><li><span class="sw" style="background:#f6eedf"></span><span class="rn">Given digit</span><code>#f6eedf</code><span class="rt">on selected 8.7:1</span></li><li><span class="sw" style="background:#8fb8ea"></span><span class="rn">Player digit</span><code>#8fb8ea</code><span class="rt">on selected 4.9:1</span></li><li><span class="sw" style="background:#b0bccb"></span><span class="rn">Note digit</span><code>#b0bccb</code><span class="rt">on highlight 6.9:1</span></li><li><span class="sw" style="background:#808e9b"></span><span class="rn">Grid line (thin)</span><code>#808e9b</code><span class="rt">vs paper 4.6:1</span></li><li><span class="sw" style="background:#c9d6e8"></span><span class="rn">Box border (thick)</span><code>#c9d6e8</code><span class="rt">vs paper 10.5:1</span></li><li><span class="sw" style="background:#5c3a22"></span><span class="rn">Selected cell</span><code>#5c3a22</code><span class="rt">ring 4.1:1</span></li><li><span class="sw" style="background:#26303c"></span><span class="rn">Row/col/box highlight</span><code>#26303c</code><span class="rt">tick 5.5:1</span></li><li><span class="sw" style="background:#4a3424"></span><span class="rn">Same-digit highlight</span><code>#4a3424</code><span class="rt">underline 4.7:1</span></li><li><span class="sw" style="background:#eaa6c0"></span><span class="rn">Mistake (assist on)</span><code>#eaa6c0</code><span class="rt">on paper 7.9:1</span></li><li><span class="sw" style="background:#e8905e"></span><span class="rn">Accent / stamp</span><code>#e8905e</code><span class="rt">on paper 6.3:1</span></li><li><span class="sw" style="background:#8cb6e0"></span><span class="rn">Postmark</span><code>#8cb6e0</code><span class="rt">on paper 7.3:1</span></li><li><span class="sw" style="background:#f2c27a"></span><span class="rn">Focus ring</span><code>#f2c27a</code><span class="rt">vs paper 9.4:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div></div></section>
+<section class="var" id="v3"><header><h2><small>Palette 3</small>Airmail</h2><p>Crisp cream envelope with red-and-navy stripes - par avion, something urgent but happy is on its way.</p></header>
+<div class="pair">
+<div class="panel v3-light air">
+  <div class="ph"><span class="mode">Daylight</span> <span class="sub">light mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#f5efdf"></span><span class="rn">Background (desk)</span><code>#f5efdf</code><span class="rt">text 12.4:1</span></li><li><span class="sw" style="background:#fffaf0"></span><span class="rn">Surface / paper</span><code>#fffaf0</code><span class="rt">text 13.7:1</span></li><li><span class="sw" style="background:#1f2a44"></span><span class="rn">Text primary</span><code>#1f2a44</code><span class="rt">on paper 13.7:1</span></li><li><span class="sw" style="background:#4e5670"></span><span class="rn">Text secondary</span><code>#4e5670</code><span class="rt">on paper 7.0:1</span></li><li><span class="sw" style="background:#1a2036"></span><span class="rn">Given digit</span><code>#1a2036</code><span class="rt">on selected 11.6:1</span></li><li><span class="sw" style="background:#24418a"></span><span class="rn">Player digit</span><code>#24418a</code><span class="rt">on selected 6.9:1</span></li><li><span class="sw" style="background:#5a6178"></span><span class="rn">Note digit</span><code>#5a6178</code><span class="rt">on highlight 5.1:1</span></li><li><span class="sw" style="background:#73799a"></span><span class="rn">Grid line (thin)</span><code>#73799a</code><span class="rt">vs paper 4.1:1</span></li><li><span class="sw" style="background:#1f2a44"></span><span class="rn">Box border (thick)</span><code>#1f2a44</code><span class="rt">vs paper 13.7:1</span></li><li><span class="sw" style="background:#f6d3d0"></span><span class="rn">Selected cell</span><code>#f6d3d0</code><span class="rt">ring 4.7:1</span></li><li><span class="sw" style="background:#e6eaf5"></span><span class="rn">Row/col/box highlight</span><code>#e6eaf5</code><span class="rt">tick 5.4:1</span></li><li><span class="sw" style="background:#dfe4f4"></span><span class="rn">Same-digit highlight</span><code>#dfe4f4</code><span class="rt">underline 5.1:1</span></li><li><span class="sw" style="background:#8a4b16"></span><span class="rn">Mistake (assist on)</span><code>#8a4b16</code><span class="rt">on paper 6.5:1</span></li><li><span class="sw" style="background:#b3262f"></span><span class="rn">Accent / stamp</span><code>#b3262f</code><span class="rt">on paper 6.2:1</span></li><li><span class="sw" style="background:#3c4a6e"></span><span class="rn">Postmark</span><code>#3c4a6e</code><span class="rt">on paper 8.4:1</span></li><li><span class="sw" style="background:#1f3a7a"></span><span class="rn">Focus ring</span><code>#1f3a7a</code><span class="rt">vs paper 10.4:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div>
+<div class="panel v3-dark air">
+  <div class="ph"><span class="mode">Lamplight</span> <span class="sub">dark mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#1b1a21"></span><span class="rn">Background (desk)</span><code>#1b1a21</code><span class="rt">text 14.7:1</span></li><li><span class="sw" style="background:#25242c"></span><span class="rn">Surface / paper</span><code>#25242c</code><span class="rt">text 13.0:1</span></li><li><span class="sw" style="background:#f4ecd8"></span><span class="rn">Text primary</span><code>#f4ecd8</code><span class="rt">on paper 13.0:1</span></li><li><span class="sw" style="background:#c8c0ad"></span><span class="rn">Text secondary</span><code>#c8c0ad</code><span class="rt">on paper 8.5:1</span></li><li><span class="sw" style="background:#f6efdc"></span><span class="rn">Given digit</span><code>#f6efdc</code><span class="rt">on selected 10.1:1</span></li><li><span class="sw" style="background:#a9c0f5"></span><span class="rn">Player digit</span><code>#a9c0f5</code><span class="rt">on selected 6.4:1</span></li><li><span class="sw" style="background:#b8b4c4"></span><span class="rn">Note digit</span><code>#b8b4c4</code><span class="rt">on highlight 6.2:1</span></li><li><span class="sw" style="background:#838196"></span><span class="rn">Grid line (thin)</span><code>#838196</code><span class="rt">vs paper 4.1:1</span></li><li><span class="sw" style="background:#d8d2c0"></span><span class="rn">Box border (thick)</span><code>#d8d2c0</code><span class="rt">vs paper 10.2:1</span></li><li><span class="sw" style="background:#5a2a30"></span><span class="rn">Selected cell</span><code>#5a2a30</code><span class="rt">ring 4.8:1</span></li><li><span class="sw" style="background:#2e3348"></span><span class="rn">Row/col/box highlight</span><code>#2e3348</code><span class="rt">tick 5.2:1</span></li><li><span class="sw" style="background:#343a55"></span><span class="rn">Same-digit highlight</span><code>#343a55</code><span class="rt">underline 4.6:1</span></li><li><span class="sw" style="background:#e8b07a"></span><span class="rn">Mistake (assist on)</span><code>#e8b07a</code><span class="rt">on paper 8.0:1</span></li><li><span class="sw" style="background:#f08a8f"></span><span class="rn">Accent / stamp</span><code>#f08a8f</code><span class="rt">on paper 6.4:1</span></li><li><span class="sw" style="background:#a8b6e0"></span><span class="rn">Postmark</span><code>#a8b6e0</code><span class="rt">on paper 7.6:1</span></li><li><span class="sw" style="background:#ffd27a"></span><span class="rn">Focus ring</span><code>#ffd27a</code><span class="rt">vs paper 10.8:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div></div></section>
+<section class="var" id="v4"><header><h2><small>Palette 4</small>Botanical</h2><p>A pressed-flower herbarium page - parchment, forest-green ink, a faded rose tucked between the leaves.</p></header>
+<div class="pair">
+<div class="panel v4-light">
+  <div class="ph"><span class="mode">Daylight</span> <span class="sub">light mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#efe8d4"></span><span class="rn">Background (desk)</span><code>#efe8d4</code><span class="rt">text 11.3:1</span></li><li><span class="sw" style="background:#f9f4e6"></span><span class="rn">Surface / paper</span><code>#f9f4e6</code><span class="rt">text 12.6:1</span></li><li><span class="sw" style="background:#24301f"></span><span class="rn">Text primary</span><code>#24301f</code><span class="rt">on paper 12.6:1</span></li><li><span class="sw" style="background:#55604c"></span><span class="rn">Text secondary</span><code>#55604c</code><span class="rt">on paper 6.0:1</span></li><li><span class="sw" style="background:#24301f"></span><span class="rn">Given digit</span><code>#24301f</code><span class="rt">on selected 9.0:1</span></li><li><span class="sw" style="background:#2f5a3a"></span><span class="rn">Player digit</span><code>#2f5a3a</code><span class="rt">on selected 5.1:1</span></li><li><span class="sw" style="background:#5e6a55"></span><span class="rn">Note digit</span><code>#5e6a55</code><span class="rt">on highlight 4.6:1</span></li><li><span class="sw" style="background:#6a765a"></span><span class="rn">Grid line (thin)</span><code>#6a765a</code><span class="rt">vs paper 4.4:1</span></li><li><span class="sw" style="background:#24301f"></span><span class="rn">Box border (thick)</span><code>#24301f</code><span class="rt">vs paper 12.6:1</span></li><li><span class="sw" style="background:#e9c9c4"></span><span class="rn">Selected cell</span><code>#e9c9c4</code><span class="rt">ring 3.9:1</span></li><li><span class="sw" style="background:#e2e8d2"></span><span class="rn">Row/col/box highlight</span><code>#e2e8d2</code><span class="rt">tick 4.8:1</span></li><li><span class="sw" style="background:#f0d8d2"></span><span class="rn">Same-digit highlight</span><code>#f0d8d2</code><span class="rt">underline 4.4:1</span></li><li><span class="sw" style="background:#7a3c66"></span><span class="rn">Mistake (assist on)</span><code>#7a3c66</code><span class="rt">on paper 7.2:1</span></li><li><span class="sw" style="background:#9a4a58"></span><span class="rn">Accent / stamp</span><code>#9a4a58</code><span class="rt">on paper 5.5:1</span></li><li><span class="sw" style="background:#4a5e3c"></span><span class="rn">Postmark</span><code>#4a5e3c</code><span class="rt">on paper 6.5:1</span></li><li><span class="sw" style="background:#3a6a46"></span><span class="rn">Focus ring</span><code>#3a6a46</code><span class="rt">vs paper 5.7:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div>
+<div class="panel v4-dark">
+  <div class="ph"><span class="mode">Lamplight</span> <span class="sub">dark mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#171c16"></span><span class="rn">Background (desk)</span><code>#171c16</code><span class="rt">text 13.9:1</span></li><li><span class="sw" style="background:#20271e"></span><span class="rn">Surface / paper</span><code>#20271e</code><span class="rt">text 12.3:1</span></li><li><span class="sw" style="background:#ece6d2"></span><span class="rn">Text primary</span><code>#ece6d2</code><span class="rt">on paper 12.3:1</span></li><li><span class="sw" style="background:#c3c2a8"></span><span class="rn">Text secondary</span><code>#c3c2a8</code><span class="rt">on paper 8.5:1</span></li><li><span class="sw" style="background:#efe9d5"></span><span class="rn">Given digit</span><code>#efe9d5</code><span class="rt">on selected 8.2:1</span></li><li><span class="sw" style="background:#a6d4ae"></span><span class="rn">Player digit</span><code>#a6d4ae</code><span class="rt">on selected 6.0:1</span></li><li><span class="sw" style="background:#b7bfa6"></span><span class="rn">Note digit</span><code>#b7bfa6</code><span class="rt">on highlight 6.6:1</span></li><li><span class="sw" style="background:#809576"></span><span class="rn">Grid line (thin)</span><code>#809576</code><span class="rt">vs paper 4.7:1</span></li><li><span class="sw" style="background:#d6dcc0"></span><span class="rn">Box border (thick)</span><code>#d6dcc0</code><span class="rt">vs paper 10.8:1</span></li><li><span class="sw" style="background:#5a3a40"></span><span class="rn">Selected cell</span><code>#5a3a40</code><span class="rt">ring 4.8:1</span></li><li><span class="sw" style="background:#2c3628"></span><span class="rn">Row/col/box highlight</span><code>#2c3628</code><span class="rt">tick 6.2:1</span></li><li><span class="sw" style="background:#4a3438"></span><span class="rn">Same-digit highlight</span><code>#4a3438</code><span class="rt">underline 5.6:1</span></li><li><span class="sw" style="background:#e2b0e0"></span><span class="rn">Mistake (assist on)</span><code>#e2b0e0</code><span class="rt">on paper 8.4:1</span></li><li><span class="sw" style="background:#e7a3ae"></span><span class="rn">Accent / stamp</span><code>#e7a3ae</code><span class="rt">on paper 7.5:1</span></li><li><span class="sw" style="background:#a8c49a"></span><span class="rn">Postmark</span><code>#a8c49a</code><span class="rt">on paper 8.0:1</span></li><li><span class="sw" style="background:#f2d08a"></span><span class="rn">Focus ring</span><code>#f2d08a</code><span class="rt">vs paper 10.3:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div></div></section>
+<section class="var" id="v5"><header><h2><small>Palette 5</small>Faded Photograph</h2><p>A silver-gelatin snapshot in a brass frame - muted greys, a dusty teal sky, quiet and wistful.</p></header>
+<div class="pair">
+<div class="panel v5-light">
+  <div class="ph"><span class="mode">Daylight</span> <span class="sub">light mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#e9e6df"></span><span class="rn">Background (desk)</span><code>#e9e6df</code><span class="rt">text 11.4:1</span></li><li><span class="sw" style="background:#f5f3ee"></span><span class="rn">Surface / paper</span><code>#f5f3ee</code><span class="rt">text 12.8:1</span></li><li><span class="sw" style="background:#2b2b2b"></span><span class="rn">Text primary</span><code>#2b2b2b</code><span class="rt">on paper 12.8:1</span></li><li><span class="sw" style="background:#5a5853"></span><span class="rn">Text secondary</span><code>#5a5853</code><span class="rt">on paper 6.4:1</span></li><li><span class="sw" style="background:#262626"></span><span class="rn">Given digit</span><code>#262626</code><span class="rt">on selected 9.2:1</span></li><li><span class="sw" style="background:#1f5c63"></span><span class="rn">Player digit</span><code>#1f5c63</code><span class="rt">on selected 4.6:1</span></li><li><span class="sw" style="background:#5d6261"></span><span class="rn">Note digit</span><code>#5d6261</code><span class="rt">on highlight 4.9:1</span></li><li><span class="sw" style="background:#726f65"></span><span class="rn">Grid line (thin)</span><code>#726f65</code><span class="rt">vs paper 4.5:1</span></li><li><span class="sw" style="background:#2b2b2b"></span><span class="rn">Box border (thick)</span><code>#2b2b2b</code><span class="rt">vs paper 12.8:1</span></li><li><span class="sw" style="background:#d9c9a0"></span><span class="rn">Selected cell</span><code>#d9c9a0</code><span class="rt">ring 3.5:1</span></li><li><span class="sw" style="background:#e0e6e4"></span><span class="rn">Row/col/box highlight</span><code>#e0e6e4</code><span class="rt">tick 4.6:1</span></li><li><span class="sw" style="background:#dfe9e8"></span><span class="rn">Same-digit highlight</span><code>#dfe9e8</code><span class="rt">underline 4.7:1</span></li><li><span class="sw" style="background:#7a4552"></span><span class="rn">Mistake (assist on)</span><code>#7a4552</code><span class="rt">on paper 6.8:1</span></li><li><span class="sw" style="background:#7e6127"></span><span class="rn">Accent / stamp</span><code>#7e6127</code><span class="rt">on paper 5.2:1</span></li><li><span class="sw" style="background:#4f5a5c"></span><span class="rn">Postmark</span><code>#4f5a5c</code><span class="rt">on paper 6.4:1</span></li><li><span class="sw" style="background:#1f5c63"></span><span class="rn">Focus ring</span><code>#1f5c63</code><span class="rt">vs paper 6.8:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div>
+<div class="panel v5-dark">
+  <div class="ph"><span class="mode">Lamplight</span> <span class="sub">dark mode</span></div>
+  <ul class="chips"><li><span class="sw" style="background:#1a1917"></span><span class="rn">Background (desk)</span><code>#1a1917</code><span class="rt">text 14.2:1</span></li><li><span class="sw" style="background:#24231f"></span><span class="rn">Surface / paper</span><code>#24231f</code><span class="rt">text 12.7:1</span></li><li><span class="sw" style="background:#ebe7dd"></span><span class="rn">Text primary</span><code>#ebe7dd</code><span class="rt">on paper 12.7:1</span></li><li><span class="sw" style="background:#bdb8ac"></span><span class="rn">Text secondary</span><code>#bdb8ac</code><span class="rt">on paper 8.0:1</span></li><li><span class="sw" style="background:#efebe1"></span><span class="rn">Given digit</span><code>#efebe1</code><span class="rt">on selected 8.4:1</span></li><li><span class="sw" style="background:#8fcfd3"></span><span class="rn">Player digit</span><code>#8fcfd3</code><span class="rt">on selected 5.7:1</span></li><li><span class="sw" style="background:#b0b5b2"></span><span class="rn">Note digit</span><code>#b0b5b2</code><span class="rt">on highlight 6.2:1</span></li><li><span class="sw" style="background:#908e7c"></span><span class="rn">Grid line (thin)</span><code>#908e7c</code><span class="rt">vs paper 4.8:1</span></li><li><span class="sw" style="background:#d8d3c6"></span><span class="rn">Box border (thick)</span><code>#d8d3c6</code><span class="rt">vs paper 10.5:1</span></li><li><span class="sw" style="background:#4e4126"></span><span class="rn">Selected cell</span><code>#4e4126</code><span class="rt">ring 5.0:1</span></li><li><span class="sw" style="background:#2c3332"></span><span class="rn">Row/col/box highlight</span><code>#2c3332</code><span class="rt">tick 6.4:1</span></li><li><span class="sw" style="background:#2e3a3a"></span><span class="rn">Same-digit highlight</span><code>#2e3a3a</code><span class="rt">underline 5.9:1</span></li><li><span class="sw" style="background:#e6b0bd"></span><span class="rn">Mistake (assist on)</span><code>#e6b0bd</code><span class="rt">on paper 8.5:1</span></li><li><span class="sw" style="background:#d6b26a"></span><span class="rn">Accent / stamp</span><code>#d6b26a</code><span class="rt">on paper 7.8:1</span></li><li><span class="sw" style="background:#a9b8b9"></span><span class="rn">Postmark</span><code>#a9b8b9</code><span class="rt">on paper 7.7:1</span></li><li><span class="sw" style="background:#f0d590"></span><span class="rn">Focus ring</span><code>#f0d590</code><span class="rt">vs paper 11.0:1</span></li></ul>
+  <div class="snip">
+    <div class="gw">
+      <div class="tick tc" title="active column"></div><div class="tick tr" title="active row"></div>
+      <div class="g"><div class="c hl "><b>5</b></div><div class="c sel "><em>7</em></div><div class="c hl bR"><div class="nt"><i></i><i>2</i><i></i><i>4</i><i></i><i></i><i></i><i></i><i>9</i></div></div><div class="c hl "><b>1</b></div><div class="c  "><div class="nt"><i>1</i><i></i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c hl "><b>8</b></div><div class="c  bR"></div><div class="c  "><b>4</b></div><div class="c bB "><b>3</b></div><div class="c hl bB "><div class="nt"><i></i><i>2</i><i></i><i></i><i></i><i>6</i><i></i><i></i><i></i></div></div><div class="c bB bR mis "><em>9</em><span class="dot"></span></div><div class="c same bB "><em>7</em></div></div>
+      <div class="legend">Selected r1c2 &middot; row/col tinted + ticks &middot; <span class="mk">9</span> mistake (dotted + dot) &middot; <u class="sd">7</u> same digit</div>
+    </div>
+    <div class="right">
+      <div class="pc">
+        <div class="msg"><span class="lbl">Lisbon, Portugal</span>The trams climb hills that would tire a goat. Wish you were here.</div>
+        <div class="rule"></div>
+        <div class="addr"><div class="stamp"><div><span>PORTUGAL</span><b>&#9973;</b><span>45c</span></div></div><svg class="pm" width="118" height="78" viewBox="0 0 118 78" aria-hidden="true"><circle cx="38" cy="39" r="31" fill="none" stroke="var(--postmark)" stroke-width="2"/><circle cx="38" cy="39" r="24" fill="none" stroke="var(--postmark)" stroke-width="1"/><text x="38" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" letter-spacing="1" fill="var(--postmark)">LISBOA</text><text x="38" y="49" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="var(--postmark)">06 X 26</text><path d="M74 25 q6 -5 12 0 t12 0 t12 0 M74 37 q6 -5 12 0 t12 0 t12 0 M74 49 q6 -5 12 0 t12 0 t12 0" fill="none" stroke="var(--postmark)" stroke-width="2"/></svg>
+          <div class="ln">To: the Album</div><div class="ln">c/o Traveller</div></div>
+      </div>
+      <div class="hint"><span class="lbl">Hint</span> Look at row 4 &mdash; there&rsquo;s a hidden single.</div>
+      <div class="btns"><span class="btn">Notes</span><span class="btn focus">Hint &middot; H</span><span class="fnote">&larr; keyboard focus</span></div>
+    </div>
+  </div>
+</div></div></section>
+</body></html>

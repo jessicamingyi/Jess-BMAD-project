@@ -1,0 +1,13 @@
+# Personal BMAD settings (per BMAD: not committed)
+_bmad/config.user.toml
+_bmad/custom/*.user.toml
+
+# Scratch work; keepers are promoted to mockups/
+**/.working/
+
+# Tooling
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.DS_Store
