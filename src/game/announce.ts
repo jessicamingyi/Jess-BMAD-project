@@ -1,4 +1,5 @@
 import { copy } from '../content/copy.ts'
+import { activeHint, hintView } from './hint.ts'
 import { hasNote } from './notes.ts'
 import { reducer } from './reducer.ts'
 import { FREE_PLAY_KEY } from './session.ts'
@@ -24,7 +25,8 @@ function digitTarget(prev: AppState, action: Action): { cell: number; digit: num
 /**
  * The screen-reader message for `action` taking `prev` to `next`, or null for silence.
  * Pure. "7" / "cleared" for digits, "note 7 added|removed", "Given, can't change",
- * mode names, "current digit 7" (number-first) and "Solved".
+ * mode names, "current digit 7" (number-first), "Solved", and the Hint's nudge
+ * or explanation text when `hintRequested` moves it to that step.
  */
 export function announce(prev: AppState, next: AppState, action: Action): string | null {
   const before = prev.sessions[FREE_PLAY_KEY]
@@ -41,6 +43,11 @@ export function announce(prev: AppState, next: AppState, action: Action): string
     case 'inputModeToggled':
       if (prev.ui.inputMode === next.ui.inputMode) return null
       return next.ui.inputMode === 'numberFirst' ? copy.statusNumberFirst : copy.statusCellFirst
+    case 'hintRequested': {
+      const hint = activeHint(next, FREE_PLAY_KEY)
+      if (!hint || hint.step === 'idle' || hint.step === activeHint(prev, FREE_PLAY_KEY)?.step) return null
+      return hintView(hint, after.digits).text
+    }
     case 'cellCleared': {
       const cell = prev.ui.selectedCell
       if (cell === null || before.status === 'solved') return null

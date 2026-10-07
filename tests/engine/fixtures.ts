@@ -183,3 +183,22 @@ export const POINTING_ROW: Omit<TechniqueFixture, 'none'> = {
     unit: { kind: 'box', index: 0 },
   },
 }
+
+/**
+ * Hint fixtures (positions found with a scratch script, every claim re-checked here).
+ * Pair, pointing and claiming never place, so they lead a chain that ends in a single.
+ */
+export const HINT_POSITIONS = {
+  /** Sample Givens: a naked single at once (cell 40 = 5). */
+  nakedSingle: PUZZLES.sample.givens,
+  /** Easy Givens: a hidden single at once (row 1, cell 2 = 3). */
+  hiddenSingle: PUZZLES.easy.givens,
+  /** Medium mid-solve: naked pair, naked pair, then a hidden single. */
+  nakedPair: '500810000681200005070563819017986053006070080008402000160720508800000764705608000',
+  /** Generated Hard (seed 5) mid-solve: pointing, pointing, then a naked single. */
+  pointing: '278345619009812375135700482500000794700000006000607000000578060057000008800930547',
+  /** Generated Hard (seed 18) mid-solve: column-direction pointing (box 1, column 2), then a naked single. */
+  pointingColumn: '608412503501693080320785001000901050050800100160250908005148009406529807000376005',
+  /** Only claiming applies on fresh candidates, then a hidden single. */
+  claiming: NO_HIDDEN_SINGLE,
+} as const

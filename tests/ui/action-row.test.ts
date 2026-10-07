@@ -18,12 +18,14 @@ function buttons(html: string) {
   }))
 }
 
-const render = (confirming: boolean, undoCaption = 'Ctrl+Z') =>
+const render = (confirming: boolean, undoCaption = 'Ctrl+Z', hintDisabled = false) =>
   renderToStaticMarkup(
     createElement(ActionRow, {
       confirming,
       undoCaption,
+      hintDisabled,
       onUndo: noop,
+      onHint: noop,
       onRestart: noop,
       onCancel: noop,
       onConfirm: noop,
@@ -31,18 +33,25 @@ const render = (confirming: boolean, undoCaption = 'Ctrl+Z') =>
   )
 
 describe('ActionRow', () => {
-  it('default: Undo with its key caption and Restart without one, both default buttons', () => {
+  it('default: Undo · Hint · Restart; Hint is the one primary button, captioned "H"', () => {
     const html = render(false)
-    const [undo, restart, ...rest] = buttons(html)
+    const [undo, hint, restart, ...rest] = buttons(html)
     expect(rest).toHaveLength(0)
     expect(undo.inner).toContain('<span class="button-label">Undo</span>')
     expect(undo.inner).toContain('<span class="button-caption" aria-hidden="true">Ctrl+Z</span>')
+    expect(hint.inner).toBe('<span class="button-label">Hint</span><span class="button-caption" aria-hidden="true">H</span>')
+    expect(hint.classes).toEqual(['button', 'button--primary'])
+    expect(hint.attrs).not.toContain('aria-disabled')
     expect(restart.inner).toBe('<span class="button-label">Restart</span>')
-    for (const b of [undo, restart]) {
-      expect(b.attrs).toContain('type="button"')
-      expect(b.classes).toEqual(['button'])
-    }
+    for (const b of [undo, restart]) expect(b.classes).toEqual(['button'])
+    for (const b of [undo, hint, restart]) expect(b.attrs).toContain('type="button"')
     expect(html).not.toContain('Keep going')
+  })
+
+  it('solved: Hint is aria-disabled but still a focusable button (not disabled)', () => {
+    const [, hint] = buttons(render(false, 'Ctrl+Z', true))
+    expect(hint.attrs).toContain('aria-disabled="true"')
+    expect(hint.attrs).not.toMatch(/\sdisabled/)
   })
 
   it('shows the Mac caption when given one', () => {

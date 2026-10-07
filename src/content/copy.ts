@@ -16,6 +16,7 @@ export const copy = {
    * e.g. "Row 4, column 6, 7, given" / "…, 7, your digit" / "…, notes 3, 7" / "…, empty".
    * Row and column are 1-based; `notes` is only read for kind 'notes'.
    * `mistake` appends ", mistake" to a player digit (only when the Mistake Assist is On).
+   * `hint` appends ", hint" to a cell a Hint names.
    */
   cellLabel: (
     row: number,
@@ -24,12 +25,14 @@ export const copy = {
     kind: CellKind,
     notes: readonly number[] = [],
     mistake = false,
+    hint = false,
   ): string => {
     const where = `Row ${row}, column ${col}`
-    if (kind === 'empty') return `${where}, empty`
-    if (kind === 'notes') return `${where}, notes ${notes.join(', ')}`
-    if (kind === 'given') return `${where}, ${value}, given`
-    return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}`
+    const suffix = hint ? ', hint' : ''
+    if (kind === 'empty') return `${where}, empty${suffix}`
+    if (kind === 'notes') return `${where}, notes ${notes.join(', ')}${suffix}`
+    if (kind === 'given') return `${where}, ${value}, given${suffix}`
+    return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}${suffix}`
   },
 
   /** Header nav ("Puzzle · Free Play · Settings"). */
@@ -83,15 +86,27 @@ export const copy = {
   statusChooseCell: 'choose a cell',
   statusChooseDigit: 'choose a digit',
 
-  /** Action row: Undo · Restart, and the inline Restart confirm. */
+  /** Action row: Undo · Hint · Restart, and the inline Restart confirm. */
   actionRowLabel: 'Puzzle actions',
   undo: 'Undo',
+  hint: 'Hint',
+  hintKey: 'H',
   restart: 'Restart',
   undoKeyMac: '⌘Z',
   undoKeyOther: 'Ctrl+Z',
   restartConfirmLabel: 'Restart the Puzzle?',
   restartConfirmText: 'Clear your digits and Notes? The Givens stay.',
   keepGoing: 'Keep going',
+
+  /** Hint panel: region name, step labels, the one step button and its caption. */
+  hintPanelLabel: 'Hint',
+  hintLabelIdle: 'Hint',
+  hintLabelNudge: 'Nudge',
+  hintLabelExplain: 'Explanation',
+  hintShowNudge: 'Show a nudge',
+  hintExplainIt: 'Explain it',
+  hintShowMove: 'Show me the move',
+  hintSetAside: 'Esc to set aside',
 
   /** Polite live-region announcements (UX-DR61). Mode switches reuse entryDigit/entryNotes and statusCellFirst/statusNumberFirst. */
   announceDigit: (digit: number): string => String(digit),

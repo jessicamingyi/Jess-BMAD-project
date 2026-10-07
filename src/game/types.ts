@@ -1,7 +1,9 @@
 import type { Difficulty } from '../engine/grader.ts'
+import type { HintResult } from '../engine/hints.ts'
 
 /** Difficulty is owned by the engine (the grader); re-exported for game and ui. */
 export type { Difficulty } from '../engine/grader.ts'
+export type { HintResult } from '../engine/hints.ts'
 
 export type SessionStatus = 'inProgress' | 'solved'
 
@@ -72,6 +74,19 @@ export type UndoEntry = {
   readonly notes: readonly number[]
 }
 
+/** idle: the panel shows "Show a nudge"; nudge: step 1 shown; explain: step 2 shown. */
+export type HintStep = 'idle' | 'nudge' | 'explain'
+
+/**
+ * The open Hint panel for one Session. `result` is null until a Hint is found
+ * (idle after a reset). Never saved and never recorded in Undo.
+ */
+export type HintState = {
+  readonly sessionKey: string
+  readonly step: HintStep
+  readonly result: HintResult | null
+}
+
 export type UiState = {
   readonly screen: Screen
   readonly selectedCell: number | null
@@ -89,6 +104,8 @@ export type UiState = {
    */
   readonly announcement: Announcement | null
   readonly freePlay: FreePlayUi
+  /** The Hint panel; null when closed. Shown only for its own Session. */
+  readonly hint: HintState | null
 }
 
 export type Announcement = {
@@ -133,3 +150,7 @@ export type Action =
   /** Worker reply; applied only when `requestId` is the latest and a request is pending. */
   | { readonly type: 'freePlayGenerated'; readonly requestId: number; readonly puzzle: Puzzle }
   | { readonly type: 'freePlayFailed'; readonly requestId: number }
+  /** H or the Hint / step button: open the panel, or advance one step. */
+  | { readonly type: 'hintRequested' }
+  /** Esc: set the Hint aside (close the panel). */
+  | { readonly type: 'hintClosed' }

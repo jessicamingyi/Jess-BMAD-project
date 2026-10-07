@@ -176,7 +176,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(live()).toBe("Given, can't change")
   })
 
-  it('N, M, Ctrl+Z and H work from the side column', () => {
+  it('N, M and Ctrl+Z work from the side column', () => {
     focus(cell(EMPTY))
     press('4')
     focus(padKey(1))
@@ -188,10 +188,6 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(pressed('Number first')).toBe('true')
     press('m')
     expect(pressed('Cell first')).toBe('true')
-    const before = host.innerHTML
-    expect(press('h')).toBe(false)
-    expect(press('H')).toBe(false)
-    expect(host.innerHTML).toBe(before)
     expect(press('z', { ctrlKey: true })).toBe(true)
     expect(value(EMPTY)).toBe('')
   })
@@ -202,6 +198,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       inputMode: 'cellFirst',
       selectedCell: null,
       restartConfirming: false,
+      hintOpen: false,
       isMac: true,
     }
     const k = (key: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey', boolean>> = {}) => ({
@@ -221,6 +218,31 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(keyToAction(k('ArrowUp'), ctx)).toBeNull()
   })
 
+  it('H asks for a Hint; Esc closes the Restart confirm first, then the Hint panel', () => {
+    const ctx: KeyContext = {
+      inGrid: true,
+      inputMode: 'cellFirst',
+      selectedCell: 3,
+      restartConfirming: false,
+      hintOpen: false,
+      isMac: false,
+    }
+    const k = (key: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey', boolean>> = {}) => ({
+      key,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      ...mods,
+    })
+    expect(keyToAction(k('h'), ctx)).toEqual({ type: 'hintRequested' })
+    expect(keyToAction(k('H', { shiftKey: true }), { ...ctx, inGrid: false })).toEqual({ type: 'hintRequested' })
+    expect(keyToAction(k('h', { ctrlKey: true }), ctx)).toBeNull()
+    expect(keyToAction(k('Escape'), ctx)).toBeNull()
+    expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true })).toEqual({ type: 'hintClosed' })
+    expect(keyToAction(k('Escape'), { ...ctx, hintOpen: true, restartConfirming: true })).toEqual({ type: 'restartCancelled' })
+  })
+
   it('keys pressed on body or the header change nothing', () => {
     focus(cell(EMPTY))
     press('7')
@@ -234,6 +256,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
         ['m', {}],
         ['Backspace', {}],
         ['ArrowUp', {}],
+        ['h', {}],
         ['z', { ctrlKey: true }],
       ] as const) {
         expect(press(key, init, target)).toBe(false)
@@ -275,7 +298,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     expect(second).not.toBe(first)
   })
 
-  it('Tab order: nav links, grid, entry segments, input segments, pad keys, Undo, Restart', () => {
+  it('Tab order: nav links, grid, entry segments, input segments, pad keys, Undo, Hint, Restart', () => {
     const tabbable = [...host.querySelectorAll<HTMLElement>('button, [tabindex]')].filter((el) => el.tabIndex >= 0)
     const names = tabbable.map((el) => (el.getAttribute('role') === 'gridcell' ? 'grid' : el.textContent))
     expect(names).toEqual([
@@ -289,6 +312,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
       'Number first',
       ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => expect.stringMatching(new RegExp(`^${d}`))),
       expect.stringMatching(/^Undo/),
+      'HintH',
       'Restart',
     ])
   })

@@ -1,3 +1,6 @@
+import { findHint } from '../engine/hints.ts'
+import { parseGrid } from '../engine/grid.ts'
+import { activeHint } from './hint.ts'
 import { toggleNote } from './notes.ts'
 import { createSession, FREE_PLAY_KEY } from './session.ts'
 import type { Action, AppState, Difficulty, Puzzle, Screen, UndoEntry } from './types.ts'
@@ -143,10 +146,49 @@ function setRestartConfirming(state: AppState, open: boolean): AppState {
 /**
  * The only way AppState changes. Pure: never mutates `state`, and returns
  * `state` itself when an action changes nothing. Every change to the session's
- * digits or Notes is recorded in `ui.undo`.
+ * digits or Notes is recorded in `ui.undo`. Any change to the digits of the
+ * Session an open Hint belongs to sets that Hint back to idle in the same step.
  */
 export function reducer(state: AppState, action: Action): AppState {
+  return resetHintOnDigits(state, reduce(state, action))
+}
+
+/** The post-step Hint rule: digits changed → the open Hint goes idle (Notes, selection and modes leave it alone). */
+function resetHintOnDigits(prev: AppState, next: AppState): AppState {
+  const hint = next.ui.hint
+  if (next === prev || hint === null) return next
+  if (prev.sessions[hint.sessionKey]?.digits === next.sessions[hint.sessionKey]?.digits) return next
+  if (hint.step === 'idle' && hint.result === null) return next
+  return { ...next, ui: { ...next.ui, hint: { sessionKey: hint.sessionKey, step: 'idle', result: null } } }
+}
+
+/**
+ * H or a step button. Refused when there is no Session or it is solved.
+ * Closed or idle → find a Hint from the digits: step 1 (nudge), or idle when the
+ * Techniques find no placement. Nudge → explain. Explain → no change (Story 2.2
+ * places the move). Never recorded in Undo.
+ */
+function requestHint(state: AppState): AppState {
+  const session = state.sessions[FREE_PLAY_KEY]
+  if (!session || session.status === 'solved') return state
+  const hint = activeHint(state, FREE_PLAY_KEY)
+  const withHint = (next: NonNullable<AppState['ui']['hint']>): AppState => ({ ...state, ui: { ...state.ui, hint: next } })
+  if (hint === null || hint.step === 'idle') {
+    // Digits are unchanged since an idle "no Hint" result, so it would be the same again.
+    if (hint?.result?.kind === 'none') return state
+    const result = findHint(parseGrid(session.digits))
+    return withHint({ sessionKey: FREE_PLAY_KEY, step: result.kind === 'none' ? 'idle' : 'nudge', result })
+  }
+  if (hint.step === 'nudge') return withHint({ ...hint, step: 'explain' })
+  return state
+}
+
+function reduce(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'hintRequested':
+      return requestHint(state)
+    case 'hintClosed':
+      return state.ui.hint === null ? state : { ...state, ui: { ...state.ui, hint: null } }
     case 'undoRequested':
       return undo(state)
     case 'restartRequested':
@@ -238,6 +280,7 @@ function freePlay(state: AppState, action: Action): AppState {
           undo: [],
           restartConfirming: false,
           freePlay: { ...fp, picked: puzzle.difficulty, status: 'idle', confirmingReplace: false },
+          hint: null,
         },
       }
     }

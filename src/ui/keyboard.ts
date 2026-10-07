@@ -20,6 +20,8 @@ export type KeyContext = {
   readonly inputMode: InputMode
   readonly selectedCell: number | null
   readonly restartConfirming: boolean
+  /** The Hint panel is open for this Session (Esc sets it aside). */
+  readonly hintOpen: boolean
   /** Undo is Cmd+Z on macOS, Ctrl+Z elsewhere. */
   readonly isMac: boolean
 }
@@ -41,7 +43,11 @@ export function keyToAction(input: KeyInput, ctx: KeyContext): Action | null {
   // Leave every other modified key to the browser.
   if (ctrlKey || metaKey || altKey) return null
 
-  if (key === 'Escape') return ctx.restartConfirming ? { type: 'restartCancelled' } : null
+  // Esc closes the innermost thing first: the Restart confirm, then the Hint panel.
+  if (key === 'Escape') {
+    if (ctx.restartConfirming) return { type: 'restartCancelled' }
+    return ctx.hintOpen ? { type: 'hintClosed' } : null
+  }
 
   if (key in ARROWS) {
     if (!ctx.inGrid) return null
@@ -70,8 +76,10 @@ export function keyToAction(input: KeyInput, ctx: KeyContext): Action | null {
     case 'm':
     case 'M':
       return { type: 'inputModeToggled' }
+    case 'h':
+    case 'H':
+      return { type: 'hintRequested' }
     default:
-      // H is reserved for Hints (Epic 2) and does nothing yet.
       return null
   }
 }
@@ -91,7 +99,7 @@ export function useKeyboard(
   dispatch: (action: Action) => void,
   context: Omit<KeyContext, 'inGrid'>,
 ): void {
-  const { inputMode, selectedCell, restartConfirming, isMac } = context
+  const { inputMode, selectedCell, restartConfirming, hintOpen, isMac } = context
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -104,6 +112,7 @@ export function useKeyboard(
         inputMode,
         selectedCell,
         restartConfirming,
+        hintOpen,
         isMac,
       })
       if (!action) return
@@ -112,7 +121,7 @@ export function useKeyboard(
     }
     el.addEventListener('keydown', onKeyDown)
     return () => el.removeEventListener('keydown', onKeyDown)
-  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, isMac])
+  }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, isMac])
 }
 
 /**

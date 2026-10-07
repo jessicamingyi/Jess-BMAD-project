@@ -1,11 +1,13 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
+import { activeHint, hintFocusCells, hintView } from '../game/hint.ts'
 import { FREE_PLAY_KEY } from '../game/session.ts'
 import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
 import { DigitPad } from './digit-pad.tsx'
+import { HintPanel } from './hint-panel.tsx'
 import { isMacPlatform, keyCaption } from './key-caption.ts'
 import { useKeyboard } from './keyboard.ts'
 import { ModeIndicator } from './mode-indicator.tsx'
@@ -25,15 +27,21 @@ export function PuzzleScreen({ state, dispatch }: Props) {
   const session = state.sessions[FREE_PLAY_KEY]
   const { ui } = state
   const screenRef = useRef<HTMLDivElement>(null)
+  const hint = activeHint(state, FREE_PLAY_KEY)
   useKeyboard(screenRef, dispatch, {
     inputMode: ui.inputMode,
     selectedCell: ui.selectedCell,
     restartConfirming: ui.restartConfirming,
+    hintOpen: hint !== null,
     isMac,
   })
+  const focusGrid = useCallback(() => {
+    screenRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus()
+  }, [])
 
   // App renders this screen only with a Session; stay safe if it ever doesn't.
   if (!session) return null
+  const solved = session.status === 'solved'
 
   return (
     <div className="puzzle-screen" ref={screenRef}>
@@ -41,10 +49,18 @@ export function PuzzleScreen({ state, dispatch }: Props) {
         session={session}
         selectedCell={ui.selectedCell}
         marks={cellMarks(session, ui.selectedCell, state.settings)}
+        hintCells={hintFocusCells(hint)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
       />
       <div className="side-column">
+        <HintPanel
+          step={hint?.step ?? null}
+          view={hintView(hint, session.digits)}
+          disabled={solved || hint?.step === 'explain' || hint?.result?.kind === 'none'}
+          onAdvance={() => dispatch({ type: 'hintRequested' })}
+          focusGrid={focusGrid}
+        />
         <ModeIndicator
           entryMode={ui.entryMode}
           inputMode={ui.inputMode}
@@ -62,12 +78,14 @@ export function PuzzleScreen({ state, dispatch }: Props) {
         <ActionRow
           confirming={ui.restartConfirming}
           undoCaption={keyCaption(platform)}
+          hintDisabled={solved}
           onUndo={() => dispatch({ type: 'undoRequested' })}
+          onHint={() => dispatch({ type: 'hintRequested' })}
           onRestart={() => dispatch({ type: 'restartRequested' })}
           onCancel={() => dispatch({ type: 'restartCancelled' })}
           onConfirm={() => dispatch({ type: 'restartConfirmed' })}
         />
-        {session.status === 'solved' && (
+        {solved && (
           <p className="puzzle-status">
             {copy.solvedFreePlay}{' '}
             <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'freePlay' })}>

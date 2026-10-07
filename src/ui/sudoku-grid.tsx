@@ -10,6 +10,8 @@ type Props = {
   selectedCell: number | null
   /** Assist marks from `game/assists` `cellMarks`; omitted means no Assist marks. */
   marks?: GridMarks
+  /** Cells a Hint names (`game/hint` `hintFocusCells`): dashed ring and ", hint" in the name. */
+  hintCells?: ReadonlySet<number>
   onClick: (cell: number) => void
   /** A cell received focus (Tab, arrows, click); selects it. */
   onFocusCell?: (cell: number) => void
@@ -49,7 +51,7 @@ function NoteGrid({ mask }: { mask: number }) {
  * selected cell (or cell 0) is the one tab stop; selection moves focus there,
  * and focusing a cell selects it. Keys are handled by `ui/keyboard`, not here.
  */
-export function SudokuGrid({ session, selectedCell, marks, onClick, onFocusCell }: Props) {
+export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, onFocusCell }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
   const lastSelected = useRef(selectedCell)
   const tabStop = selectedCell ?? 0
@@ -85,6 +87,7 @@ export function SudokuGrid({ session, selectedCell, marks, onClick, onFocusCell 
               // Marks only apply to the cells they describe: same digit to digits, Mistakes to player digits.
               const sameDigit = !!mark?.sameDigit && (kind === 'given' || kind === 'player')
               const mistake = !!mark?.mistake && kind === 'player'
+              const hint = hintCells?.has(cell) ?? false
               const classes = [
                 'sudoku-cell',
                 `sudoku-cell--${kind}`,
@@ -92,6 +95,7 @@ export function SudokuGrid({ session, selectedCell, marks, onClick, onFocusCell 
                 sameDigit && 'sudoku-cell--same-digit',
                 mistake && 'sudoku-cell--mistake',
                 selected && 'sudoku-cell--selected',
+                hint && 'sudoku-cell--hint-focus',
                 marks?.units && boxCorner(cell, marks.units.box),
                 col > 0 && (col % 3 === 0 ? 'sudoku-cell--box-left' : 'sudoku-cell--thin-left'),
                 row > 0 && (row % 3 === 0 ? 'sudoku-cell--box-top' : 'sudoku-cell--thin-top'),
@@ -113,6 +117,7 @@ export function SudokuGrid({ session, selectedCell, marks, onClick, onFocusCell 
                     kind,
                     kind === 'notes' ? noteDigits(mask) : [],
                     mistake,
+                    hint,
                   )}
                   aria-current={selected ? 'true' : undefined}
                   onClick={() => onClick(cell)}

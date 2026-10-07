@@ -553,3 +553,129 @@
 .free-play-error {
   color: var(--color-ink);
 }
+
+/*
+ * Hint focus (UX-DR8): 2px dashed postmark ring inside the cell, drawn 3px inside
+ * the selected ring when both apply. An outline (not a pseudo-element: ::before
+ * and ::after carry the box ticks and Mistake dot), so the cell never changes size.
+ * Two classes beat `.sudoku-cell:focus { outline: none }` by source order.
+ */
+.sudoku-cell.sudoku-cell--hint-focus {
+  outline: var(--size-mark-stroke) dashed var(--color-postmark);
+  outline-offset: calc(-1 * var(--size-mark-stroke));
+}
+
+.sudoku-cell.sudoku-cell--selected.sudoku-cell--hint-focus {
+  outline-offset: calc(-1 * (var(--rule-frame) + var(--size-mark-stroke)));
+}
+
+@media (forced-colors: active) {
+  .sudoku-cell.sudoku-cell--hint-focus {
+    outline-color: CanvasText;
+  }
+
+  /*
+   * Selected and hint-focused: the outline is the dashed hint ring, so the
+   * Highlight cursor becomes an inset ring. Shadows are stripped in forced
+   * colours, so this cell opts out and uses system colours itself.
+   */
+  .sudoku-cell.sudoku-cell--selected.sudoku-cell--hint-focus {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    color: CanvasText;
+    box-shadow: inset 0 0 0 var(--rule-frame) Highlight;
+  }
+
+  .sudoku-cell.sudoku-cell--selected.sudoku-cell--hint-focus * {
+    color: CanvasText;
+  }
+}
+
+/*
+ * Hint panel: a slip of paper tucked into the side column. card, hairline
+ * rule-thin border, 1px fill-highlight inner frame inset 6px, hard 3px 4px
+ * fill-highlight shadow, padding 16px 18px 14px. Never over the grid.
+ */
+.hint-panel {
+  position: relative;
+  padding: var(--space-4) calc(var(--space-4) + var(--rule-box)) calc(var(--space-3) + var(--rule-box));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--color-card);
+  border: var(--rule-thin) solid var(--color-rule-thin);
+  border-radius: var(--rounded-none);
+  box-shadow: var(--rule-frame) var(--space-1) 0 var(--color-fill-highlight);
+}
+
+.hint-panel::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-1) + var(--rule-box));
+  border: var(--rule-thin) solid var(--color-fill-highlight);
+  pointer-events: none;
+}
+
+.hint-panel-label {
+  position: relative;
+  margin: 0;
+  color: var(--color-airmail-red);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: 1;
+}
+
+.hint-panel-text {
+  position: relative;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-hint-text-size);
+  line-height: var(--type-hint-text-line-height);
+}
+
+.hint-panel-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hint-panel-caption {
+  color: var(--color-ink-muted);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+}
+
+/*
+ * aria-disabled buttons (Hint when solved, the Hint panel's inert step button)
+ * stay focusable but read as inactive. Deliberately global: any .button marked
+ * aria-disabled looks the same, and hover/press never change it.
+ */
+.button[aria-disabled='true'],
+.button[aria-disabled='true']:hover,
+.button[aria-disabled='true']:active {
+  cursor: default;
+}
+
+.button[aria-disabled='true']:not(.button--primary),
+.button[aria-disabled='true']:not(.button--primary):hover,
+.button[aria-disabled='true']:not(.button--primary):active {
+  border-color: var(--color-ink-muted);
+  background-color: transparent;
+  color: var(--color-ink-muted);
+}
+
+/* card on ink-muted meets 4.5:1 in both themes (tests/ui/contrast.test.ts). */
+.button--primary[aria-disabled='true'],
+.button--primary[aria-disabled='true']:hover,
+.button--primary[aria-disabled='true']:active {
+  border-color: var(--color-card);
+  background-color: var(--color-ink-muted);
+  color: var(--color-card);
+}
+
+.button--primary[aria-disabled='true']:not(:focus-visible) {
+  outline-color: var(--color-ink-muted);
+}

@@ -50,6 +50,8 @@ const PAIRS: readonly Pair[] = [
   { fg: 'rule-box', bg: 'fill-same-digit', min: NON_TEXT, what: 'non-text' },
   { fg: 'airmail-red', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   { fg: 'focus', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
+  /** An aria-disabled primary button (Hint when solved): card text on an ink-muted fill. */
+  { fg: 'card', bg: 'ink-muted', min: TEXT, what: 'text' },
 ]
 
 /** `--color-<name>: #RRGGBB;` from theme.css, or undefined. */

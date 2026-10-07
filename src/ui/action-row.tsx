@@ -6,18 +6,21 @@ type Props = {
   confirming: boolean
   /** Undo key caption, e.g. "Ctrl+Z" or "⌘Z" (see `keyCaption`). */
   undoCaption: string
+  /** The Puzzle is solved: Hint is aria-disabled (still focusable) and does nothing. */
+  hintDisabled: boolean
   onUndo: () => void
+  onHint: () => void
   onRestart: () => void
   onCancel: () => void
   onConfirm: () => void
 }
 
 /**
- * Undo · Restart (UX-DR13). Restart's confirm replaces the row inline: no overlay,
+ * Undo · Hint · Restart (UX-DR13); Hint is the one primary button. Restart's confirm replaces the row inline: no overlay,
  * and the row keeps its height so the grid never moves. Focus goes to "Keep going"
  * when the confirm opens, and back to "Restart" when it closes if focus was in the row.
  */
-export function ActionRow({ confirming, undoCaption, onUndo, onRestart, onCancel, onConfirm }: Props) {
+export function ActionRow({ confirming, undoCaption, hintDisabled, onUndo, onHint, onRestart, onCancel, onConfirm }: Props) {
   const restartRef = useRef<HTMLButtonElement>(null)
   const keepGoingRef = useRef<HTMLButtonElement>(null)
   const wasConfirming = useRef(confirming)
@@ -83,6 +86,19 @@ export function ActionRow({ confirming, undoCaption, onUndo, onRestart, onCancel
           <span className="button-label">{copy.undo}</span>
           <span className="button-caption" aria-hidden="true">
             {undoCaption}
+          </span>
+        </button>
+        <button
+          type="button"
+          className="button button--primary"
+          aria-disabled={hintDisabled ? 'true' : undefined}
+          onClick={() => {
+            if (!hintDisabled) onHint()
+          }}
+        >
+          <span className="button-label">{copy.hint}</span>
+          <span className="button-caption" aria-hidden="true">
+            {copy.hintKey}
           </span>
         </button>
         <button type="button" className="button" ref={restartRef} onClick={onRestart}>

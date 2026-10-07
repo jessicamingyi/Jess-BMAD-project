@@ -37,7 +37,8 @@ function isSolvedGrid(grid: Grid): boolean {
   return UNITS.every((unit) => new Set(unit.map((c) => grid[c])).size === 9)
 }
 
-function nextStep(grid: Grid, candidates: readonly number[]): Step | null {
+/** The first Step any Technique finds, in registry order, or null. Pure. */
+export function nextStep(grid: Grid, candidates: readonly number[]): Step | null {
   for (const { find } of TECHNIQUES) {
     const step = find(grid, candidates)
     if (step) return step

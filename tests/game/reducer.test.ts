@@ -79,6 +79,7 @@ describe('game reducer', () => {
       restartConfirming: false,
       announcement: null,
       freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
+      hint: null,
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })
