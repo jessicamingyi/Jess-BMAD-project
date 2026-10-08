@@ -14,5 +14,7 @@ npm run build     # type-check and build to dist/
 npm run preview   # serve the production build locally
 ```
 
+Deploy is blocked while any City is a placeholder (`npm run check:placeholders`); lint, test and build still pass.
+
 Every push to `main` runs lint, tests and build, then deploys to GitHub Pages only if all pass:
 https://jessicamingyi.github.io/Jess-BMAD-project/

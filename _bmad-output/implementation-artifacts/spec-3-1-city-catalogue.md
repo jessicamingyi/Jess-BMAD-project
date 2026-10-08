@@ -2,7 +2,8 @@
 title: 'Story 3.1: City catalogue and pre-built City Puzzles'
 type: 'feature'
 created: '2026-10-07'
-status: 'draft'
+status: 'done'
+baseline_commit: '95883e002ba8c16f699b63f92a193ed86c2aaec8'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -55,17 +56,17 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/content/cities.json` -- 30 objects `{ id, name, country, region, tier, glyph, line, placeholder? }` in `cities.md` order. Placeholder line: "PLACEHOLDER: Postcard line for {name} (TS-40)." Glyphs per OQ1.
-- [ ] `src/content/cities.ts` -- types `Region`, `Tier`, `City`; `CITIES` (typed JSON import, `with { type: 'json' }`); `cityById(id)`. No imports outside `content`.
-- [ ] `src/content/city-puzzles.json` + `src/content/city-puzzles.ts` -- `CityPuzzle = { cityId, givens, solution, difficulty: 'easy'|'medium'|'hard' }`; `CITY_PUZZLES`; `cityPuzzle(id)` (synchronous lookup for 3.2's `cityChosen`).
-- [ ] `src/game/journey.ts` -- `TIER_DIFFICULTY: Readonly<Record<Tier, Difficulty>>` and `difficultyForTier`. Only imports with `.ts` extensions (Node runs it from `scripts/`). 3.2–3.3 add reachability/award here.
-- [ ] `scripts/build-cities.ts` -- pure `seedFor(id)` (FNV-1a 32-bit of the id) and `missingEntries(cities, existing)`. Generate with `generate(seedFor(id), d, 200)`. On failure, retry the seeds of `${id}#1`…`#4`; then throw, naming the id. Pure `formatPuzzles(entries)` = `JSON.stringify(entries, null, 2) + '\n'`. CLI: read files, append the missing entries to `city-puzzles.json` **and** `tests/content/city-puzzles.snapshot.json`. Write nothing when nothing is missing. Optional path arguments let tests run on temp copies. Then run it and commit the output.
-- [ ] `scripts/check-placeholders.ts` -- pure `placeholderIds(cities)`. CLI exits 1 with "Deploy blocked: N placeholder Cities: id, id, …" or exits 0 with "No placeholder Cities." Node built-ins only (no `npm ci` needed).
-- [ ] `package.json` -- `"build:cities": "node scripts/build-cities.ts"`, `"check:placeholders": "node scripts/check-placeholders.ts"`.
-- [ ] `tsconfig.node.json` (+ `tsconfig.app.json` if needed) -- include `scripts`; `resolveJsonModule: true` if `tsc -b` requires it.
-- [ ] `.github/workflows/ci-deploy.yml` -- in `deploy`, add `contents: read` to `permissions`. Before `deploy-pages`, add steps: `actions/checkout@v4`, `actions/setup-node@v4` (`.nvmrc`), `npm run check:placeholders`. Update the opt-in comment. `build` is unchanged.
-- [ ] `README.md` -- one line: deploy is blocked while any City is a placeholder (`npm run check:placeholders`).
-- [ ] Tests: `tests/content/cities.test.ts` (30; 10/Region; 4/3/3; allowed codes; kebab-case unique ids; id order = `cities.md`; non-empty fields; Lisbon exact; placeholder ⇔ "PLACEHOLDER" prefix; 29 placeholders). `tests/content/city-puzzles.test.ts` (`it.each` by `cityId`: format, `countSolutions === 1`, Givens ⊂ solution, solution a valid full grid, `grade === difficulty === TIER_DIFFICULTY[tier]`; one entry per City; no unknown ids; snapshot ⇔ file). `tests/scripts/build-cities.test.ts` (matrix rows Partial / Nothing missing / Determinism on temp copies). `tests/scripts/check-placeholders.test.ts` (ids listed, exit codes). `tests/game/journey.test.ts` (map values; scan `src/` and `scripts/` for a `near…easy` map literal and find only `journey.ts`).
+- [x] `src/content/cities.json` -- 30 objects `{ id, name, country, region, tier, glyph, line, placeholder? }` in `cities.md` order. Placeholder line: "PLACEHOLDER: Postcard line for {name} (TS-40)." Glyphs per OQ1.
+- [x] `src/content/cities.ts` -- types `Region`, `Tier`, `City`; `CITIES` (typed JSON import, `with { type: 'json' }`); `cityById(id)`. No imports outside `content`.
+- [x] `src/content/city-puzzles.json` + `src/content/city-puzzles.ts` -- `CityPuzzle = { cityId, givens, solution, difficulty: 'easy'|'medium'|'hard' }`; `CITY_PUZZLES`; `cityPuzzle(id)` (synchronous lookup for 3.2's `cityChosen`).
+- [x] `src/game/journey.ts` -- `TIER_DIFFICULTY: Readonly<Record<Tier, Difficulty>>` and `difficultyForTier`. Only imports with `.ts` extensions (Node runs it from `scripts/`). 3.2–3.3 add reachability/award here.
+- [x] `scripts/build-cities.ts` -- pure `seedFor(id)` (FNV-1a 32-bit of the id) and `missingEntries(cities, existing)`. Generate with `generate(seedFor(id), d, 200)`. On failure, retry the seeds of `${id}#1`…`#4`; then throw, naming the id. Pure `formatPuzzles(entries)` = `JSON.stringify(entries, null, 2) + '\n'`. CLI: read files, append the missing entries to `city-puzzles.json` **and** `tests/content/city-puzzles.snapshot.json`. Write nothing when nothing is missing. Optional path arguments let tests run on temp copies. Then run it and commit the output.
+- [x] `scripts/check-placeholders.ts` -- pure `placeholderIds(cities)`. CLI exits 1 with "Deploy blocked: N placeholder Cities: id, id, …" or exits 0 with "No placeholder Cities." Node built-ins only (no `npm ci` needed).
+- [x] `package.json` -- `"build:cities": "node scripts/build-cities.ts"`, `"check:placeholders": "node scripts/check-placeholders.ts"`.
+- [x] `tsconfig.node.json` (+ `tsconfig.app.json` if needed) -- include `scripts`; `resolveJsonModule: true` if `tsc -b` requires it.
+- [x] `.github/workflows/ci-deploy.yml` -- in `deploy`, add `contents: read` to `permissions`. Before `deploy-pages`, add steps: `actions/checkout@v4`, `actions/setup-node@v4` (`.nvmrc`), `npm run check:placeholders`. Update the opt-in comment. `build` is unchanged.
+- [x] `README.md` -- one line: deploy is blocked while any City is a placeholder (`npm run check:placeholders`).
+- [x] Tests: `tests/content/cities.test.ts` (30; 10/Region; 4/3/3; allowed codes; kebab-case unique ids; id order = `cities.md`; non-empty fields; Lisbon exact; placeholder ⇔ "PLACEHOLDER" prefix; 29 placeholders). `tests/content/city-puzzles.test.ts` (`it.each` by `cityId`: format, `countSolutions === 1`, Givens ⊂ solution, solution a valid full grid, `grade === difficulty === TIER_DIFFICULTY[tier]`; one entry per City; no unknown ids; snapshot ⇔ file). `tests/scripts/build-cities.test.ts` (matrix rows Partial / Nothing missing / Determinism on temp copies). `tests/scripts/check-placeholders.test.ts` (ids listed, exit codes). `tests/game/journey.test.ts` (map values; scan `src/` and `scripts/` for a `near…easy` map literal and find only `journey.ts`).
 
 **Acceptance Criteria:**
 - Given the real tree, when `npm test` runs, then the architecture, brute-guard and build-output tests pass unchanged (no generator code in the main chunk).
@@ -77,6 +78,22 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Route | Evidence |
+|---|---|---|---|---|---|
+| 1 | blind, VG | Snapshot backfill copies hand-edited puzzles entries into the snapshot | medium | patch | `snapshotAdded` is taken from all `puzzles`; running the script the test message names makes a hand-added entry pass. |
+| 2 | blind | The catalogue is checked against `cities.md` only by id | medium | patch | A wrong name, country or tier passes. |
+| 3 | blind | ⛵ and ⚓ render as colour emoji | medium | patch | Both have Emoji_Presentation; this breaks the human decision "single-colour glyph". |
+| 4 | edge | The entry guard can skip `main()` silently, so the deploy gate passes | medium | patch | `import.meta.url` vs `argv[1]` can differ through a symlink or realpath; the script then exits 0. |
+| 5 | edge | Exact stderr assertions break on Node 24 versions that warn | low | patch | The type-stripping ExperimentalWarning appears on early 24.x. |
+| 6 | blind | The exit-0 test uses `placeholder: false`, which the schema forbids | low | patch | The schema is `true` or absent. |
+| 7 | VG | The `build:cities` CLI never runs under Node | medium | patch | An extensionless import would break the command while CI stays green. |
+| 8 | blind | The "Fresh build" matrix row is untested | low | patch | Only Partial, Nothing-missing and Determinism are tested. |
+| 9 | blind, edge | The docstring claims atomic writes | low | patch | The two writes are separate; the comment is narrowed. |
+| 10 | VG, blind | Retry seeds `${id}#n` are never exercised | medium | defer | Released entries are locked by the snapshot; only future Cities are affected. |
+| 11 | blind, edge | No checks on `build-cities` inputs (duplicates, bad tier, non-array); `check-placeholders` on a malformed file | low | reject | `cities.test` catches catalogue errors; the gate still exits non-zero on a crash. |
+| 12 | blind | The single-map guard only matches one literal form | low | reject | A review aid; the map lives in `game/journey` by convention. |
+| 13 | blind | Spec bookkeeping | — | reject | The workflow manages status; the glyphs chosen by the builder are recorded by the human decision. |
 
 ## Design Notes
 

@@ -1,0 +1,301 @@
+[
+  {
+    "id": "europe-near-1",
+    "name": "Paris",
+    "country": "France",
+    "region": "europe",
+    "tier": "near",
+    "glyph": "⚜",
+    "line": "PLACEHOLDER: Postcard line for Paris (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-near-2",
+    "name": "London",
+    "country": "United Kingdom",
+    "region": "europe",
+    "tier": "near",
+    "glyph": "♛",
+    "line": "PLACEHOLDER: Postcard line for London (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-near-3",
+    "name": "Rome",
+    "country": "Italy",
+    "region": "europe",
+    "tier": "near",
+    "glyph": "⚔",
+    "line": "PLACEHOLDER: Postcard line for Rome (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-near-4",
+    "name": "Amsterdam",
+    "country": "Netherlands",
+    "region": "europe",
+    "tier": "near",
+    "glyph": "✿",
+    "line": "PLACEHOLDER: Postcard line for Amsterdam (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "lisbon",
+    "name": "Lisbon",
+    "country": "Portugal",
+    "region": "europe",
+    "tier": "mid",
+    "glyph": "⛵︎",
+    "line": "The trams climb hills that would tire a goat. Wish you were here."
+  },
+  {
+    "id": "europe-mid-2",
+    "name": "Prague",
+    "country": "Czechia",
+    "region": "europe",
+    "tier": "mid",
+    "glyph": "♜",
+    "line": "PLACEHOLDER: Postcard line for Prague (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-mid-3",
+    "name": "Dubrovnik",
+    "country": "Croatia",
+    "region": "europe",
+    "tier": "mid",
+    "glyph": "⚓︎",
+    "line": "PLACEHOLDER: Postcard line for Dubrovnik (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-far-1",
+    "name": "Reykjavík",
+    "country": "Iceland",
+    "region": "europe",
+    "tier": "far",
+    "glyph": "♨",
+    "line": "PLACEHOLDER: Postcard line for Reykjavík (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-far-2",
+    "name": "Tromsø",
+    "country": "Norway",
+    "region": "europe",
+    "tier": "far",
+    "glyph": "❄",
+    "line": "PLACEHOLDER: Postcard line for Tromsø (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "europe-far-3",
+    "name": "Tbilisi",
+    "country": "Georgia",
+    "region": "europe",
+    "tier": "far",
+    "glyph": "✠",
+    "line": "PLACEHOLDER: Postcard line for Tbilisi (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-near-1",
+    "name": "Tokyo",
+    "country": "Japan",
+    "region": "asia",
+    "tier": "near",
+    "glyph": "✾",
+    "line": "PLACEHOLDER: Postcard line for Tokyo (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-near-2",
+    "name": "Seoul",
+    "country": "South Korea",
+    "region": "asia",
+    "tier": "near",
+    "glyph": "☯",
+    "line": "PLACEHOLDER: Postcard line for Seoul (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-near-3",
+    "name": "Singapore",
+    "country": "Singapore",
+    "region": "asia",
+    "tier": "near",
+    "glyph": "☾",
+    "line": "PLACEHOLDER: Postcard line for Singapore (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-near-4",
+    "name": "Bangkok",
+    "country": "Thailand",
+    "region": "asia",
+    "tier": "near",
+    "glyph": "☸",
+    "line": "PLACEHOLDER: Postcard line for Bangkok (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-mid-1",
+    "name": "Hanoi",
+    "country": "Vietnam",
+    "region": "asia",
+    "tier": "mid",
+    "glyph": "❀",
+    "line": "PLACEHOLDER: Postcard line for Hanoi (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-mid-2",
+    "name": "Jaipur",
+    "country": "India",
+    "region": "asia",
+    "tier": "mid",
+    "glyph": "✺",
+    "line": "PLACEHOLDER: Postcard line for Jaipur (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-mid-3",
+    "name": "Taipei",
+    "country": "Taiwan",
+    "region": "asia",
+    "tier": "mid",
+    "glyph": "✦",
+    "line": "PLACEHOLDER: Postcard line for Taipei (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-far-1",
+    "name": "Luang Prabang",
+    "country": "Laos",
+    "region": "asia",
+    "tier": "far",
+    "glyph": "✥",
+    "line": "PLACEHOLDER: Postcard line for Luang Prabang (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-far-2",
+    "name": "Ulaanbaatar",
+    "country": "Mongolia",
+    "region": "asia",
+    "tier": "far",
+    "glyph": "♞",
+    "line": "PLACEHOLDER: Postcard line for Ulaanbaatar (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "asia-far-3",
+    "name": "Samarkand",
+    "country": "Uzbekistan",
+    "region": "asia",
+    "tier": "far",
+    "glyph": "✷",
+    "line": "PLACEHOLDER: Postcard line for Samarkand (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-near-1",
+    "name": "New York",
+    "country": "USA",
+    "region": "americas",
+    "tier": "near",
+    "glyph": "★",
+    "line": "PLACEHOLDER: Postcard line for New York (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-near-2",
+    "name": "Toronto",
+    "country": "Canada",
+    "region": "americas",
+    "tier": "near",
+    "glyph": "✤",
+    "line": "PLACEHOLDER: Postcard line for Toronto (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-near-3",
+    "name": "Mexico City",
+    "country": "Mexico",
+    "region": "americas",
+    "tier": "near",
+    "glyph": "☼",
+    "line": "PLACEHOLDER: Postcard line for Mexico City (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-near-4",
+    "name": "Rio de Janeiro",
+    "country": "Brazil",
+    "region": "americas",
+    "tier": "near",
+    "glyph": "♫",
+    "line": "PLACEHOLDER: Postcard line for Rio de Janeiro (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-mid-1",
+    "name": "Havana",
+    "country": "Cuba",
+    "region": "americas",
+    "tier": "mid",
+    "glyph": "✪",
+    "line": "PLACEHOLDER: Postcard line for Havana (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-mid-2",
+    "name": "Cartagena",
+    "country": "Colombia",
+    "region": "americas",
+    "tier": "mid",
+    "glyph": "❖",
+    "line": "PLACEHOLDER: Postcard line for Cartagena (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-mid-3",
+    "name": "Cusco",
+    "country": "Peru",
+    "region": "americas",
+    "tier": "mid",
+    "glyph": "▲",
+    "line": "PLACEHOLDER: Postcard line for Cusco (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-far-1",
+    "name": "Ushuaia",
+    "country": "Argentina",
+    "region": "americas",
+    "tier": "far",
+    "glyph": "⛯",
+    "line": "PLACEHOLDER: Postcard line for Ushuaia (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-far-2",
+    "name": "La Paz",
+    "country": "Bolivia",
+    "region": "americas",
+    "tier": "far",
+    "glyph": "☁",
+    "line": "PLACEHOLDER: Postcard line for La Paz (TS-40).",
+    "placeholder": true
+  },
+  {
+    "id": "americas-far-3",
+    "name": "Nuuk",
+    "country": "Greenland",
+    "region": "americas",
+    "tier": "far",
+    "glyph": "❅",
+    "line": "PLACEHOLDER: Postcard line for Nuuk (TS-40).",
+    "placeholder": true
+  }
+]

@@ -1,0 +1,3 @@
+# Generated content is compared byte-for-byte (append-only City Puzzles).
+src/content/*.json text eol=lf
+tests/content/*.json text eol=lf

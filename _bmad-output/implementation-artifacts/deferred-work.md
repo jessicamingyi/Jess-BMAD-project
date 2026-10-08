@@ -13,3 +13,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-7-technique-solver-and-grader.md`
   summary: Test that the header "Free Play · {Difficulty}" follows the session's Difficulty for Medium and Hard, not just Easy.
   evidence: Hardcoding `difficulty={'easy'}` in `src/ui/app.tsx` passed all UI tests (verification-gap review); only the Easy sample reaches App until Story 1.8 adds generated Medium/Hard Puzzles.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-city-catalogue.md`
+  summary: Pin the `build-cities` retry-seed derivation (`${id}#1`…`#4`) with a test, for example a stubbed `generate` that fails on the plain id.
+  evidence: The verification-gap review showed that dropping or reformatting the retry keys passes every test. Released City Puzzles are locked by the snapshot, so only Cities added later would silently get a different Puzzle.

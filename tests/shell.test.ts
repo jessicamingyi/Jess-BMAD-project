@@ -61,10 +61,15 @@ describe('shell static guards', () => {
 
   it('CI runs install, lint, test and build in order, and deploys only after the build job succeeds', () => {
     const workflow = read('.github/workflows/ci-deploy.yml')
-    const runs = [...workflow.matchAll(/^\s*- run: (.+)$/gm)].map((m) => m[1].trim())
-    expect(runs).toEqual(['npm ci', 'npm run lint', 'npm test', 'npm run build'])
-    expect(workflow).not.toMatch(/continue-on-error|if:\s*always\(\)/)
     const deploy = workflow.slice(workflow.indexOf('\n  deploy:'))
+    const build = workflow.slice(0, workflow.indexOf('\n  deploy:'))
+    const runs = (text: string) => [...text.matchAll(/^\s*- run: (.+)$/gm)].map((m) => m[1].trim())
+    expect(runs(build)).toEqual(['npm ci', 'npm run lint', 'npm test', 'npm run build'])
+    // The deploy job's only run step is the placeholder gate (Story 3.1), before deploy-pages.
+    expect(runs(deploy)).toEqual(['npm run check:placeholders'])
+    expect(deploy.indexOf('npm run check:placeholders')).toBeLessThan(deploy.indexOf('actions/deploy-pages'))
+    expect(deploy).toMatch(/permissions:\s*\n\s+contents: read\r?\n/)
+    expect(workflow).not.toMatch(/continue-on-error|if:\s*always\(\)/)
     expect(deploy).toMatch(/^\s+needs: build$/m)
     expect(deploy).toContain('actions/deploy-pages')
     expect(workflow.indexOf('upload-pages-artifact')).toBeGreaterThan(workflow.indexOf('- run: npm run build'))
