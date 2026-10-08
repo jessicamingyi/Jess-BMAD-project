@@ -97,7 +97,7 @@ context:
 
 ## Review Triage Log
 
-*Status at end of day 2026-10-07: the three reviews are done and triaged below. The patches are NOT yet applied, and the browser check was still running at wrap-up (results in `scratchpad/smoke-replay/` if it finished). Resume by sending the patch list to an implementer, rerunning the browser check, then committing.*
+*Status at end of day 2026-10-07: the three reviews and the browser check are done and triaged below; the patches are NOT yet applied. Browser check (Chrome 155, Edge 154): the replay flow, the confirm, Esc, "Solved again" and Album count all pass with no console errors; the only failure is the tab overlap (#11). Resume by sending the patch list to an implementer, rerunning the browser check, then committing.*
 
 | # | Source | Finding | Verdict | Route | Evidence |
 |---|---|---|---|---|---|
@@ -111,7 +111,7 @@ context:
 | 8 | blind | `album-screen.tsx` imports all of `puzzle.css` for the button styles | low | patch | Move the shared `.button`/`.action-row` styles to a common stylesheet. |
 | 9 | blind | Untested `postcardViewed` confirm reset, `freshReplay` no-puzzle guard, and `solvedAgain` lifecycle | low | patch | Add tests for the confirm reset and for Restart or Undo on a solved replay. |
 | 10 | blind | Contrast pairs for the new "Carry on" over the card and the viewer button row | low | patch | Add them to the contrast test if they aren't already listed (both themes). |
-| 11 | blind | The viewer can be clipped on small grids | low | check | Confirm in the browser check at 900px. Add a `max-height` or overflow only if it is clipped. |
+| 11 | blind, smoke | The viewer overlaps the Region tabs | medium | patch | Browser check (Chrome and Edge): the viewer is about 384px tall, centred in a 281–301px slot area, so it spills 28–44px over the tabs and covers "The Americas" (and "Asia" at 900px). At 900px a click on Asia hits the Postcard, so the tab doesn't open and focus drops to body. With the confirm open it also touches the heading at 1280. Fix: anchor the viewer to the top of the slot area (or give the area a min-height equal to the viewer) so it never covers the tabs or heading. |
 | 12 | edge | `replayKept` when the Session is no longer in progress | low | reject | The Session can't change while the Album viewer is open. |
 | 13 | edge | `ui.solvedAgain` or `ui.viewer` missing from a loaded state | low | reject | Epic 4's load will normalise `ui` from `createInitialState`. |
 | 14 | edge | "Solved again" is lost after a reload | — | reject | Accepted in the spec: `solvedAgain` is UI-only until Epic 4. |
