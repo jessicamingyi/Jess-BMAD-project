@@ -8,7 +8,7 @@ updated: '2026-10-08'
 # Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
 
 **Goal:** a durable, offline v1 on the web.
-**Tickets:** 6 (TS-34 to TS-39). **Progress:** 2 / 6 done. Stories 4.1 and 4.2 were built early, on Thu 8 Oct.
+**Tickets:** 6 (TS-34 to TS-39). **Progress:** 3 / 6 done. Stories 4.1 to 4.3 were built early, on Thu 8 Oct.
 
 - **Epic 4, Stories 4.1 to 4.4:** autosave and restore; safe across versions and tabs; offline play and gentle updates; storage notice and keeping your data.
 - **Release v1:** no placeholders, deploy gate green, smoke test offline and on Safari.
@@ -31,18 +31,23 @@ updated: '2026-10-08'
   - **Notice banner:** one inline banner at a time, by priority, with a single "Got it"; it never covers the grid.
   - **Built with `bmad-build-auto`:** 4 review layers, 30 findings, 11 fixes (a read-only tab stuck behind a Postcard reveal or on Free Play "generating", the lock released by tabs that can't write, newer-version data shown read-only), one spec correction; headless Chrome check of two tabs, newer and corrupt data.
 
-## Tickets done (2 / 6)
+- **TS-36 Story 4.3, Play offline and update gently:**
+  - **Offline:** after one online visit the whole game works with no network: saved progress, every City Puzzle and Free Play generation. A service worker (`vite-plugin-pwa`, `generateSW`) precaches the full build; nothing is fetched from another site.
+  - **Gentle updates:** a new version waits until every tab is closed; meanwhile "A new version is ready. It arrives next time you open the game." shows as the lowest-priority banner. The game never reloads itself. A tab coming back into view checks for a new deploy.
+  - **Built with `bmad-build-auto`:** 4 review layers, 19 findings, 5 fixes (a build test that the real bundle registers the worker, every built file precached, the update check for long-open tabs), 2 deferred (install icons for Add to Dock, a future schema v2 behind an old worker); headless Chrome offline and update checks.
+
+## Tickets done (3 / 6)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
 | TS-34 | [Story 4.1: Autosave and restore](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 | TS-35 | [Story 4.2: Safe across versions and tabs](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Thu 8 Oct (early) |
+| TS-36 | [Story 4.3: Play offline and update gently](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 
-## Tickets not done yet (4)
+## Tickets not done yet (3)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-36 | [Story 4.3: Play offline and update gently](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 4.1 |
 | TS-37 | [Story 4.4: Storage notice and keeping your data](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 4.2 |
 | TS-38 | Release v1: no placeholders, deploy gate green, offline + Safari smoke test | Chore | S | Jessica + Claude | To do | All stories |
 | TS-39 | Retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
