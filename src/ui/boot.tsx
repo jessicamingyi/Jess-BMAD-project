@@ -4,6 +4,7 @@ import { acquireSaveLock, type AcquireLock } from '../persistence/lock.ts'
 import type { Migration } from '../persistence/migrations.ts'
 import { loadSaved, settleLoad, type SaveStore, type Start } from '../persistence/store.ts'
 import { App } from './app.tsx'
+import { createUpdateSignal, registerServiceWorker, type RegisterSW } from './service-worker.ts'
 
 /** A start-up (load, migrate, backup) still pending after this long counts as failed: defaults, read-only. */
 export const LOAD_TIMEOUT_MS = 3000
@@ -29,6 +30,8 @@ export type BootOptions = {
   migrations?: readonly Migration[]
   /** Tests only: the clock for the backup key. */
   now?: () => Date
+  /** Tests only: a fake `registerSW` (the real one needs a built service worker). */
+  registerSW?: RegisterSW
 }
 
 /**
@@ -38,9 +41,11 @@ export type BootOptions = {
  * ready (theme.css hides the page until then), then render. A tab without the lock,
  * after a newer document, or whose storage failed or hung, is read-only and never writes;
  * a lock it got is released. Lock, load and settle together are bounded by the timeout.
+ * After rendering, register the service worker; a waiting new version only shows the
+ * update banner (nothing reloads).
  */
 export async function boot(store: SaveStore, rootEl: HTMLElement, html: HTMLElement, options: BootOptions = {}): Promise<Root> {
-  const { today, acquireLock = acquireSaveLock, migrations, now = () => new Date() } = options
+  const { today, acquireLock = acquireSaveLock, migrations, now = () => new Date(), registerSW } = options
   /** Set once the timeout wins: the page renders read-only, so a lock granted later is given back. */
   let gaveUp = false
   const sequence = async (): Promise<Start> => {
@@ -61,11 +66,13 @@ export async function boot(store: SaveStore, rootEl: HTMLElement, html: HTMLElem
   const { slices: loaded, ...notices } = start
   if (loaded?.settings.lamplight) html.dataset.theme = 'lamplight'
   html.dataset.ready = ''
+  const update = createUpdateSignal()
   const root = createRoot(rootEl)
   root.render(
     <StrictMode>
-      <App loaded={loaded} store={store} notices={notices} today={today} />
+      <App loaded={loaded} store={store} notices={notices} today={today} onUpdateReady={update.subscribe} />
     </StrictMode>,
   )
+  registerServiceWorker(update.notify, registerSW)
   return root
 }

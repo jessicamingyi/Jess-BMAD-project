@@ -8,6 +8,7 @@ const PENDING: Record<BannerKind, Partial<UiState>> = {
   readOnly: { readOnly: 'otherTab' },
   saveFailed: { saveFailed: true },
   unreadable: { unreadableNotice: true },
+  updateReady: { updateReady: true },
 }
 
 describe('visibleBanner', () => {
@@ -15,8 +16,8 @@ describe('visibleBanner', () => {
     expect(visibleBanner(ui())).toBeNull()
   })
 
-  it('priority: read-only > save failed > unreadable', () => {
-    expect(BANNER_PRIORITY).toEqual(['readOnly', 'saveFailed', 'unreadable'])
+  it('priority: read-only > save failed > unreadable > update ready (lowest)', () => {
+    expect(BANNER_PRIORITY).toEqual(['readOnly', 'saveFailed', 'unreadable', 'updateReady'])
   })
 
   it.each(BANNER_PRIORITY)('shows %s alone when it is the only one pending', (kind) => {

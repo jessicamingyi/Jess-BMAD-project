@@ -7,6 +7,7 @@ import './banner.css'
 function bannerText(kind: BannerKind, readOnly: ReadOnlyReason | null): string {
   if (kind === 'saveFailed') return copy.bannerSaveFailed
   if (kind === 'unreadable') return copy.bannerUnreadable
+  if (kind === 'updateReady') return copy.bannerUpdateReady
   if (readOnly === 'otherTab') return copy.bannerOtherTab
   if (readOnly === 'newerVersion') return copy.bannerNewerVersion
   return copy.bannerUnreadable

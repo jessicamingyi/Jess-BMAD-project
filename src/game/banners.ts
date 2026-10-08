@@ -2,14 +2,14 @@ import type { BannerKind, UiState } from './types.ts'
 
 /**
  * The notice banners, most important first. Only one shows at a time; the next
- * pending one appears once it is resolved or dismissed. Story 4.4 inserts the
- * storage notice and Add to Dock banners after `saveFailed`.
+ * pending one appears once it is resolved or dismissed. A waiting update is the
+ * lowest. Story 4.4 inserts the storage notice and Add to Dock banners after `saveFailed`.
  */
-export const BANNER_PRIORITY: readonly BannerKind[] = ['readOnly', 'saveFailed', 'unreadable']
+export const BANNER_PRIORITY: readonly BannerKind[] = ['readOnly', 'saveFailed', 'unreadable', 'updateReady']
 
-export const isBannerKind = (v: unknown): v is BannerKind => v === 'readOnly' || v === 'saveFailed' || v === 'unreadable'
+export const isBannerKind = (v: unknown): v is BannerKind => BANNER_PRIORITY.includes(v as BannerKind)
 
-type BannerUi = Pick<UiState, 'readOnly' | 'saveFailed' | 'unreadableNotice' | 'dismissed'>
+type BannerUi = Pick<UiState, 'readOnly' | 'saveFailed' | 'unreadableNotice' | 'updateReady' | 'dismissed'>
 
 /** Whether `kind`'s condition holds (dismissed or not). */
 function pending(ui: BannerUi, kind: BannerKind): boolean {
@@ -20,6 +20,8 @@ function pending(ui: BannerUi, kind: BannerKind): boolean {
       return ui.saveFailed
     case 'unreadable':
       return ui.unreadableNotice
+    case 'updateReady':
+      return ui.updateReady
   }
 }
 

@@ -35,6 +35,11 @@ type Props = {
    * a read-only tab never writes; the unreadable notice; a failed migration write-back.
    */
   notices?: Partial<Pick<UiState, 'readOnly' | 'unreadableNotice' | 'saveFailed'>>
+  /**
+   * Subscribe to "a new version is waiting" (`ui/service-worker`); returns an unsubscribe.
+   * Read once, at mount. The update banner only informs: nothing reloads.
+   */
+  onUpdateReady?: (listener: () => void) => () => void
 }
 
 /**
@@ -46,9 +51,9 @@ type Props = {
  * Puzzle if in progress, else the first City in progress in catalogue order,
  * else Free Play in progress, else the Album.
  * A read-only tab (`notices.readOnly`) never writes. One notice banner at a time
- * shows the read-only, save-failed or unreadable notice (`game/banners`).
+ * shows the read-only, save-failed, unreadable or update-ready notice (`game/banners`).
  */
-export function App({ initialState, createWorker, today, loaded, store, notices }: Props) {
+export function App({ initialState, createWorker, today, loaded, store, notices, onUpdateReady }: Props) {
   // The launch rule picks the opening screen; an unrevealed Postcard still shows first (it runs afterwards).
   const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => {
     const base = s ?? { ...createInitialState(), ...loaded }
@@ -88,6 +93,10 @@ export function App({ initialState, createWorker, today, loaded, store, notices 
     if (prev.album === album && prev.sessions === sessions && prev.settings === settings && prev.meta === meta) return
     saver?.(toDocument({ album, sessions, settings, meta }))
   }, [saver, album, sessions, settings, meta])
+
+  // A new version waiting: the lowest-priority banner. Subscribed once, at mount.
+  const [subscribeUpdate] = useState(() => onUpdateReady)
+  useEffect(() => subscribeUpdate?.(() => dispatch({ type: 'updateAvailable' })), [subscribeUpdate])
 
   // Lamplight comes only from the toggle; the system colour scheme is ignored.
   useEffect(() => {

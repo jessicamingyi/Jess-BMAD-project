@@ -152,6 +152,11 @@ export type UiState = {
   readonly saveFailed: boolean
   /** Unreadable saved data was backed up and the app started from defaults. Never saved. */
   readonly unreadableNotice: boolean
+  /**
+   * A new version's service worker is installed and waiting; it takes over next
+   * time the game opens (never during this session). Never saved.
+   */
+  readonly updateReady: boolean
   /** Notice banners hidden with "Got it" (this page load only). Never saved. */
   readonly dismissed: readonly BannerKind[]
 }
@@ -160,7 +165,7 @@ export type UiState = {
 export type ReadOnlyReason = 'newerVersion' | 'otherTab' | 'storageUnavailable'
 
 /** The inline notice banners, one shown at a time by priority (`game/banners`). */
-export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable'
+export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable' | 'updateReady'
 
 /** The open Postcard viewer: a revealed Postcard of a known City. */
 export type PostcardViewer = {
@@ -272,6 +277,8 @@ export type Action =
   | { readonly type: 'saveFailed' }
   /** The shell: a write landed. Clears `ui.saveFailed` and its dismissal. */
   | { readonly type: 'saveSucceeded' }
+  /** The shell: a new version is waiting (`ui/service-worker`). Sets `ui.updateReady`; nothing reloads. */
+  | { readonly type: 'updateAvailable' }
   /** "Got it" on a notice banner: hide it for this page load (a read-only tab stays read-only). */
   | { readonly type: 'bannerDismissed'; readonly banner: BannerKind }
 

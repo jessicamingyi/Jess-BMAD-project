@@ -243,7 +243,7 @@ function refusedReadOnly(prev: AppState, next: AppState, action: Action): boolea
 }
 
 /**
- * Save outcomes and banner dismissals: `ui` only, applied whatever else is going
+ * Save outcomes, a waiting update and banner dismissals: `ui` only, applied whatever else is going
  * on (a pending Postcard, read-only). Null for any other action.
  */
 function noticeAction(state: AppState, action: Action): AppState | null {
@@ -256,6 +256,8 @@ function noticeAction(state: AppState, action: Action): AppState | null {
       if (!ui.saveFailed && !ui.dismissed.includes('saveFailed')) return state
       return { ...state, ui: { ...ui, saveFailed: false, dismissed: ui.dismissed.filter((b) => b !== 'saveFailed') } }
     }
+    case 'updateAvailable':
+      return ui.updateReady ? state : { ...state, ui: { ...ui, updateReady: true } }
     case 'bannerDismissed':
       if (!isBannerKind(action.banner) || ui.dismissed.includes(action.banner)) return state
       return { ...state, ui: { ...ui, dismissed: [...ui.dismissed, action.banner] } }

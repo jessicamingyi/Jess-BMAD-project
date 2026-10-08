@@ -212,5 +212,6 @@ export const copy = {
   bannerNewerVersion: 'A newer version saved your progress. Reload to carry on.',
   /** Also the read-only text when storage can't be read or backed up (nothing was touched). */
   bannerUnreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten.",
+  bannerUpdateReady: 'A new version is ready. It arrives next time you open the game.',
   bannerGotIt: 'Got it',
 } as const

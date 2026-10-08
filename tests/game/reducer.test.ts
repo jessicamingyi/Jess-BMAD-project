@@ -89,6 +89,7 @@ describe('game reducer', () => {
       readOnly: null,
       saveFailed: false,
       unreadableNotice: false,
+      updateReady: false,
       dismissed: [],
     })
     expect(state.meta.lastPlayedKey).toBeNull()
