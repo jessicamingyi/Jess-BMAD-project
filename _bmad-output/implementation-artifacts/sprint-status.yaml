@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-08-2026 14:10
+last_updated: 10-08-2026 16:00
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -61,16 +61,12 @@ development_status:
   3-5-pick-up-where-you-left-off: done
   epic-3-retrospective: done
 
-  epic-4: backlog
-  4-1-autosave-and-restore: backlog
+  epic-4: in-progress
+  4-1-autosave-and-restore: done
   4-2-safe-across-versions-and-tabs: backlog
   4-3-play-offline-and-update-gently: backlog
   4-4-storage-notice-and-keeping-your-data: backlog
   epic-4-retrospective: optional
-
-# Sprint grouping (mirrors backlog.md / board.html; one-day sprints).
-# Story keys refer to development_status above; tickets are backlog.md TS ids.
-# Sprint status: done | in-progress | planned. Ticket status: done | todo.
 sprints:
   sprint-1:
     date: "2026-10-05"
@@ -120,13 +116,13 @@ sprints:
   sprint-5:
     date: "2026-10-09"
     goal: "Never lose your journey: Epic 4, release v1, retrospective"
-    status: planned
+    status: in-progress
     stories:
       - 4-1-autosave-and-restore
       - 4-2-safe-across-versions-and-tabs
       - 4-3-play-offline-and-update-gently
       - 4-4-storage-notice-and-keeping-your-data
-    tickets: {TS-34: todo, TS-35: todo, TS-36: todo, TS-37: todo, TS-38: todo, 
+    tickets: {TS-34: done, TS-35: todo, TS-36: todo, TS-37: todo, TS-38: todo, 
         TS-39: todo}
   unscheduled:
     tickets: {TS-40: todo}
