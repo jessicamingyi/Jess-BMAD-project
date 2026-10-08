@@ -90,6 +90,14 @@ updated: '2026-10-07'
   - **Puzzles:** one frozen, verified Puzzle per City, generated once from the City's id and locked by a snapshot.
   - **Deploy gate:** blocks publishing while placeholders remain. Normal CI is unaffected.
   - **Review:** 3 reviews and 9 fixes. The fixes harden the gate against a silent skip and stop hand-edited Puzzles from reaching the snapshot.
+- **TS-30 Story 3.2, Choose a destination from the Album:**
+  - **Album:** opens first, with one Region per tab. Near Cities are open; Mid opens after 3 Near Postcards and Far after 3 Mid.
+  - **City Puzzles:** each has a City header, a Stamp and a Postmark. Nav reads "Puzzle · Album · Free Play · Settings".
+  - **Your decisions:**
+    - Undo clears when you switch Puzzles.
+    - A Free Play Puzzle finishing while a City is current opens only if you're waiting on the Free Play page; otherwise it waits under "Carry on".
+  - **Stamp glyphs:** all 30 verified as single-colour glyphs in Chrome and Edge.
+  - **Review:** 3 reviews and 10 fixes, plus two browser checks.
 - **Epic 2 (Hints) is code-complete.** Stories 2.1–2.4 are committed locally on stacked branches up to `story/2-4-mistake-hints`; not yet on `main`.
 
 ## Tickets done (9 / 10)
