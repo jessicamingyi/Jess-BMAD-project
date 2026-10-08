@@ -98,6 +98,13 @@ updated: '2026-10-07'
     - A Free Play Puzzle finishing while a City is current opens only if you're waiting on the Free Play page; otherwise it waits under "Carry on".
   - **Stamp glyphs:** all 30 verified as single-colour glyphs in Chrome and Edge.
   - **Review:** 3 reviews and 10 fixes, plus two browser checks.
+- **TS-31 Story 3.3, Receive a Postcard:**
+  - **The reveal:** solving a City the first time awards its Postcard. It arrives onto the finished grid with the airmail stripe, −1° tilt, Postmark, Stamp and address lines, and "Add to Album" is the only way on.
+  - **Your decisions:**
+    - Placeholder lines show as written.
+    - The nav is inactive during the reveal.
+    - The Postmark uses mixed case.
+  - **Review:** 3 reviews and 13 fixes (a soft-lock, Esc after focus loss, "Netherlands" clipping, "just arrived" piling up), plus two browser checks. Tests are back to about 14s.
 - **Epic 2 (Hints) is code-complete.** Stories 2.1–2.4 are committed locally on stacked branches up to `story/2-4-mistake-hints`; not yet on `main`.
 
 ## Tickets done (9 / 10)
