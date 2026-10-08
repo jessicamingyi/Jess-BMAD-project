@@ -62,7 +62,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 4: Hints and Postcards (Thu 8 Oct 2026)
 
 **Goal:** Epic 2 (Hints that teach) and Epic 3 (travel and collect Postcards).  
-**Progress:** 8 / 9 done (Epic 2 and Stories 3.1–3.3 built early on Wed 7 Oct)
+**Progress:** 9 / 9 done (Epic 2 and Stories 3.1–3.3 built early on Wed 7 Oct; Epic 3 complete)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -74,7 +74,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-30 | [Story 3.2: Choose a destination from the Album](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Story 3.1 |
 | TS-31 | [Story 3.3: Receive a Postcard](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 3.2 |
 | TS-32 | [Story 3.4: Revisit Postcards and replay Cities](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 3.3 |
-| TS-33 | [Story 3.5: Pick up where you left off](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 3.2 |
+| TS-33 | [Story 3.5: Pick up where you left off](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 3.2 |
 
 ## Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
 
