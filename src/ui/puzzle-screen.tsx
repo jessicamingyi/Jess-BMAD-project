@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, type ReactNode } from 'react'
 import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
@@ -35,9 +35,11 @@ type Props = {
    * A solved City's Postmark shows its Postcard's `collectedOn` instead.
    */
   today?: string
+  /** The notice banner, if one shows: first in the side column, so the grid never moves. */
+  banner?: ReactNode
 }
 
-export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
+export function PuzzleScreen({ state, dispatch: dispatchDated, today, banner }: Props) {
   // The core never reads the clock: a solving action leaves here carrying the date it was made.
   const dispatch = useCallback(
     (action: UndatedAction) =>
@@ -79,6 +81,8 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
   // The Postmark: a solved City is stamped with the day its Postcard was collected.
   const postcard = city && solved ? state.album.find((p) => p.cityId === city.id) : undefined
   const postmarkDate = revealing?.collectedOn ?? postcard?.collectedOn ?? today ?? localDate()
+  // A read-only tab shows the Puzzle but takes no input: grid and controls are inert, Hint unavailable.
+  const readOnly = ui.readOnly !== null
 
   return (
     <div className={city ? 'puzzle-screen puzzle-screen--city' : 'puzzle-screen'} ref={screenRef}>
@@ -90,42 +94,48 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
         decoration={city && <Postmark name={city.name} date={postmarkDate} />}
-        inert={revealing !== undefined}
+        inert={revealing !== undefined || readOnly}
       />
-      <div className="side-column" inert={revealing !== undefined}>
-        <HintPanel
-          step={hint?.step ?? null}
-          view={hintView(hint, session.digits)}
-          disabled={solved || hint?.result?.kind === 'none'}
-          onAdvance={() => dispatch(hintNext)}
-          definitionOpen={hint?.definitionOpen === true}
-          onDefinition={(open) => dispatch({ type: open ? 'techniqueDefinitionOpened' : 'techniqueDefinitionClosed' })}
-          focusGrid={focusGrid}
-        />
-        <ModeIndicator
-          entryMode={ui.entryMode}
-          inputMode={ui.inputMode}
-          currentDigit={ui.currentDigit}
-          selectedCell={ui.selectedCell}
-          onEntryMode={(mode) => dispatch({ type: 'entryModeChosen', mode })}
-          onInputMode={(mode) => dispatch({ type: 'inputModeChosen', mode })}
-        />
-        <DigitPad
-          remaining={remainingByDigit(session.digits)}
-          currentDigit={ui.currentDigit}
-          numberFirst={ui.inputMode === 'numberFirst'}
-          onDigit={(digit) => dispatch({ type: 'digitEntered', digit })}
-        />
-        <ActionRow
-          confirming={ui.restartConfirming}
-          undoCaption={keyCaption(platform)}
-          hintDisabled={solved}
-          onUndo={() => dispatch({ type: 'undoRequested' })}
-          onHint={() => dispatch(hintNext)}
-          onRestart={() => dispatch({ type: 'restartRequested' })}
-          onCancel={() => dispatch({ type: 'restartCancelled' })}
-          onConfirm={() => dispatch({ type: 'restartConfirmed' })}
-        />
+      {/* The banner stays reachable during a reveal and in a read-only tab; everything after it is inert then. */}
+      <div className="side-column">
+        {banner}
+        <div className="side-column-body" inert={revealing !== undefined || readOnly}>
+          <HintPanel
+            step={hint?.step ?? null}
+            view={hintView(hint, session.digits)}
+            disabled={solved || readOnly || hint?.result?.kind === 'none'}
+            onAdvance={() => dispatch(hintNext)}
+            definitionOpen={hint?.definitionOpen === true}
+            onDefinition={(open) => dispatch({ type: open ? 'techniqueDefinitionOpened' : 'techniqueDefinitionClosed' })}
+            focusGrid={focusGrid}
+          />
+          <ModeIndicator
+            entryMode={ui.entryMode}
+            inputMode={ui.inputMode}
+            currentDigit={ui.currentDigit}
+            selectedCell={ui.selectedCell}
+            onEntryMode={(mode) => dispatch({ type: 'entryModeChosen', mode })}
+            onInputMode={(mode) => dispatch({ type: 'inputModeChosen', mode })}
+          />
+          <DigitPad
+            remaining={remainingByDigit(session.digits)}
+            currentDigit={ui.currentDigit}
+            numberFirst={ui.inputMode === 'numberFirst'}
+            onDigit={(digit) => dispatch({ type: 'digitEntered', digit })}
+          />
+          <ActionRow
+            confirming={ui.restartConfirming}
+            undoCaption={keyCaption(platform)}
+            hintDisabled={solved || readOnly}
+            onUndo={() => dispatch({ type: 'undoRequested' })}
+            onHint={() => dispatch(hintNext)}
+            onRestart={() => dispatch({ type: 'restartRequested' })}
+            onCancel={() => dispatch({ type: 'restartCancelled' })}
+            onConfirm={() => dispatch({ type: 'restartConfirmed' })}
+          />
+          {!solved && isFullNotSolved(session) && <FullGridLine onHint={() => dispatch(hintNext)} focusGrid={focusGrid} />}
+        </div>
+        {/* Navigation only (back to the Album or Free Play), so a read-only tab keeps it. */}
         {solved &&
           !revealing &&
           (city ? (
@@ -144,7 +154,6 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
               </button>
             </p>
           ))}
-        {!solved && isFullNotSolved(session) && <FullGridLine onHint={() => dispatch(hintNext)} focusGrid={focusGrid} />}
       </div>
       {city && revealing && (
         <div className="postcard-reveal" key={city.id}>

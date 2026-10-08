@@ -205,4 +205,12 @@ export const copy = {
     `${digit} placed, row ${row}, column ${col}${solved ? `. ${copy.announceSolved}` : ''}`,
   /** A Mistake Hint's clear, e.g. "row 4, column 6 cleared" (1-based). */
   announceHintCleared: (row: number, col: number): string => `row ${row}, column ${col} cleared`,
+
+  /** Notice banners (inline, one at a time); each has the one button `bannerGotIt`. The save-failed line is also announced once. */
+  bannerSaveFailed: "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here.",
+  bannerOtherTab: 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.',
+  bannerNewerVersion: 'A newer version saved your progress. Reload to carry on.',
+  /** Also the read-only text when storage can't be read or backed up (nothing was touched). */
+  bannerUnreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten.",
+  bannerGotIt: 'Got it',
 } as const

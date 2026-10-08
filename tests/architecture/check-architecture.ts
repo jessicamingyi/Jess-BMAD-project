@@ -348,6 +348,8 @@ export function checkBruteImports(files: readonly SourceFile[]): Violation[] {
 const PERSISTENCE_FILE = /^src\/persistence\//
 const STORAGE_PACKAGE = /^idb-keyval(?:\/.*)?$/
 const STORAGE_GLOBALS = new Set(['indexedDB', 'localStorage'])
+/** Storage reached through `navigator`: `navigator.storage` and the Web Locks API (`navigator.locks`). */
+const NAVIGATOR_STORAGE = new Set(['storage', 'locks'])
 
 /** `navigator` or `….navigator` (e.g. `window.navigator`). */
 function isNavigator(node: ts.Node | undefined): boolean {
@@ -365,7 +367,8 @@ function destructuredFrom(el: ts.BindingElement): ts.Expression | undefined {
 /**
  * Storage boundary guard: outside `src/persistence/`, no file under `src/` or
  * `scripts/` may import `idb-keyval` or reference `indexedDB`, `localStorage`
- * (bare or as a property, e.g. `window.localStorage`) or `navigator.storage`.
+ * (bare or as a property, e.g. `window.localStorage`), `navigator.storage` or
+ * `navigator.locks` (the save lock).
  * Pure; returns violations naming the file.
  */
 export function checkStorageBoundary(files: readonly SourceFile[]): Violation[] {
@@ -381,7 +384,7 @@ export function checkStorageBoundary(files: readonly SourceFile[]): Violation[] 
         const key = node.propertyName ?? node.name
         const name = ts.isIdentifier(key) || ts.isStringLiteralLike(key) ? key.text : null
         if (name !== null && STORAGE_GLOBALS.has(name)) found.push(name)
-        else if (name === 'storage' && isNavigator(destructuredFrom(node))) found.push('navigator.storage')
+        else if (name !== null && NAVIGATOR_STORAGE.has(name) && isNavigator(destructuredFrom(node))) found.push(`navigator.${name}`)
       } else if (ts.isIdentifier(node) && STORAGE_GLOBALS.has(node.text)) {
         const p = node.parent
         // A bare reference, or a member access (`window.indexedDB`); not an object key or a declared name.
@@ -389,15 +392,15 @@ export function checkStorageBoundary(files: readonly SourceFile[]): Violation[] 
       } else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression)) {
         const key = node.argumentExpression.text
         if (STORAGE_GLOBALS.has(key)) found.push(key)
-        else if (key === 'storage' && isNavigator(node.expression)) {
-          found.push('navigator.storage')
+        else if (NAVIGATOR_STORAGE.has(key) && isNavigator(node.expression)) {
+          found.push(`navigator.${key}`)
         }
       } else if (
         ts.isPropertyAccessExpression(node) &&
-        node.name.text === 'storage' &&
+        NAVIGATOR_STORAGE.has(node.name.text) &&
         isNavigator(node.expression)
       ) {
-        found.push('navigator.storage')
+        found.push(`navigator.${node.name.text}`)
       }
       ts.forEachChild(node, visit)
     }
@@ -407,7 +410,7 @@ export function checkStorageBoundary(files: readonly SourceFile[]): Violation[] 
         file: path,
         kind: 'storage',
         name,
-        message: `${path} uses ${name}; only src/persistence/ may touch storage (idb-keyval, indexedDB, localStorage, navigator.storage)`,
+        message: `${path} uses ${name}; only src/persistence/ may touch storage (idb-keyval, indexedDB, localStorage, navigator.storage, navigator.locks)`,
       })
     }
   }

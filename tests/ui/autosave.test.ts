@@ -8,8 +8,9 @@ import { cityKey } from '../../src/game/journey.ts'
 import { createInitialState, createSession, DEFAULT_SETTINGS, FREE_PLAY_KEY } from '../../src/game/session.ts'
 import type { AppState, Session } from '../../src/game/types.ts'
 import { toDocument, type SaveDocument } from '../../src/persistence/document.ts'
+import { acquireSaveLock, LOCK_NAME } from '../../src/persistence/lock.ts'
 import type { SaveStore } from '../../src/persistence/store.ts'
-import { boot as bootApp, LOAD_TIMEOUT_MS } from '../../src/ui/boot.tsx'
+import { boot as bootApp, LOAD_TIMEOUT_MS, type BootOptions } from '../../src/ui/boot.tsx'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean
@@ -24,22 +25,28 @@ const TOKYO = 'asia-near-1'
 /** An in-memory stand-in for IndexedDB (jsdom has none): the value survives remounts, like a reload. */
 function fakeStore(initial?: unknown) {
   const box = { value: initial }
+  /** Backup keys and their values, in the order written. */
+  const backups = new Map<string, unknown>()
   const save = vi.fn(async (doc: SaveDocument) => {
     box.value = structuredClone(doc)
   })
-  const store: SaveStore = { load: async () => box.value, save }
-  return { store, save, box }
+  const saveBackup = vi.fn(async (key: string, raw: unknown) => {
+    if (backups.has(key)) throw new Error(`${key} exists`)
+    backups.set(key, raw)
+  })
+  const store: SaveStore = { load: async () => box.value, save, saveBackup }
+  return { store, save, saveBackup, backups, box }
 }
 
 let host: HTMLDivElement | null = null
 let root: Root | null = null
 
 /** Start the app exactly as main.tsx does (`ui/boot`), on `html` (the page's <html> by default). */
-async function boot(fake: ReturnType<typeof fakeStore>, html: HTMLElement = document.documentElement) {
+async function boot(fake: ReturnType<typeof fakeStore>, options: Omit<BootOptions, 'today'> = {}) {
   host = document.createElement('div')
   document.body.appendChild(host)
   await act(async () => {
-    root = await bootApp(fake.store, host!, html, { today: TODAY })
+    root = await bootApp(fake.store, host!, document.documentElement, { today: TODAY, ...options })
   })
 }
 
@@ -75,6 +82,14 @@ const segment = (prefix: string) => [...host!.querySelectorAll<HTMLButtonElement
 const cell = (i: number) => q(`[data-cell="${i}"]`)!
 const slot = (id: string) => q(`.album-slot[data-city="${id}"]`)!
 const heading = () => q<HTMLHeadingElement>('main h1')!
+const banner = () => q<HTMLElement>('.notice-banner')
+const bannerText = () => banner()?.querySelector('p')?.textContent
+const gotIt = () => banner()!.querySelector('button')!
+const live = () => host!.querySelector('[aria-live="polite"]')!.textContent
+/** Another tab holds the save lock. */
+const otherTab = async () => ({ held: false, release: () => {} })
+const UNREADABLE = "We couldn't read your saved progress. It's been kept safe, not overwritten."
+
 const title = () => q('header .puzzle-title')?.textContent
 const toggle = (prefix: string) =>
   [...host!.querySelectorAll<HTMLButtonElement>('[role="switch"]')].find((s) => s.textContent!.startsWith(prefix))!
@@ -328,29 +343,266 @@ describe('reload', () => {
 })
 
 describe('unreadable saved data', () => {
-  it.each([
-    ['a newer schemaVersion', { ...docFor({}), schemaVersion: 2 }],
-    ['a broken document', { schemaVersion: 1, album: 'nope' }],
-  ])('%s: starts from defaults, never writes, and leaves the stored value untouched', async (_name, stored) => {
+  it('a newer schemaVersion that does not read as v1: defaults, read-only, never written, the stored value byte-for-byte untouched', async () => {
+    const stored = { ...docFor({}), schemaVersion: 2, album: { renamed: true } }
+    const bytes = JSON.stringify(stored)
     const fake = fakeStore(stored)
     await boot(fake)
     expect(heading().textContent).toBe('Where to first?')
+    expect(bannerText()).toBe('A newer version saved your progress. Reload to carry on.')
     act(() => slot(PARIS).click())
     act(() => navLink('Settings').click())
     act(() => toggle('Lamplight').click())
     await flush()
     expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(fake.box.value).toBe(stored)
+    expect(JSON.stringify(fake.box.value)).toBe(bytes)
+  })
+
+  it('a newer schemaVersion that still reads as v1: its half-finished Puzzle shows, not editable; never written', async () => {
+    const stored = {
+      ...docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } }),
+      schemaVersion: 2,
+      extra: 'from the future',
+    }
+    const bytes = JSON.stringify(stored)
+    const fake = fakeStore(stored)
+    await boot(fake)
+    expect(title()).toBe('Paris · Near · Easy')
+    expect(bannerText()).toBe('A newer version saved your progress. Reload to carry on.')
+    expect(q('.grid-card')!.hasAttribute('inert')).toBe(true)
+    expect(q('.side-column-body')!.hasAttribute('inert')).toBe(true)
+    const before = shownDigits()
+    const [, b] = emptyCells(cityPuzzle(PARIS)!.givens)
+    act(() => cell(b).focus())
+    press(cityPuzzle(PARIS)!.solution[b])
+    expect(shownDigits()).toBe(before)
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(JSON.stringify(fake.box.value)).toBe(bytes)
+  })
+
+  it('a broken document: backed up first, defaults, the unreadable notice on the Album, then normal saving', async () => {
+    const stored = { schemaVersion: 1, album: 'nope' }
+    const fake = fakeStore(stored)
+    await boot(fake, { now: () => new Date('2026-10-08T09:30:00.000Z') })
+    expect(fake.backups).toEqual(new Map([['traveller-save-backup-2026-10-08T09:30:00.000Z', stored]]))
+    // Then the main key gets the default document, so the next load is clean.
+    expect(fake.save).toHaveBeenCalledTimes(1)
+    expect(fake.box.value).toEqual(docFor({}))
+    expect(heading().textContent).toBe('Where to first?')
+    expect(bannerText()).toBe(UNREADABLE)
+    expect(q('.app-banner .notice-banner')).not.toBeNull()
+    expect(banner()!.classList.contains('notice-banner--info')).toBe(true)
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(fake.save).toHaveBeenCalledTimes(2)
+    expect((fake.box.value as SaveDocument).sessions[cityKey(PARIS)]).toBeDefined()
+    // The backup is written once and never touched again.
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
+  })
+
+  it('a reload after an unreadable start makes no second backup', async () => {
+    const fake = fakeStore({ schemaVersion: 1, album: 'nope' })
+    await boot(fake)
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
+    await reload(fake)
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
+    expect(fake.backups.size).toBe(1)
+    expect(banner()).toBeNull()
+    expect(heading().textContent).toBe('Where to first?')
+  })
+
+  it('a migration that throws is unreadable: backup, defaults, banner', async () => {
+    const stored = { ...docFor({}), schemaVersion: 0 }
+    const fake = fakeStore(stored)
+    await boot(fake, {
+      migrations: [
+        () => {
+          throw new Error('boom')
+        },
+      ],
+    })
+    expect([...fake.backups.values()]).toEqual([stored])
+    expect(bannerText()).toBe(UNREADABLE)
+    expect(fake.box.value).toEqual(docFor({}))
+  })
+
+  it('the backup write fails: read-only with the unreadable text, nothing written, no throw', async () => {
+    const stored = { schemaVersion: 1, album: 'nope' }
+    const fake = fakeStore(stored)
+    fake.saveBackup.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake)
+    expect(bannerText()).toBe(UNREADABLE)
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(heading().textContent).toBe('Where to first?')
+    expect(fake.save).not.toHaveBeenCalled()
     expect(fake.box.value).toBe(stored)
   })
 
-  it('a load that rejects starts from defaults and never writes', async () => {
+  it('a load that rejects: defaults, read-only with the unreadable text, never writes', async () => {
     const fake = fakeStore()
     fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
     await boot(fake)
     expect(heading().textContent).toBe('Where to first?')
+    expect(bannerText()).toBe(UNREADABLE)
     act(() => slot(PARIS).click())
     await flush()
     expect(fake.save).not.toHaveBeenCalled()
+  })
+})
+
+describe('migrations', () => {
+  /** A pretend v0 of `v1`: `album` was called `postcards`. */
+  const toV0 = ({ album, ...rest }: SaveDocument) => ({ ...rest, schemaVersion: 0, postcards: album })
+  const v0to1 = ({ postcards, ...doc }: Readonly<Record<string, unknown>>) => ({ ...doc, album: postcards })
+
+  it('a v0 document loads as v1 with every Postcard and Session, written back once', async () => {
+    const v1 = docFor({
+      album: [card(LONDON, '2026-10-01')],
+      sessions: { [cityKey(PARIS)]: partPlayed(PARIS, 2), [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) },
+      meta: { lastPlayedKey: cityKey(PARIS) },
+    })
+    const fake = fakeStore(toV0(v1))
+    await boot(fake, { migrations: [v0to1] })
+    await flush()
+    expect(title()).toBe('Paris · Near · Easy')
+    expect(banner()).toBeNull()
+    expect(fake.save).toHaveBeenCalledTimes(1)
+    expect(fake.box.value).toEqual(v1)
+    // Nothing more is written until a saved slice changes.
+    act(() => navLink('Album').click())
+    await flush()
+    expect(fake.save).toHaveBeenCalledTimes(1)
+  })
+
+  it('the write-back is rejected: the Puzzle still loads and the save-failed banner shows', async () => {
+    const v1 = docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } })
+    const fake = fakeStore(toV0(v1))
+    fake.save.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake, { migrations: [v0to1] })
+    expect(title()).toBe('Paris · Near · Easy')
+    expect(bannerText()).toBe("Your last change couldn't be saved. Your next move will try again - your Puzzle is still here.")
+    expect(banner()!.classList.contains('notice-banner--alert')).toBe(true)
+  })
+
+  it('a second tab migrates in memory but never writes back', async () => {
+    const v0 = toV0(docFor({ album: [card(LONDON, '2026-10-01')] }))
+    const fake = fakeStore(v0)
+    await boot(fake, { migrations: [v0to1], acquireLock: otherTab })
+    await flush()
+    expect(slot(LONDON).textContent).toContain('London')
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.box.value).toBe(v0)
+  })
+})
+
+describe('a second tab', () => {
+  const OTHER_TAB = 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.'
+
+  it('shows the saved state read-only: banner, inert grid and side column, Hint unavailable, nothing written', async () => {
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } }))
+    await boot(fake, { acquireLock: otherTab })
+    expect(title()).toBe('Paris · Near · Easy')
+    expect(bannerText()).toBe(OTHER_TAB)
+    expect(host!.querySelectorAll('.notice-banner')).toHaveLength(1)
+    // On the Puzzle screen the banner heads the side column and is not inert; the rest is.
+    expect(q('.side-column')!.firstElementChild).toBe(banner())
+    expect(banner()!.closest('[inert]')).toBeNull()
+    expect(q('.app-banner')).toBeNull()
+    expect(q('.grid-card')!.hasAttribute('inert')).toBe(true)
+    expect(q('.side-column-body')!.hasAttribute('inert')).toBe(true)
+    expect(button('Hint').getAttribute('aria-disabled')).toBe('true')
+    const before = shownDigits()
+    const [a] = emptyCells(cityPuzzle(PARIS)!.givens)
+    // jsdom doesn't enforce inert, so this also proves the reducer refuses the change.
+    act(() => cell(a).focus())
+    press(cityPuzzle(PARIS)!.solution[a])
+    press('h')
+    act(() => button('Hint').click())
+    expect(shownDigits()).toBe(before)
+    expect(q('.hint-panel')).toBeNull()
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+  })
+
+  it('can browse: open an existing Puzzle from the Album, never start a new one; Settings toggles are inert', async () => {
+    const fake = fakeStore(
+      docFor({
+        sessions: { [cityKey(PARIS)]: partPlayed(PARIS), [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) },
+        meta: { lastPlayedKey: FREE_PLAY_KEY },
+      }),
+    )
+    await boot(fake, { acquireLock: otherTab })
+    expect(title()).toBe('Free Play · Easy')
+    act(() => navLink('Album').click())
+    // Elsewhere the banner spans the content width under the header.
+    expect(q('.app-banner .notice-banner')).not.toBeNull()
+    expect(q('main .notice-banner')).toBeNull()
+    act(() => slot(PARIS).click())
+    expect(title()).toBe('Paris · Near · Easy')
+    expect(q('.grid-card')!.hasAttribute('inert')).toBe(true)
+    act(() => navLink('Album').click())
+    // London has no Session yet: starting one would change a saved slice, so the Album stays.
+    act(() => slot(LONDON).click())
+    expect(heading().textContent).toBe('Where to first?')
+    act(() => navLink('Settings').click())
+    expect(toggle('Lamplight').closest('[inert]')).not.toBeNull()
+    expect(toggle('Mistake').closest('[inert]')).not.toBeNull()
+    act(() => toggle('Lamplight').click())
+    expect(toggle('Lamplight').getAttribute('aria-checked')).toBe('false')
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+  })
+
+  it('"Got it" hides the banner, the tab stays read-only, focus goes to the page heading', async () => {
+    const fake = fakeStore()
+    await boot(fake, { acquireLock: otherTab })
+    act(() => gotIt().click())
+    expect(banner()).toBeNull()
+    expect(document.activeElement).toBe(heading())
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(heading().textContent).toBe('Where to first?')
+    expect(fake.save).not.toHaveBeenCalled()
+  })
+
+  it('"Got it" on the Puzzle screen: the inert grid can\'t take focus, so the current nav item does', async () => {
+    const fake = fakeStore(docFor({ sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) } }))
+    await boot(fake, { acquireLock: otherTab })
+    act(() => gotIt().click())
+    expect(banner()).toBeNull()
+    expect(document.activeElement).toBe(navLink('Puzzle'))
+    expect(q('.grid-card')!.hasAttribute('inert')).toBe(true)
+  })
+
+  it('a pending Postcard: the banner stays reachable during the reveal; "Add to Album" opens the Album; nothing is saved', async () => {
+    const fake = fakeStore(docFor({ album: [card(PARIS, '2026-10-07', false)] }))
+    await boot(fake, { acquireLock: otherTab })
+    expect(q('section.postcard')).not.toBeNull()
+    expect(q('.side-column')!.firstElementChild).toBe(banner())
+    expect(gotIt().closest('[inert]')).toBeNull()
+    expect(q('.side-column-body')!.hasAttribute('inert')).toBe(true)
+    const add = [...host!.querySelectorAll<HTMLButtonElement>('section.postcard button')].find((b) => b.textContent === 'Add to Album')!
+    act(() => add.click())
+    expect(q('section.postcard')).toBeNull()
+    expect(heading().textContent).toBe('Where to next?')
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+  })
+
+  it('without the Web Locks API the tab is the writer', async () => {
+    expect((navigator as Navigator & { locks?: unknown }).locks).toBeUndefined()
+    const fake = fakeStore()
+    await boot(fake)
+    expect(banner()).toBeNull()
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(fake.save).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -401,7 +653,76 @@ describe('boot', () => {
     expect(fake.save).toHaveBeenCalledTimes(1)
   })
 
-  it('a load that never settles gives up after the timeout: page ready, defaults, saving off', async () => {
+  it('a lock request that never settles gives up after the timeout: page ready, defaults, read-only', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))
+    host = document.createElement('div')
+    document.body.appendChild(host)
+    const html = document.createElement('html')
+    await act(async () => {
+      const started = bootApp(fake.store, host!, html, { today: TODAY, acquireLock: () => new Promise(() => {}) })
+      await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS - 1)
+      expect(html.hasAttribute('data-ready')).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      root = await started
+    })
+    vi.useRealTimers()
+    expect(html.hasAttribute('data-ready')).toBe(true)
+    expect(heading().textContent).toBe('Where to first?')
+    expect(bannerText()).toBe(UNREADABLE)
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+  })
+
+  it('a lock request that throws counts as the holder', async () => {
+    const fake = fakeStore()
+    await boot(fake, { acquireLock: () => Promise.reject(new Error('SecurityError')) })
+    expect(banner()).toBeNull()
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(fake.save).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['newerVersion', { ...docFor({}), schemaVersion: 2 }, undefined],
+    ['storageUnavailable', undefined, () => Promise.reject(new Error('IndexedDB unavailable'))],
+  ] as const)('a holder that ends read-only (%s) releases the lock', async (_name, stored, load) => {
+    const fake = fakeStore(stored)
+    if (load) fake.store.load = load
+    const release = vi.fn()
+    await boot(fake, { acquireLock: async () => ({ held: true, release }) })
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('with a real LockManager: a newerVersion tab gives traveller-save back, so another tab can write', async () => {
+    const held = new Set<string>()
+    const locks = {
+      request: async (name: string, _options: LockOptions, cb: (lock: Lock | null) => unknown) => {
+        if (held.has(name)) return cb(null)
+        held.add(name)
+        try {
+          return await cb({ name, mode: 'exclusive' } as Lock)
+        } finally {
+          held.delete(name)
+        }
+      },
+    } as unknown as LockManager
+    await boot(fakeStore({ ...docFor({}), schemaVersion: 2 }), { acquireLock: () => acquireSaveLock(locks) })
+    expect(bannerText()).toBe('A newer version saved your progress. Reload to carry on.')
+    await flush()
+    expect(held.has(LOCK_NAME)).toBe(false)
+    expect((await acquireSaveLock(locks)).held).toBe(true)
+  })
+
+  it('a writing holder keeps the lock', async () => {
+    const release = vi.fn()
+    await boot(fakeStore(), { acquireLock: async () => ({ held: true, release }) })
+    expect(release).not.toHaveBeenCalled()
+  })
+
+  it('a load that never settles gives up after the timeout: page ready, defaults, read-only', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const fake = fakeStore()
     fake.store.load = () => new Promise(() => {})
@@ -418,6 +739,7 @@ describe('boot', () => {
     vi.useRealTimers()
     expect(html.hasAttribute('data-ready')).toBe(true)
     expect(heading().textContent).toBe('Where to first?')
+    expect(bannerText()).toBe(UNREADABLE)
     act(() => slot(PARIS).click())
     await flush()
     expect(fake.save).not.toHaveBeenCalled()
@@ -453,5 +775,82 @@ describe('a failed write', () => {
     } finally {
       process.off('unhandledRejection', unhandled)
     }
+  })
+})
+
+describe('save failed', () => {
+  const SAVE_FAILED = "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here."
+
+  it('two rejected writes: one banner (airmail-red, top of the side column), one announcement; a success clears it', async () => {
+    const fake = fakeStore(docFor({ sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) } }))
+    fake.save.mockRejectedValueOnce(new Error('QuotaExceededError')).mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake)
+    const [a, b, c, d] = emptyCells(samplePuzzle.givens)
+    act(() => cell(a).focus())
+    press(samplePuzzle.solution[a])
+    await flush()
+    expect(bannerText()).toBe(SAVE_FAILED)
+    expect(banner()!.classList.contains('notice-banner--alert')).toBe(true)
+    expect(q('.side-column')!.firstElementChild).toBe(banner())
+    expect(live()).toBe(SAVE_FAILED)
+    act(() => cell(b).focus())
+    press(samplePuzzle.solution[b])
+    await flush()
+    expect(host!.querySelectorAll('.notice-banner')).toHaveLength(1)
+    // The second failure is not announced again: the live region still holds the digit.
+    expect(live()).toBe(samplePuzzle.solution[b])
+    // Play goes on and the next write lands: the banner goes.
+    act(() => cell(c).focus())
+    press(samplePuzzle.solution[c])
+    await flush()
+    expect(banner()).toBeNull()
+    expect((fake.box.value as SaveDocument).sessions[FREE_PLAY_KEY].digits).toBe(shownDigits())
+    // A later failure shows and is announced again.
+    fake.save.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    act(() => cell(d).focus())
+    press(samplePuzzle.solution[d])
+    await flush()
+    expect(bannerText()).toBe(SAVE_FAILED)
+    expect(live()).toBe(SAVE_FAILED)
+  })
+
+  it('"Got it" hides it and moves focus to the grid', async () => {
+    const fake = fakeStore(docFor({ sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) } }))
+    fake.save.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake)
+    const [a] = emptyCells(samplePuzzle.givens)
+    act(() => cell(a).focus())
+    press(samplePuzzle.solution[a])
+    await flush()
+    act(() => gotIt().focus())
+    act(() => gotIt().click())
+    expect(banner()).toBeNull()
+    expect(document.activeElement).toBe(q('[role="grid"] [tabindex="0"]'))
+  })
+
+  it('on the Album the banner sits under the header', async () => {
+    const fake = fakeStore()
+    fake.save.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake)
+    act(() => navLink('Settings').click())
+    act(() => toggle('Lamplight').click())
+    await flush()
+    expect(q('.app-banner .notice-banner--alert')).not.toBeNull()
+    act(() => gotIt().click())
+    expect(document.activeElement).toBe(heading())
+  })
+
+  it('save failed outranks unreadable; unreadable shows again once it is dismissed', async () => {
+    const fake = fakeStore({ schemaVersion: 1, album: 'nope' })
+    // The start-up write of the defaults lands; the next write is rejected.
+    fake.save.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('QuotaExceededError'))
+    await boot(fake)
+    expect(bannerText()).toBe(UNREADABLE)
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(bannerText()).toBe(SAVE_FAILED)
+    expect(host!.querySelectorAll('.notice-banner')).toHaveLength(1)
+    act(() => gotIt().click())
+    expect(bannerText()).toBe(UNREADABLE)
   })
 })

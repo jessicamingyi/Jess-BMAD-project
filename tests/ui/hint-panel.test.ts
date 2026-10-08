@@ -72,7 +72,8 @@ describe('Hint panel', () => {
     expect(panel()).toBeNull()
     focus(cell(OTHER))
     expect(press('h')).toBe(true)
-    const side = host.querySelector('.side-column')!
+    // First in the side column's controls (only a notice banner may come before them).
+    const side = host.querySelector('.side-column .side-column-body')!
     expect(side.firstElementChild).toBe(panel())
     expect(panel()!.getAttribute('role')).toBe('region')
     expect(panel()!.getAttribute('aria-label')).toBe('Hint')

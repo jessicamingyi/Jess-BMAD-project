@@ -86,6 +86,10 @@ describe('game reducer', () => {
       justArrived: [],
       viewer: null,
       solvedAgain: [],
+      readOnly: null,
+      saveFailed: false,
+      unreadableNotice: false,
+      dismissed: [],
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })

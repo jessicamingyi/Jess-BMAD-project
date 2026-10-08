@@ -76,3 +76,8 @@
 .settings-toggle-state--on {
   color: var(--color-ink);
 }
+
+/* Wraps the Lamplight toggle so a read-only tab can make it inert; no box of its own. */
+.settings-lamplight {
+  display: contents;
+}

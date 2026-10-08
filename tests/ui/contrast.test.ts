@@ -69,6 +69,16 @@ const PAIRS: readonly Pair[] = [
   { fg: 'card', bg: 'ink', min: TEXT, what: 'text' },
   { fg: 'rule-box', bg: 'card', min: NON_TEXT, what: 'non-text' },
   { fg: 'focus', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  /*
+   * Notice banner: body ink text and the "Got it" text button on card (the ink/card pair above);
+   * its 1px rule-thin border on card and desk; the 4px left edge, postmark (info) or
+   * airmail-red (save failed), against the card inside and the desk outside.
+   */
+  { fg: 'rule-thin', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  { fg: 'postmark', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  { fg: 'postmark', bg: 'desk', min: NON_TEXT, what: 'non-text' },
+  { fg: 'airmail-red', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  { fg: 'airmail-red', bg: 'desk', min: NON_TEXT, what: 'non-text' },
 ]
 
 /** `--color-<name>: #RRGGBB;` from theme.css, or undefined. */
@@ -105,6 +115,16 @@ function contrastFailures(colours: Partial<Record<Role, string>>, t: ThemeName, 
 }
 
 describe('theme contrast (WCAG AA)', () => {
+  it('checks the notice banner pairs (text, border, both left edges) in both themes', () => {
+    const banner = [
+      { fg: 'ink', bg: 'card', min: TEXT },
+      { fg: 'rule-thin', bg: 'card', min: NON_TEXT },
+      { fg: 'postmark', bg: 'card', min: NON_TEXT },
+      { fg: 'airmail-red', bg: 'card', min: NON_TEXT },
+    ] as const
+    for (const pair of banner) expect(PAIRS, pair.fg).toContainEqual(expect.objectContaining(pair))
+  })
+
   it('checks the "just arrived" caption (airmail-red text on card) in both themes', () => {
     expect(PAIRS).toContainEqual({ fg: 'airmail-red', bg: 'card', min: TEXT, what: 'text' })
     for (const t of ['Daylight', 'Lamplight'] as const) {

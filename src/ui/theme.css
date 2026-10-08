@@ -107,6 +107,8 @@
   --size-link-underline-offset: 3px;
   --size-mistake-dot: 6px;
   --rule-thin: 1px;
+  /* Notice banner: the 4px coloured left edge */
+  --size-banner-edge: 4px;
   --rule-box: 2px;
   --rule-frame: 3px;
 

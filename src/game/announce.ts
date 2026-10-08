@@ -31,9 +31,12 @@ function digitTarget(prev: AppState, action: Action): { cell: number; digit: num
  * `hintApplied` the placement ("7 placed, row 4, column 4", with ". Solved" if it
  * solves) or a Mistake clear ("row 4, column 6 cleared"). When a digit fills the
  * last empty cell and the grid isn't the solution, the digit message gains the
- * cue once: "7. Something doesn't fit yet — want a hint?".
+ * cue once: "7. Something doesn't fit yet — want a hint?". A save failure is
+ * announced on its false→true transition only.
  */
 export function announce(prev: AppState, next: AppState, action: Action): string | null {
+  // A failed save is said once, when it starts failing; never once per retry.
+  if (action.type === 'saveFailed') return !prev.ui.saveFailed && next.ui.saveFailed ? copy.bannerSaveFailed : null
   // Only the current Puzzle speaks; opening or switching Puzzles is silent.
   const key = prev.ui.activeKey
   if (key === null || next.ui.activeKey !== key) return null

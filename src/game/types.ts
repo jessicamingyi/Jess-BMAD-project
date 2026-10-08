@@ -142,7 +142,25 @@ export type UiState = {
    * fresh replay: their solved line reads "Solved again…". UI only, never saved.
    */
   readonly solvedAgain: readonly string[]
+  /**
+   * Set when this tab must never write: another tab holds the save lock, a newer
+   * version saved the data, or storage could not be read or backed up. The reducer
+   * then refuses any change to `album`, `sessions`, `settings` or `meta`. Never saved.
+   */
+  readonly readOnly: ReadOnlyReason | null
+  /** The last write failed; cleared by the next write that lands. Never saved. */
+  readonly saveFailed: boolean
+  /** Unreadable saved data was backed up and the app started from defaults. Never saved. */
+  readonly unreadableNotice: boolean
+  /** Notice banners hidden with "Got it" (this page load only). Never saved. */
+  readonly dismissed: readonly BannerKind[]
 }
+
+/** Why a tab is read-only. */
+export type ReadOnlyReason = 'newerVersion' | 'otherTab' | 'storageUnavailable'
+
+/** The inline notice banners, one shown at a time by priority (`game/banners`). */
+export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable'
 
 /** The open Postcard viewer: a revealed Postcard of a known City. */
 export type PostcardViewer = {
@@ -250,6 +268,12 @@ export type Action =
   | { readonly type: 'replayConfirmed' }
   /** "Keep going" in the confirm: the replay in progress opens as it was left. */
   | { readonly type: 'replayKept' }
+  /** The shell: a write was rejected. Sets `ui.saveFailed` (announced once per false→true). */
+  | { readonly type: 'saveFailed' }
+  /** The shell: a write landed. Clears `ui.saveFailed` and its dismissal. */
+  | { readonly type: 'saveSucceeded' }
+  /** "Got it" on a notice banner: hide it for this page load (a read-only tab stays read-only). */
+  | { readonly type: 'bannerDismissed'; readonly banner: BannerKind }
 
 type Undated<A> = A extends { readonly date: string } ? Omit<A, 'date'> : A
 

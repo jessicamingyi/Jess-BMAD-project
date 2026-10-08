@@ -1,7 +1,7 @@
 import { isDateString } from '../game/journey.ts'
 import type { Album, AppState, Difficulty, Meta, Postcard, Session, Settings } from '../game/types.ts'
 
-/** The saved document's version. Story 4.2 adds migrations from older versions. */
+/** The saved document's version. Older documents are migrated forward (`migrations.ts`). */
 export const SCHEMA_VERSION = 1
 
 /** The saved slices of AppState: everything but `ui`, which is never saved. */

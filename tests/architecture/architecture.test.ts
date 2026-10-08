@@ -239,6 +239,10 @@ describe('storage boundary guard', () => {
     ['src/ui/persist.ts', 'const { storage: s } = window.navigator', 'navigator.storage'],
     ['src/ui/persist.ts', "window.navigator['storage'].persist()", 'navigator.storage'],
     ['scripts/x.ts', "import { set } from 'idb-keyval'", 'idb-keyval'],
+    ['src/ui/tabs.ts', "navigator.locks.request('traveller-save', () => {})", 'navigator.locks'],
+    ['src/ui/tabs.ts', "window.navigator.locks.query()", 'navigator.locks'],
+    ['src/ui/tabs.ts', "navigator['locks'].query()", 'navigator.locks'],
+    ['src/ui/tabs.ts', 'const { locks } = navigator', 'navigator.locks'],
   ])('flags %s using %s', (path, source, name) => {
     const v = checkStorageBoundary([{ path, source }])
     expect(v).toHaveLength(1)
@@ -251,9 +255,10 @@ describe('storage boundary guard', () => {
       checkStorageBoundary([
         { path: 'src/persistence/store.ts', source: "import { get } from 'idb-keyval'\nnavigator.storage.persist()\nindexedDB.open('x')" },
         { path: 'src/persistence/storage-persist.ts', source: "localStorage.getItem('k')" },
+        { path: 'src/persistence/lock.ts', source: "navigator.locks.request('traveller-save', () => {})" },
         {
           path: 'src/ui/x.tsx',
-          source: "// localStorage and indexedDB are off limits\nexport const s = 'navigator.storage'\nexport const o = { localStorage: 1 }\nexport const storage = 2\nconst { storage: st } = options",
+          source: "// localStorage and indexedDB are off limits\nexport const s = 'navigator.storage'\nexport const o = { localStorage: 1 }\nexport const storage = 2\nconst { storage: st } = options\nexport const locks = 3\nconst { locks: l } = options",
         },
         { path: 'tests/persistence/x.test.ts', source: "import 'idb-keyval'\nindexedDB.open('x')" },
       ]),

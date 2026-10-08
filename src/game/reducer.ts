@@ -4,6 +4,7 @@ import { hintFor } from '../engine/hints.ts'
 import { activeHint, hintMove, hintTechnique } from './hint.ts'
 import { award, cityKey, cityOfKey, isCollected, isDateString, isReachable, isRegion, openingRegion, pendingPostcard } from './journey.ts'
 import { toggleNote } from './notes.ts'
+import { isBannerKind } from './banners.ts'
 import { activeSession, createSession, FREE_PLAY_KEY } from './session.ts'
 import type { Action, AppState, Difficulty, Puzzle, Screen, Session, UndoEntry } from './types.ts'
 
@@ -202,15 +203,66 @@ function setRestartConfirming(state: AppState, open: boolean): AppState {
  * `state` itself when an action changes nothing. Every change to the current
  * Puzzle's digits or Notes is recorded in `ui.undo`. Any change to the digits of
  * the Session an open Hint belongs to sets that Hint back to idle in the same step.
+ * A read-only tab (`ui.readOnly`) refuses any change to a saved slice, and Hint.
  */
 export function reducer(state: AppState, action: Action): AppState {
+  const notices = noticeAction(state, action)
+  if (notices) return notices
   // While a Postcard waits to be revealed, only "Add to Album" and generator replies get through.
   if (pendingPostcard(state.album) && !UNBLOCKED.has(action.type)) return state
   if (refusedForDate(state, action)) return state
-  return showPendingPostcard(resetHintOnDigits(state, reduce(state, action)))
+  const next = showPendingPostcard(resetHintOnDigits(state, reduce(state, action)))
+  if (state.ui.readOnly === null || !refusedReadOnly(state, next, action)) return next
+  // A refused Free Play reply still ends the wait (UI only), so the entry never sticks on "generating".
+  if (action.type === 'freePlayGenerated' && next.ui.freePlay !== state.ui.freePlay) {
+    return { ...state, ui: { ...state.ui, freePlay: { ...state.ui.freePlay, status: 'idle', confirmingReplace: false } } }
+  }
+  return state
 }
 
 const UNBLOCKED: ReadonlySet<Action['type']> = new Set(['postcardAdded', 'freePlayGenerated', 'freePlayFailed'])
+
+/** Hint is unavailable in a read-only tab (its move could never be saved). */
+const READ_ONLY_REFUSED: ReadonlySet<Action['type']> = new Set(['hintRequested', 'hintApplied'])
+/**
+ * "Add to Album" still closes a pending reveal (which blocks the nav) in a read-only
+ * tab: the Album changes in memory only, since a read-only tab never writes.
+ */
+const READ_ONLY_EXEMPT: ReadonlySet<Action['type']> = new Set(['postcardAdded'])
+
+/**
+ * The read-only guard: a read-only tab never changes a saved slice (`album`,
+ * `sessions`, `settings`, `meta`), since that change could never be saved.
+ * UI-only changes (opening an existing Puzzle, the viewer, screens) still apply.
+ */
+function refusedReadOnly(prev: AppState, next: AppState, action: Action): boolean {
+  if (next === prev) return false
+  if (READ_ONLY_EXEMPT.has(action.type)) return false
+  if (READ_ONLY_REFUSED.has(action.type)) return true
+  return prev.album !== next.album || prev.sessions !== next.sessions || prev.settings !== next.settings || prev.meta !== next.meta
+}
+
+/**
+ * Save outcomes and banner dismissals: `ui` only, applied whatever else is going
+ * on (a pending Postcard, read-only). Null for any other action.
+ */
+function noticeAction(state: AppState, action: Action): AppState | null {
+  const { ui } = state
+  switch (action.type) {
+    case 'saveFailed':
+      return ui.saveFailed ? state : { ...state, ui: { ...ui, saveFailed: true } }
+    case 'saveSucceeded': {
+      // A later failure must show (and be announced) again, so its dismissal goes too.
+      if (!ui.saveFailed && !ui.dismissed.includes('saveFailed')) return state
+      return { ...state, ui: { ...ui, saveFailed: false, dismissed: ui.dismissed.filter((b) => b !== 'saveFailed') } }
+    }
+    case 'bannerDismissed':
+      if (!isBannerKind(action.banner) || ui.dismissed.includes(action.banner)) return state
+      return { ...state, ui: { ...ui, dismissed: [...ui.dismissed, action.banner] } }
+    default:
+      return null
+  }
+}
 
 /**
  * The reveal gate: while any revealable Postcard (`journey.isRevealable`) waits, the

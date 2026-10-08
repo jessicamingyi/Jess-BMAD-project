@@ -1,16 +1,18 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
+import { visibleBanner } from '../game/banners.ts'
 import { withAnnouncement } from '../game/announce.ts'
 import { cityKey, cityOfKey, pendingPostcard } from '../game/journey.ts'
 import { launch } from '../game/launch.ts'
 import { showPendingPostcard } from '../game/reducer.ts'
 import { activeSession, createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
-import type { AppState, Screen } from '../game/types.ts'
+import type { AppState, BannerKind, Screen, UiState } from '../game/types.ts'
 import { toDocument, type Slices } from '../persistence/document.ts'
 import { createSaver, type SaveStore } from '../persistence/store.ts'
 import { AlbumScreen } from './album-screen.tsx'
 import { AppNav } from './app-nav.tsx'
 import { FreePlayScreen } from './free-play-screen.tsx'
 import { LiveRegion } from './live-region.tsx'
+import { NoticeBanner } from './notice-banner.tsx'
 import { PuzzleScreen } from './puzzle-screen.tsx'
 import { PuzzleTitle } from './puzzle-title.tsx'
 import { SettingsScreen } from './settings-screen.tsx'
@@ -28,8 +30,11 @@ type Props = {
   loaded?: Slices
   /** Where changes are saved. Without one nothing is saved (most tests). Read once, at mount. */
   store?: SaveStore
-  /** False after an unreadable or failed load: the stored value must never be overwritten this page load. */
-  saving?: boolean
+  /**
+   * The protective `ui` flags the load settled on (`persistence/store.settleLoad`):
+   * a read-only tab never writes; the unreadable notice; a failed migration write-back.
+   */
+  notices?: Partial<Pick<UiState, 'readOnly' | 'unreadableNotice' | 'saveFailed'>>
 }
 
 /**
@@ -40,12 +45,15 @@ type Props = {
  * never write). At start the launch rule (`game/launch`) opens the last-played
  * Puzzle if in progress, else the first City in progress in catalogue order,
  * else Free Play in progress, else the Album.
+ * A read-only tab (`notices.readOnly`) never writes. One notice banner at a time
+ * shows the read-only, save-failed or unreadable notice (`game/banners`).
  */
-export function App({ initialState, createWorker, today, loaded, store, saving = true }: Props) {
+export function App({ initialState, createWorker, today, loaded, store, notices }: Props) {
   // The launch rule picks the opening screen; an unrevealed Postcard still shows first (it runs afterwards).
-  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) =>
-    showPendingPostcard(launch(s ?? { ...createInitialState(), ...loaded })),
-  )
+  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => {
+    const base = s ?? { ...createInitialState(), ...loaded }
+    return showPendingPostcard(launch({ ...base, ui: { ...base.ui, ...notices } }))
+  })
   const start = useGenerator(dispatch, createWorker)
   const { screen } = state.ui
   const { lamplight } = state.settings
@@ -66,7 +74,10 @@ export function App({ initialState, createWorker, today, loaded, store, saving =
   // reducer shares unchanged slices). The first state is the baseline, so starting
   // (first visit or restore) never writes. Writes are queued in order.
   // One write queue for the component's life (useMemo may be rebuilt, which would start a second queue).
-  const [saver] = useState(() => (store && saving ? createSaver(store) : null))
+  // A read-only tab never gets one. Each write reports back: a failure shows the banner, a success clears it.
+  const [saver] = useState(() =>
+    store && !notices?.readOnly ? createSaver(store, (ok) => dispatch({ type: ok ? 'saveSucceeded' : 'saveFailed' })) : null,
+  )
   /** The slices last loaded or saved; a change to any of their references means a write. */
   const saved = useRef<Slices | null>(null)
   const { album, sessions, settings, meta } = state
@@ -100,6 +111,30 @@ export function App({ initialState, createWorker, today, loaded, store, saving =
     else headingRef.current?.focus()
   }, [screen, revealing])
 
+  // The one notice banner, by priority; on the Puzzle screen it heads the side column.
+  const banner = visibleBanner(state.ui)
+  /** "Got it" was pressed: once the banner has gone, focus the grid's tab-stop (Puzzle) or the page heading. */
+  const refocus = useRef(false)
+  const dismiss = (kind: BannerKind) => {
+    refocus.current = true
+    dispatch({ type: 'bannerDismissed', banner: kind })
+  }
+  useEffect(() => {
+    if (!refocus.current) return
+    refocus.current = false
+    if (screen !== 'puzzle') {
+      headingRef.current?.focus()
+      return
+    }
+    const target = mainRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')
+    // A read-only grid is inert and can't take focus: the current nav item takes it instead.
+    if (target && !target.closest('[inert]')) target.focus()
+    else document.querySelector<HTMLElement>('.app-nav [aria-current="page"]')?.focus()
+  }, [banner, screen])
+  const bannerEl = banner && (
+    <NoticeBanner key={banner} kind={banner} readOnly={state.ui.readOnly} onDismiss={() => dismiss(banner)} />
+  )
+
   const choose = (next: Screen) => {
     // Choosing the current screen does nothing (no re-render, no focus jump).
     if (next === screen) return
@@ -112,11 +147,12 @@ export function App({ initialState, createWorker, today, loaded, store, saving =
       <SettingsScreen
         settings={state.settings}
         headingRef={headingRef}
+        readOnly={state.ui.readOnly !== null}
         onToggle={(setting) => dispatch({ type: 'settingToggled', setting })}
       />
     )
   } else if (showPuzzle) {
-    main = <PuzzleScreen state={state} dispatch={dispatch} today={date} />
+    main = <PuzzleScreen state={state} dispatch={dispatch} today={date} banner={bannerEl} />
   } else if (screen === 'album') {
     main = (
       <AlbumScreen
@@ -155,6 +191,8 @@ export function App({ initialState, createWorker, today, loaded, store, saving =
         {/* Puzzle screen only: the title sits on its own line beneath the wordmark (other screens have their own h1). */}
         {showPuzzle && <PuzzleTitle difficulty={active.session.difficulty} city={cityOfKey(active.key)} />}
       </header>
+      {/* Every screen but the Puzzle: the banner spans the content width under the header, pushing content down. */}
+      {bannerEl && !showPuzzle && <div className="app-banner">{bannerEl}</div>}
       <main className="app-main" ref={mainRef}>
         {main}
       </main>

@@ -8,6 +8,8 @@ type Props = {
   onToggle: (setting: SettingName) => void
   /** The page heading; focused (tabIndex -1) after the nav opens Settings. */
   headingRef?: Ref<HTMLHeadingElement>
+  /** A read-only tab: the toggles show but are inert (a change could never be saved). */
+  readOnly?: boolean
 }
 
 const ASSISTS = [
@@ -34,14 +36,14 @@ function SettingToggle({ label, on, onToggle }: ToggleProps) {
 }
 
 /** Settings: the three Assists, then Lamplight below a hairline rule. Changes apply at once and record no Undo. */
-export function SettingsScreen({ settings, onToggle, headingRef }: Props) {
+export function SettingsScreen({ settings, onToggle, headingRef, readOnly = false }: Props) {
   const assistsId = useId()
   return (
     <section className="settings-screen">
       <h1 className="settings-heading" tabIndex={-1} ref={headingRef}>
         {copy.settingsHeading}
       </h1>
-      <div className="settings-group" role="group" aria-labelledby={assistsId}>
+      <div className="settings-group" role="group" aria-labelledby={assistsId} inert={readOnly}>
         <p className="settings-group-label" id={assistsId}>
           {copy.settingsAssists}
         </p>
@@ -50,7 +52,9 @@ export function SettingsScreen({ settings, onToggle, headingRef }: Props) {
         ))}
       </div>
       <hr className="settings-rule" />
-      <SettingToggle label={copy.settingLamplight} on={settings.lamplight} onToggle={() => onToggle('lamplight')} />
+      <div className="settings-lamplight" inert={readOnly}>
+        <SettingToggle label={copy.settingLamplight} on={settings.lamplight} onToggle={() => onToggle('lamplight')} />
+      </div>
     </section>
   )
 }

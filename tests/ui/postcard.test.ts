@@ -134,7 +134,7 @@ describe('the reveal', () => {
     const { solution } = cityPuzzle('lisbon')!
     expect([...host.querySelectorAll('[role="gridcell"]')].map((c) => c.textContent).join('')).toBe(solution)
     expect(host.querySelector('.grid-card')!.hasAttribute('inert')).toBe(true)
-    expect(host.querySelector('.side-column')!.hasAttribute('inert')).toBe(true)
+    expect(host.querySelector('.side-column-body')!.hasAttribute('inert')).toBe(true)
     expect(host.querySelector('nav')!.hasAttribute('inert')).toBe(true)
     expect(document.activeElement).toBe(addButton())
     expect(live()).toBe('Solved')

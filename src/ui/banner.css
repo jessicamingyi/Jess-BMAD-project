@@ -1,0 +1,47 @@
+/*
+ * Notice banner (UX › Notice banner): inline, non-modal, pushes content down.
+ * Card background, 1px rule-thin border, 4px left edge (postmark info,
+ * airmail-red save failed), body ink text, one text button. Tokens only.
+ */
+.notice-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: var(--rule-thin) solid var(--color-rule-thin);
+  border-left-width: var(--size-banner-edge);
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  color: var(--color-ink);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+}
+
+.notice-banner--info {
+  border-left-color: var(--color-postmark);
+}
+
+.notice-banner--alert {
+  border-left-color: var(--color-airmail-red);
+}
+
+.notice-banner-text {
+  flex: 1 1 16em;
+  margin: 0;
+}
+
+.notice-banner-button {
+  flex: none;
+}
+
+/* Under the header on every screen but the Puzzle: the full content width. */
+.app-banner {
+  padding-top: var(--space-5);
+}
+
+/* The Puzzle screen's side column, read-only: everything after the banner is inert (no box of its own). */
+.side-column-body {
+  display: contents;
+}

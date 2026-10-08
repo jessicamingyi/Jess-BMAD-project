@@ -68,6 +68,10 @@ export function createInitialState(puzzle?: Puzzle): AppState {
       justArrived: [],
       viewer: null,
       solvedAgain: [],
+      readOnly: null,
+      saveFailed: false,
+      unreadableNotice: false,
+      dismissed: [],
     },
   }
 }
