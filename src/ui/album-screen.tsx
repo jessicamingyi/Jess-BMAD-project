@@ -5,8 +5,8 @@ import { postcardCount, regionCities, REGIONS, slotState, UNLOCK_COUNT } from '.
 import type { AppState } from '../game/types.ts'
 import { useDocumentEscape } from './keyboard.ts'
 import { Postcard } from './postcard.tsx'
+import './controls.css'
 import './album.css'
-import './puzzle.css'
 
 type Props = {
   state: AppState
@@ -15,9 +15,9 @@ type Props = {
   onRegion: (region: Region) => void
   /** A Reachable or In progress slot, or a Collected slot's "Carry on". */
   onCity: (cityId: string) => void
-  /** A Collected slot's face: open its Postcard in the viewer. */
+  /** A Collected slot's face: open its Postcard in the viewer (or switch it to that City). */
   onView: (cityId: string) => void
-  /** Esc or a click outside the viewer. */
+  /** Esc, "Close", a click outside the viewer, or the open slot's own face. */
   onCloseViewer: () => void
   /** The viewer's "Play again". */
   onPlayAgain: () => void
@@ -32,7 +32,8 @@ type Props = {
  * counts, then the Region's 10 slots Near → Mid → Far in a 5-column grid.
  * Tabs and slots are native buttons (no key handlers). Only a Collected slot
  * renders its City's Postcard line, so a line can't leak for an uncollected City.
- * A Collected slot opens the non-blocking Postcard viewer, centred over the slots.
+ * A Collected slot opens the non-blocking Postcard viewer over the top of the
+ * slots (its face toggles it; another face switches it).
  */
 export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onCloseViewer, onPlayAgain, onStartFresh, onKeepGoing }: Props) {
   const { album } = state
@@ -59,11 +60,13 @@ export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onClo
   useDocumentEscape(open ? close : null)
 
   // One click outside closes the viewer, and the click still does its own action:
-  // the capture phase closes first, then the target's handler runs.
+  // the capture phase closes first, then the target's handler runs. A Collected
+  // face is left to its own handler, which toggles or switches the viewer.
   useEffect(() => {
     if (openId === null) return
     const onClick = (e: MouseEvent) => {
       if (e.target instanceof Node && viewerRef.current?.contains(e.target)) return
+      if (e.target instanceof Element && e.target.closest('.album-slot--collected')) return
       close()
     }
     document.addEventListener('click', onClick, true)
@@ -105,7 +108,7 @@ export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onClo
         <ul className="album-slots" aria-label={regionName}>
           {regionCities(region).map((city) => (
             <li key={city.id} className="album-slot-item">
-              <Slot state={state} city={city} onCity={onCity} onView={onView} />
+              <Slot state={state} city={city} openId={openId} onCity={onCity} onView={onView} onClose={close} />
             </li>
           ))}
         </ul>
@@ -118,6 +121,7 @@ export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onClo
               actionLabel={copy.playAgain}
               onAction={onPlayAgain}
               onEscape={close}
+              onClose={close}
               confirm={
                 viewer?.confirming ? (
                   <ReplayConfirm city={viewedCity} onStartFresh={onStartFresh} onKeepGoing={onKeepGoing} />
@@ -160,18 +164,23 @@ function ReplayConfirm({ city, onStartFresh, onKeepGoing }: ReplayConfirmProps) 
 type SlotProps = {
   state: AppState
   city: City
+  /** The City whose Postcard the viewer shows, or null. */
+  openId: string | null
   onCity: (cityId: string) => void
   onView: (cityId: string) => void
+  onClose: () => void
 }
 
-function Slot({ state, city, onCity, onView }: SlotProps) {
+function Slot({ state, city, openId, onCity, onView, onClose }: SlotProps) {
   const slot = slotState(state, city)
+  const describedId = useId()
   const caption = copy.slotCaption(city.country, city.tier)
   switch (slot) {
     case 'collected':
     case 'collectedReplay': {
       // A Postcard face in miniature: stripe top edge, City, caption and its line. "just arrived" until the next visit.
-      // The face opens the viewer; a replay in progress adds a sibling "Carry on".
+      // The face opens the viewer (closes it if it is this City's); a replay in progress adds a sibling "Carry on".
+      // Its name is "… — See Postcard"; the line and "just arrived" describe it.
       const arrived = state.ui.justArrived.includes(city.id)
       const replay = slot === 'collectedReplay'
       const classes = ['album-slot', 'album-slot--collected']
@@ -183,13 +192,22 @@ function Slot({ state, city, onCity, onView }: SlotProps) {
             type="button"
             className={classes.join(' ')}
             aria-label={copy.slotLabel(city.name, city.country, city.tier, copy.slotSeePostcard)}
+            aria-describedby={arrived ? `${describedId}-line ${describedId}-arrived` : `${describedId}-line`}
+            aria-haspopup="dialog"
+            aria-expanded={openId === city.id}
             data-city={city.id}
-            onClick={() => onView(city.id)}
+            onClick={() => (openId === city.id ? onClose() : onView(city.id))}
           >
             <span className="album-slot-name">{city.name}</span>
             <span className="album-slot-caption">{caption}</span>
-            <span className="album-slot-line">{city.line}</span>
-            {arrived && <span className="album-slot-arrived">{copy.justArrived}</span>}
+            <span className="album-slot-line" id={`${describedId}-line`}>
+              {city.line}
+            </span>
+            {arrived && (
+              <span className="album-slot-arrived" id={`${describedId}-arrived`}>
+                {copy.justArrived}
+              </span>
+            )}
           </button>
           {replay && (
             <button

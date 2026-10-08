@@ -354,14 +354,14 @@ function reduce(state: AppState, action: Action): AppState {
     case 'screenChosen':
       return chooseScreen(state, action.screen)
     case 'cityChosen':
-      return chooseCity(state, action.cityId)
+      return closeViewer(chooseCity(state, action.cityId))
     case 'albumRegionChosen':
       if (!isRegion(action.region) || state.ui.albumRegion === action.region) return state
       return { ...state, ui: { ...state.ui, albumRegion: action.region, viewer: null } }
     case 'postcardViewed':
       return viewPostcard(state, action.cityId)
     case 'postcardViewerClosed':
-      return state.ui.viewer === null ? state : { ...state, ui: { ...state.ui, viewer: null } }
+      return closeViewer(state)
     case 'replayRequested':
       return requestReplay(state)
     case 'replayConfirmed':
@@ -434,7 +434,8 @@ function freshCitySession(state: AppState, key: string, puzzle: Puzzle): AppStat
  * fresh Session from its pre-built Puzzle (`freshCitySession`). A collected City
  * not in progress is the same state: a replay starts only from the viewer's
  * "Play again". Locked, unknown or Puzzle-less Cities: the same state. Other
- * Sessions are never touched. Never recorded in Undo.
+ * Sessions are never touched. Never recorded in Undo. (`cityChosen` also closes
+ * the Postcard viewer in every case.)
  */
 function chooseCity(state: AppState, cityId: string): AppState {
   const city = typeof cityId === 'string' ? cityById(cityId) : undefined
@@ -445,6 +446,11 @@ function chooseCity(state: AppState, cityId: string): AppState {
   if (state.sessions[key]?.status === 'inProgress') return showPuzzle(openSession(state, key))
   if (isCollected(state.album, city)) return state
   return showPuzzle(freshCitySession(state, key, puzzle))
+}
+
+/** Close the Postcard viewer; already closed is the same state. */
+function closeViewer(state: AppState): AppState {
+  return state.ui.viewer === null ? state : { ...state, ui: { ...state.ui, viewer: null } }
 }
 
 /**
@@ -462,13 +468,16 @@ function viewPostcard(state: AppState, cityId: string): AppState {
 
 /**
  * "Play again" in the viewer. With a replay in progress the inline confirm
- * shows first; otherwise a fresh replay starts. No viewer, or the confirm
- * already showing: the same state.
+ * shows first, unless it is untouched (only the Givens, no Notes: nothing to
+ * lose); otherwise a fresh replay starts. No viewer, or the confirm already
+ * showing: the same state.
  */
 function requestReplay(state: AppState): AppState {
   const viewer = state.ui.viewer
   if (viewer === null || viewer.confirming) return state
-  if (state.sessions[cityKey(viewer.cityId)]?.status === 'inProgress') {
+  const session = state.sessions[cityKey(viewer.cityId)]
+  const untouched = session !== undefined && session.digits === session.givens && session.notes.every((m) => m === 0)
+  if (session?.status === 'inProgress' && !untouched) {
     return { ...state, ui: { ...state.ui, viewer: { ...viewer, confirming: true } } }
   }
   return freshReplay(state, viewer.cityId)

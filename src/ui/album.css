@@ -77,20 +77,24 @@
 }
 
 /*
- * The Postcard viewer (Story 3.4): in place, centred over the slot grid, the
- * reveal's width. Non-blocking: no scrim, no motion; the slots stay usable.
+ * The Postcard viewer (Story 3.4): in place over the slot grid, centred across
+ * it and anchored to its top (it is taller than the slots, so it hangs below
+ * them and never covers the Region tabs or heading), the reveal's width.
+ * Non-blocking: no scrim, no motion; the slots stay usable.
  */
 .album-viewer {
   position: absolute;
   z-index: 2;
-  top: 50%;
+  top: 0;
   left: 50%;
   width: min(var(--size-postcard-width), 100%);
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
 }
 
-/* The viewer's button row sits on card over the slots, so its text keeps the ink-on-card contrast. */
+/* The viewer's button row ("Close", then "Play again" or the confirm) sits on card over the slots, so its text keeps the ink-on-card contrast. */
 .album-viewer .postcard-actions {
+  align-items: center;
+  gap: var(--space-4);
   padding: var(--space-3);
   border: var(--rule-thin) solid var(--color-rule-thin);
   background-color: var(--color-card);

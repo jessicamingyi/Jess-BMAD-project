@@ -72,11 +72,27 @@ describe('the Collected slot', () => {
     expect(face.tagName).toBe('BUTTON')
     expect(face.type).toBe('button')
     expect(face.getAttribute('aria-label')).toBe('Lisbon, Portugal, Mid — See Postcard')
+    expect(face.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(face.getAttribute('aria-expanded')).toBe('false')
     expect(carryOn()).toBeNull()
     act(() => face.focus())
     expect(press('Enter', face).defaultPrevented).toBe(false)
     act(() => face.click())
     expect(viewer()).not.toBeNull()
+    expect(face.getAttribute('aria-expanded')).toBe('true')
+    expect(slot('europe-near-1').getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('is described by its line and, when just arrived, "just arrived"', () => {
+    const base = collected()
+    mount({ ...base, ui: { ...base.ui, justArrived: ['lisbon'] } })
+    const described = (id: string) =>
+      slot(id)
+        .getAttribute('aria-describedby')!
+        .split(' ')
+        .map((ref) => document.getElementById(ref)!.textContent)
+    expect(described('lisbon')).toEqual([LISBON.line, 'just arrived'])
+    expect(described('europe-near-1')).toEqual([cityById('europe-near-1')!.line])
   })
 
   it('with a replay in progress adds a sibling "Carry on" in the same list item', () => {
@@ -142,6 +158,44 @@ describe('the Postcard viewer', () => {
     act(() => slot('europe-near-4').click())
     expect(viewer()).toBeNull()
     expect(host.querySelector('header .puzzle-title')!.textContent).toBe('Amsterdam · Near · Easy')
+  })
+
+  it('a visible "Close" closes it and focus returns to the slot', () => {
+    mount(collected())
+    openLisbon()
+    const c = button('Close')!
+    expect(viewer()!.contains(c)).toBe(true)
+    expect(c.className).toContain('link-button')
+    act(() => c.click())
+    expect(viewer()).toBeNull()
+    expect(document.activeElement).toBe(slot('lisbon'))
+  })
+
+  it('"Close" stays during the replay confirm and closes the whole viewer', () => {
+    mount(replaying())
+    openLisbon()
+    act(() => button('Play again')!.click())
+    act(() => button('Close')!.click())
+    expect(viewer()).toBeNull()
+  })
+
+  it('a click on the open slot’s own face closes it', () => {
+    mount(collected())
+    openLisbon()
+    act(() => slot('lisbon').click())
+    expect(viewer()).toBeNull()
+    expect(document.activeElement).toBe(slot('lisbon'))
+    expect(slot('lisbon').getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('a click outside on a focusable Album control keeps focus there', () => {
+    mount(collected())
+    openLisbon()
+    const europe = tab('Europe')
+    act(() => europe.focus())
+    act(() => europe.click())
+    expect(viewer()).toBeNull()
+    expect(document.activeElement).toBe(europe)
   })
 
   it('a click on another Collected slot opens that Postcard instead', () => {
@@ -225,8 +279,13 @@ describe('"Carry on" and solving again', () => {
     act(() => cell(last).focus())
     press(lisbonPuzzle.solution[last])
     expect(host.querySelector('section.postcard')).toBeNull()
-    expect(host.querySelector('.puzzle-status')!.textContent).toBe('Solved again. Lisbon is already in your Album. Album')
-    act(() => button('Album')!.click())
+    const status = host.querySelector('.puzzle-status')!
+    expect(status.textContent).toBe('Solved again. Lisbon is already in your Album.')
+    // The sentence's own "Album" is the link; there is no separate one.
+    const links = status.querySelectorAll('button')
+    expect(links).toHaveLength(1)
+    expect(links[0].textContent).toBe('Album')
+    act(() => links[0].click())
     expect(slot('lisbon').className).toBe('album-slot album-slot--collected')
     expect(carryOn()).toBeNull()
     expect(tab('Europe').textContent).toBe('Europe 4 / 10')
@@ -239,11 +298,12 @@ describe('viewer styles', () => {
     return new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(albumCss)![1]
   }
 
-  it('in place over the slots, centred, the reveal’s width, no motion; the button row on card', () => {
+  it('in place over the slots, centred across them and anchored to their top (never over the tabs), the reveal’s width, no motion; the button row on card', () => {
     const v = rule('.album-viewer')
     expect(v).toContain('position: absolute')
     expect(v).toContain('width: min(var(--size-postcard-width), 100%)')
-    expect(v).toContain('translate(-50%, -50%)')
+    expect(v).toContain('top: 0')
+    expect(v).toContain('transform: translateX(-50%)')
     expect(v).not.toContain('animation')
     expect(rule('.album-slots-area')).toContain('position: relative')
     expect(rule('.album-viewer .postcard-actions')).toContain('background-color: var(--color-card)')

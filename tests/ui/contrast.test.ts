@@ -44,7 +44,7 @@ const PAIRS: readonly Pair[] = [
   { fg: 'note', bg: 'fill-highlight', min: TEXT, what: 'text' },
   { fg: 'note', bg: 'fill-selected', min: TEXT, what: 'text' },
   { fg: 'mistake', bg: 'card', min: TEXT, what: 'text' },
-  /** Also a slot's "Travel here" / "Carry on" on the card slot. */
+  /** Also a slot's "Travel here" / "Carry on" on the card slot, and a Collected slot's "Carry on" over its card. */
   { fg: 'airmail-red', bg: 'card', min: TEXT, what: 'text' },
   { fg: 'rule-thin', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   { fg: 'rule-thin', bg: 'fill-same-digit', min: NON_TEXT, what: 'non-text' },
@@ -54,7 +54,7 @@ const PAIRS: readonly Pair[] = [
   { fg: 'focus', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   /** An aria-disabled primary button (Hint when solved): card text on an ink-muted fill. */
   { fg: 'card', bg: 'ink-muted', min: TEXT, what: 'text' },
-  /** Album slots: City name and caption on a card slot. */
+  /** Album slots: City name and caption on a card slot; the Postcard viewer's card button row ("Close", the confirm text and buttons). */
   { fg: 'ink', bg: 'card', min: TEXT, what: 'text' },
   { fg: 'ink-muted', bg: 'card', min: TEXT, what: 'text' },
   /** Stamp: country, glyph and Tier in card ink on the airmail-red face. */
@@ -65,6 +65,10 @@ const PAIRS: readonly Pair[] = [
   { fg: 'rule-thin', bg: 'card', min: NON_TEXT, what: 'non-text' },
   /** The "just arrived" 2px outline, drawn just outside the slot on the desk. */
   { fg: 'airmail-red', bg: 'desk', min: NON_TEXT, what: 'non-text' },
+  /** The Postcard viewer's card button row: "Play again" (card on an ink fill), the confirm's button rules and the focus ring. */
+  { fg: 'card', bg: 'ink', min: TEXT, what: 'text' },
+  { fg: 'rule-box', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  { fg: 'focus', bg: 'card', min: NON_TEXT, what: 'non-text' },
 ]
 
 /** `--color-<name>: #RRGGBB;` from theme.css, or undefined. */

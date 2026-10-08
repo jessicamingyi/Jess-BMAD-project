@@ -2,7 +2,7 @@
 title: 'Story 3.4: Revisit Postcards and replay Cities'
 type: 'feature'
 created: '2026-10-07'
-status: 'in-review'
+status: 'done'
 baseline_commit: '16c626a14a4a0f2eea8d6688c8c932a313d575f0'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -98,6 +98,8 @@ context:
 ## Review Triage Log
 
 *Status at end of day 2026-10-07: the three reviews and the browser check are done and triaged below; the patches are NOT yet applied. Browser check (Chrome 155, Edge 154): the replay flow, the confirm, Esc, "Solved again" and Album count all pass with no console errors; the only failure is the tab overlap (#11). Resume by sending the patch list to an implementer, rerunning the browser check, then committing.*
+
+*2026-10-08: patches #1–#11 applied (no-puzzle guard in #9 left untested: every City has content, so it can't be reached without mocking). `npm run lint && npm test && npm run build` pass (913 tests). Browser recheck (headless Chrome, 1280 and 900px): the viewer sits below the tabs with and without the confirm, every tab is clickable with the viewer open (Asia click switches Region, closes the viewer, keeps focus on the tab), Close, Carry on, the confirm, Start fresh and "Solved again. Paris is already in your Album." all pass, no console errors.*
 
 | # | Source | Finding | Verdict | Route | Evidence |
 |---|---|---|---|---|---|

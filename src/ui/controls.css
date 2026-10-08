@@ -1,0 +1,128 @@
+/*
+ * Shared controls: the action row (and its inline confirm), buttons and
+ * link-styled buttons, used by the Puzzle, Free Play and Album screens. Tokens only.
+ */
+
+/* Every button and link-styled button: 3px solid focus outline at 3px offset (UX-DR62). */
+.button:focus-visible,
+.link-button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+/*
+ * Action row (UX-DR13): Undo · Restart. The Restart confirm replaces it inline;
+ * both states share one min-height so nothing below or beside it shifts.
+ */
+.action-row {
+  min-height: calc(2 * var(--space-7));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-2);
+}
+
+.action-row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.action-row-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  font-style: var(--type-meta-status-style);
+}
+
+/* Default button: transparent, ink text, double box rule, small caps, square corners */
+.button {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  border: var(--rule-frame) double var(--color-rule-box);
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-button-size);
+  font-variant: var(--type-button-variant);
+  letter-spacing: var(--type-button-letter-spacing);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.button-caption {
+  color: var(--color-ink-muted);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+  font-variant: normal;
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+/* Primary button: ink fill, card text, double card border inside a solid ink outline */
+.button--primary {
+  border-color: var(--color-card);
+  background-color: var(--color-ink);
+  color: var(--color-card);
+  outline: var(--rule-box) solid var(--color-ink);
+}
+
+/* Link-styled button: the solve line's way back, the Postcard viewer's "Close". */
+.link-button {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--rule-thin);
+  text-underline-offset: var(--size-underline-offset);
+  cursor: pointer;
+}
+
+/*
+ * aria-disabled buttons (Hint when solved, the Hint panel's inert step button)
+ * stay focusable but read as inactive. Deliberately global: any .button marked
+ * aria-disabled looks the same, and hover/press never change it.
+ */
+.button[aria-disabled='true'],
+.button[aria-disabled='true']:hover,
+.button[aria-disabled='true']:active {
+  cursor: default;
+}
+
+.button[aria-disabled='true']:not(.button--primary),
+.button[aria-disabled='true']:not(.button--primary):hover,
+.button[aria-disabled='true']:not(.button--primary):active {
+  border-color: var(--color-ink-muted);
+  background-color: transparent;
+  color: var(--color-ink-muted);
+}
+
+/* card on ink-muted meets 4.5:1 in both themes (tests/ui/contrast.test.ts). */
+.button--primary[aria-disabled='true'],
+.button--primary[aria-disabled='true']:hover,
+.button--primary[aria-disabled='true']:active {
+  border-color: var(--color-card);
+  background-color: var(--color-ink-muted);
+  color: var(--color-card);
+}
+
+.button--primary[aria-disabled='true']:not(:focus-visible) {
+  outline-color: var(--color-ink-muted);
+}

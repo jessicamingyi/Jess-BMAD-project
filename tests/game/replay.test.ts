@@ -162,6 +162,18 @@ describe('replayRequested ("Play again")', () => {
     expect(reducer(s, replay)).toBe(s)
   })
 
+  it('with an untouched replay in progress (only the Givens, no Notes): a fresh Session, no confirm', () => {
+    const before = onAlbum([revealed(NEAR)], { [KEY]: createSession(KEY, puzzle) })
+    const s = run(before, view(), replay)
+    expect(s.ui.viewer).toBeNull()
+    expect(s.ui.screen).toBe('puzzle')
+    expect(s.ui.activeKey).toBe(KEY)
+    expect(s.sessions[KEY]).toEqual(createSession(KEY, puzzle))
+    // A Note alone is something to lose: the confirm shows.
+    const noted = onAlbum([revealed(NEAR)], { [KEY]: { ...createSession(KEY, puzzle), notes: [1, ...Array(80).fill(0)] } })
+    expect(run(noted, view(), replay).ui.viewer).toEqual({ cityId: NEAR, confirming: true })
+  })
+
   it('no viewer: the same state', () => {
     const s = collectedSolved()
     expect(reducer(s, replay)).toBe(s)
@@ -243,6 +255,20 @@ describe('leaving closes the viewer', () => {
     expect(s.ui.viewer).toBeNull()
   })
 
+  it('cityChosen on a collected City not in progress: only the viewer closes', () => {
+    const open = run(collectedSolved(), view())
+    const s = reducer(open, choose(NEAR))
+    expect(s).toEqual({ ...open, ui: { ...open.ui, viewer: null } })
+    expect(s.sessions).toBe(open.sessions)
+  })
+
+  it('postcardViewed on another City while confirming: the confirm resets', () => {
+    const s = run(onAlbum([revealed(NEAR), revealed(NEAR_2)], { [KEY]: partial(3) }), view(), replay, view(NEAR_2))
+    expect(s.ui.viewer).toEqual({ cityId: NEAR_2, confirming: false })
+    // Back on the first City, still in progress: "Play again" asks again.
+    expect(run(s, view(), replay).ui.viewer).toEqual({ cityId: NEAR, confirming: true })
+  })
+
   it('cityChosen "Carry on" while confirming', () => {
     const s = run(collectedReplay(), view(), replay, choose(NEAR))
     expect(s.ui.viewer).toBeNull()
@@ -279,6 +305,17 @@ describe('solving again', () => {
     expect(s.sessions[KEY].hintsUsed).toBe(1)
     expect(s.album).toBe(album)
     expect(s.ui.solvedAgain).toEqual([KEY])
+  })
+
+  it('Restart and Undo on a solved replay: the same state, still "Solved again"; a fresh replay clears it', () => {
+    const { state, last } = replayOneLeft()
+    const solved = deepFreeze(reducer(state, enter(Number(puzzle.solution[last]))))
+    for (const action of [{ type: 'restartRequested' }, { type: 'restartConfirmed' }, { type: 'undoRequested' }] as Action[]) {
+      expect(reducer(solved, action)).toBe(solved)
+    }
+    const again = run(solved, screen('album'), view(), replay)
+    expect(again.sessions[KEY]).toEqual(createSession(KEY, puzzle))
+    expect(again.ui.solvedAgain).toEqual([])
   })
 
   it('a first solve is not "solved again"', () => {

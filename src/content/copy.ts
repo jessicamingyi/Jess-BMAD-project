@@ -104,8 +104,14 @@ export const copy = {
   /** The replay confirm's group label, e.g. "Start Lisbon again?". */
   replayConfirmLabel: (city: string): string => `Start ${city} again?`,
   replayConfirmText: 'This replaces your replay in progress.',
-  /** Solve line on a replayed City; followed by an "Album" link-styled button. */
-  solvedAgain: (city: string): string => `Solved again. ${city} is already in your Album.`,
+  /** The viewer's visible close control (Esc and a click outside also close it). */
+  viewerClose: 'Close',
+  /**
+   * Solve line on a replayed City: "Solved again. {City} is already in your Album.",
+   * split so its word "Album" (`navAlbum`) is the link-styled button to the Album.
+   */
+  solvedAgainBefore: (city: string): string => `Solved again. ${city} is already in your `,
+  solvedAgainAfter: '.',
 
   /** Free Play entry. */
   freePlayHeading: 'Free Play',

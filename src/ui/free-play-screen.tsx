@@ -3,6 +3,7 @@ import { copy } from '../content/copy.ts'
 import type { Difficulty, FreePlayUi, Session } from '../game/types.ts'
 import { useEscape } from './keyboard.ts'
 import { Segmented } from './mode-indicator.tsx'
+import './controls.css'
 import './puzzle.css'
 
 type Props = {

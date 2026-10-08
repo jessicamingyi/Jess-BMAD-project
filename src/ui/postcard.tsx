@@ -19,6 +19,8 @@ type Props = {
   modal?: boolean
   /** An inline confirm shown in place of the primary button (the viewer's replay confirm). */
   confirm?: ReactNode
+  /** A visible "Close" link-styled button before the primary button or confirm (the non-modal viewer). */
+  onClose?: () => void
 }
 
 /**
@@ -28,9 +30,9 @@ type Props = {
  * described by the line, or `confirm` in its place. Focuses its button on
  * mount; Esc calls `onEscape`. Always a labelled `dialog`; only the reveal is
  * `aria-modal` (there, clicking outside does nothing). The Story 3.4 viewer is
- * non-modal and handles clicks outside itself.
+ * non-modal, handles clicks outside itself and adds a visible "Close" (`onClose`).
  */
-export function Postcard({ city, collectedOn, actionLabel, onAction, onEscape, modal = false, confirm }: Props) {
+export function Postcard({ city, collectedOn, actionLabel, onAction, onEscape, modal = false, confirm, onClose }: Props) {
   const ref = useRef<HTMLElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const lineId = useId()
@@ -65,6 +67,11 @@ export function Postcard({ city, collectedOn, actionLabel, onAction, onEscape, m
         </div>
       </div>
       <div className="postcard-actions">
+        {onClose && (
+          <button type="button" className="link-button" onClick={onClose}>
+            {copy.viewerClose}
+          </button>
+        )}
         {confirm ?? (
           <button
             type="button"

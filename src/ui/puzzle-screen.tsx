@@ -18,6 +18,7 @@ import { Postcard } from './postcard.tsx'
 import { Postmark } from './stamp.tsx'
 import { SudokuGrid } from './sudoku-grid.tsx'
 import { localDate } from './today.ts'
+import './controls.css'
 import './puzzle.css'
 
 const platform = typeof navigator === 'undefined' ? '' : (navigator.platform ?? '')
@@ -125,10 +126,11 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
           !revealing &&
           (city ? (
             <p className="puzzle-status">
-              {solvedAgain ? copy.solvedAgain(city.name) : copy.solvedCity}{' '}
+              {solvedAgain ? copy.solvedAgainBefore(city.name) : `${copy.solvedCity} `}
               <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'album' })}>
                 {copy.navAlbum}
               </button>
+              {solvedAgain && copy.solvedAgainAfter}
             </p>
           ) : (
             <p className="puzzle-status">
