@@ -1,6 +1,6 @@
 ---
 title: 'Traveller Sudoku: backlog and sprint board'
-updated: '2026-10-07'
+updated: '2026-10-08'
 sprint_length: 1 day
 sprints: 5
 ---
@@ -62,7 +62,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 4: Hints and Postcards (Thu 8 Oct 2026)
 
 **Goal:** Epic 2 (Hints that teach) and Epic 3 (travel and collect Postcards).  
-**Progress:** 7 / 9 done (Epic 2 and Stories 3.1–3.3 built early on Wed 7 Oct)
+**Progress:** 8 / 9 done (Epic 2 and Stories 3.1–3.3 built early on Wed 7 Oct)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -73,7 +73,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-29 | [Story 3.1: City catalogue and pre-built City Puzzles](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.7 + City content |
 | TS-30 | [Story 3.2: Choose a destination from the Album](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Story 3.1 |
 | TS-31 | [Story 3.3: Receive a Postcard](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 3.2 |
-| TS-32 | [Story 3.4: Revisit Postcards and replay Cities](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 3.3 |
+| TS-32 | [Story 3.4: Revisit Postcards and replay Cities](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 3.3 |
 | TS-33 | [Story 3.5: Pick up where you left off](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 3.2 |
 
 ## Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
