@@ -1,10 +1,12 @@
-import { useEffect, useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { withAnnouncement } from '../game/announce.ts'
 import { cityKey, cityOfKey, pendingPostcard } from '../game/journey.ts'
 import { launch } from '../game/launch.ts'
 import { showPendingPostcard } from '../game/reducer.ts'
 import { activeSession, createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
 import type { AppState, Screen } from '../game/types.ts'
+import { toDocument, type Slices } from '../persistence/document.ts'
+import { createSaver, type SaveStore } from '../persistence/store.ts'
 import { AlbumScreen } from './album-screen.tsx'
 import { AppNav } from './app-nav.tsx'
 import { FreePlayScreen } from './free-play-screen.tsx'
@@ -22,20 +24,28 @@ type Props = {
   createWorker?: GeneratorWorkerFactory
   /** Tests only: today's date, 'YYYY-MM-DD'. By default the shell reads the local date. */
   today?: string
+  /** The saved slices loaded before the first render (`persistence/store.loadSaved`); none on a first visit. */
+  loaded?: Slices
+  /** Where changes are saved. Without one nothing is saved (most tests). Read once, at mount. */
+  store?: SaveStore
+  /** False after an unreadable or failed load: the stored value must never be overwritten this page load. */
+  saving?: boolean
 }
-
-const emptyState = () => createInitialState()
 
 /**
  * Owns AppState (one reducer for every screen) so settings, Sessions and Undo
- * history survive switching screens. At start the launch rule (`game/launch`)
- * opens the last-played Puzzle if in progress, else the first City in progress
- * in catalogue order, else Free Play in progress, else the Album. Settings start
- * from their defaults on every load; nothing is saved yet (Epic 4).
+ * history survive switching screens. The Album, Sessions, Settings and `meta`
+ * are restored from the saved document (`loaded`) onto a fresh `ui` (Undo empty),
+ * and saved whole after every action that changes one of them (`ui`-only actions
+ * never write). At start the launch rule (`game/launch`) opens the last-played
+ * Puzzle if in progress, else the first City in progress in catalogue order,
+ * else Free Play in progress, else the Album.
  */
-export function App({ initialState, createWorker, today }: Props) {
+export function App({ initialState, createWorker, today, loaded, store, saving = true }: Props) {
   // The launch rule picks the opening screen; an unrevealed Postcard still shows first (it runs afterwards).
-  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => showPendingPostcard(launch(s ?? emptyState())))
+  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) =>
+    showPendingPostcard(launch(s ?? { ...createInitialState(), ...loaded })),
+  )
   const start = useGenerator(dispatch, createWorker)
   const { screen } = state.ui
   const { lamplight } = state.settings
@@ -51,6 +61,22 @@ export function App({ initialState, createWorker, today }: Props) {
   // Only while the Postcard actually shows: its City is the current Puzzle (the PuzzleScreen rule).
   const pending = pendingPostcard(state.album)
   const revealing = showPuzzle && pending !== undefined && cityKey(pending.cityId) === active.key
+
+  // Autosave: write the whole document when a saved slice changes by reference (the
+  // reducer shares unchanged slices). The first state is the baseline, so starting
+  // (first visit or restore) never writes. Writes are queued in order.
+  // One write queue for the component's life (useMemo may be rebuilt, which would start a second queue).
+  const [saver] = useState(() => (store && saving ? createSaver(store) : null))
+  /** The slices last loaded or saved; a change to any of their references means a write. */
+  const saved = useRef<Slices | null>(null)
+  const { album, sessions, settings, meta } = state
+  useEffect(() => {
+    const prev = saved.current
+    saved.current = { album, sessions, settings, meta }
+    if (prev === null) return
+    if (prev.album === album && prev.sessions === sessions && prev.settings === settings && prev.meta === meta) return
+    saver?.(toDocument({ album, sessions, settings, meta }))
+  }, [saver, album, sessions, settings, meta])
 
   // Lamplight comes only from the toggle; the system colour scheme is ignored.
   useEffect(() => {

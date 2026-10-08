@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { checkArchitecture, checkBruteImports, layerOf, type SourceFile } from './check-architecture.ts'
+import { checkArchitecture, checkBruteImports, checkStorageBoundary, layerOf, type SourceFile } from './check-architecture.ts'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -174,6 +174,12 @@ describe('AD-1 architecture of the real tree', () => {
     expect(messages(files)).toEqual([])
   })
 
+  it('only src/persistence/ touches storage', () => {
+    const files = [...collect(join(ROOT, 'src')), ...collect(join(ROOT, 'scripts'))]
+    expect(files.some((f) => f.path === 'src/persistence/store.ts')).toBe(true)
+    expect(checkStorageBoundary(files)).toEqual([])
+  })
+
   it('only the generator imports engine/brute', () => {
     const files = collect(join(ROOT, 'src'))
     expect(files.some((f) => f.path === 'src/engine/brute.ts')).toBe(true)
@@ -210,6 +216,46 @@ describe('brute import guard', () => {
         { path: 'src/engine/solver.ts', source: "import './brute-force-notes.ts'\nimport './grid.ts'" },
         { path: 'tests/engine/brute.test.ts', source: "import '../../src/engine/brute.ts'" },
         { path: 'scripts/verify.ts', source: "import '../src/engine/brute.ts'" },
+      ]),
+    ).toEqual([])
+  })
+})
+
+describe('storage boundary guard', () => {
+  it.each([
+    ['src/ui/app.tsx', "import { get } from 'idb-keyval'", 'idb-keyval'],
+    ['src/ui/app.tsx', "const m = () => import('idb-keyval/dist/index.js')", 'idb-keyval/dist/index.js'],
+    ['src/main.tsx', "indexedDB.open('x')", 'indexedDB'],
+    ['src/ui/theme.ts', "localStorage.setItem('theme', 'x')", 'localStorage'],
+    ['src/ui/theme.ts', "window.localStorage.getItem('theme')", 'localStorage'],
+    ['src/workers/w.ts', "self['indexedDB'].open('x')", 'indexedDB'],
+    ['src/ui/persist.ts', 'navigator.storage.persist()', 'navigator.storage'],
+    ['src/ui/persist.ts', 'window.navigator.storage.persisted()', 'navigator.storage'],
+    ['src/ui/persist.ts', "navigator['storage'].estimate()", 'navigator.storage'],
+    ['src/game/x.ts', "import 'idb-keyval'", 'idb-keyval'],
+    ['src/ui/theme.ts', 'const { localStorage } = window', 'localStorage'],
+    ['src/ui/theme.ts', 'const { indexedDB: db } = self', 'indexedDB'],
+    ['src/ui/persist.ts', 'const { storage } = navigator', 'navigator.storage'],
+    ['src/ui/persist.ts', 'const { storage: s } = window.navigator', 'navigator.storage'],
+    ['src/ui/persist.ts', "window.navigator['storage'].persist()", 'navigator.storage'],
+    ['scripts/x.ts', "import { set } from 'idb-keyval'", 'idb-keyval'],
+  ])('flags %s using %s', (path, source, name) => {
+    const v = checkStorageBoundary([{ path, source }])
+    expect(v).toHaveLength(1)
+    expect(v[0]).toMatchObject({ file: path, kind: 'storage', name })
+    expect(v[0].message).toContain(path)
+  })
+
+  it('allows src/persistence/, ignores comments, strings, object keys and files outside src/ and scripts/', () => {
+    expect(
+      checkStorageBoundary([
+        { path: 'src/persistence/store.ts', source: "import { get } from 'idb-keyval'\nnavigator.storage.persist()\nindexedDB.open('x')" },
+        { path: 'src/persistence/storage-persist.ts', source: "localStorage.getItem('k')" },
+        {
+          path: 'src/ui/x.tsx',
+          source: "// localStorage and indexedDB are off limits\nexport const s = 'navigator.storage'\nexport const o = { localStorage: 1 }\nexport const storage = 2\nconst { storage: st } = options",
+        },
+        { path: 'tests/persistence/x.test.ts', source: "import 'idb-keyval'\nindexedDB.open('x')" },
       ]),
     ).toEqual([])
   })

@@ -1,13 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
 import './ui/theme.css'
-import { App } from './ui/app.tsx'
+import { idbStore } from './persistence/store.ts'
+import { boot } from './ui/boot.tsx'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('#root not found')
 
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// The saved document loads before the first render (ui/boot); until then theme.css keeps the page blank.
+void boot(idbStore, root, document.documentElement)

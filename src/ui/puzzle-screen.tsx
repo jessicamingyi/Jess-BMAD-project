@@ -29,9 +29,10 @@ type Props = {
   state: AppState
   dispatch: (action: Action) => void
   /**
-   * Today's local date, 'YYYY-MM-DD' (the Postmark date, and the date stamped
-   * onto the four solving actions, so a solve dates its Postcard); defaults to
-   * the local clock, read when the action is dispatched.
+   * Today's local date, 'YYYY-MM-DD' (the Postmark date of a City in progress,
+   * and the date stamped onto the four solving actions, so a solve dates its
+   * Postcard); defaults to the local clock, read when the action is dispatched.
+   * A solved City's Postmark shows its Postcard's `collectedOn` instead.
    */
   today?: string
 }
@@ -75,6 +76,9 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
   const solved = session.status === 'solved'
   // A replay of a collected City: no Postcard, just the "Solved again" line.
   const solvedAgain = active !== null && ui.solvedAgain.includes(active.key)
+  // The Postmark: a solved City is stamped with the day its Postcard was collected.
+  const postcard = city && solved ? state.album.find((p) => p.cityId === city.id) : undefined
+  const postmarkDate = revealing?.collectedOn ?? postcard?.collectedOn ?? today ?? localDate()
 
   return (
     <div className={city ? 'puzzle-screen puzzle-screen--city' : 'puzzle-screen'} ref={screenRef}>
@@ -85,7 +89,7 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
         hintCells={hintFocusCells(hint)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
-        decoration={city && <Postmark name={city.name} date={revealing?.collectedOn ?? today ?? localDate()} />}
+        decoration={city && <Postmark name={city.name} date={postmarkDate} />}
         inert={revealing !== undefined}
       />
       <div className="side-column" inert={revealing !== undefined}>

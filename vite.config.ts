@@ -32,5 +32,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // jsdom App mounts take ~1.5s alone; under a full parallel run the first in a file can pass 5s.
+    testTimeout: 15_000,
   },
 })

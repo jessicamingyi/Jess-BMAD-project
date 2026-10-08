@@ -39,7 +39,7 @@ export type Postcard = {
 
 /** Postcards in the order collected. Reachability, counts and slot states are always computed from it, never stored. */
 export type Album = readonly Postcard[]
-/** Player preferences (Assists, Lamplight, last Free Play Difficulty). Reset on every load in Epic 1; saving is Epic 4. */
+/** Player preferences (Assists, Lamplight, last Free Play Difficulty). Saved with the Album and restored on load (Story 4.1). */
 export type Settings = {
   readonly mistakeHighlighting: boolean
   readonly sameDigitHighlighting: boolean

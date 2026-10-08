@@ -191,12 +191,12 @@ describe('the reveal', () => {
     expect(postcard()!.getAttribute('aria-label')).toBe('Postcard from Paris')
   })
 
-  it('the grid’s Postmark shows the Postcard’s date during the reveal, today afterwards', () => {
+  it('the grid’s Postmark shows the Postcard’s date during the reveal and afterwards (the City is solved)', () => {
     mount(withAlbum([...revealed('europe-near-2'), unrevealed('europe-near-1', '2026-09-30')]))
     expect(host.querySelector('.grid-card > .postmark')!.textContent).toBe('Paris30 SEP 26')
     act(() => addButton().click())
     act(() => navLink('Puzzle').click())
-    expect(host.querySelector('.grid-card > .postmark')!.textContent).toBe('Paris07 OCT 26')
+    expect(host.querySelector('.grid-card > .postmark')!.textContent).toBe('Paris30 SEP 26')
   })
 })
 

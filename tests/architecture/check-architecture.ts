@@ -11,7 +11,7 @@ export type SourceFile = { path: string; source: string }
 
 export type Violation = {
   file: string
-  kind: 'import' | 'package' | 'global' | 'key' | 'brute'
+  kind: 'import' | 'package' | 'global' | 'key' | 'brute' | 'storage'
   /** The import specifier or global name that broke the rule. */
   name: string
   message: string
@@ -338,6 +338,76 @@ export function checkBruteImports(files: readonly SourceFile[]): Violation[] {
         kind: 'brute',
         name: spec,
         message: `${path} imports '${spec}'; engine/brute is for the generator only (never solver, grader or Hints)`,
+      })
+    }
+  }
+  return violations
+}
+
+/** The storage module: the only files that may touch browser storage (AD-7). */
+const PERSISTENCE_FILE = /^src\/persistence\//
+const STORAGE_PACKAGE = /^idb-keyval(?:\/.*)?$/
+const STORAGE_GLOBALS = new Set(['indexedDB', 'localStorage'])
+
+/** `navigator` or `….navigator` (e.g. `window.navigator`). */
+function isNavigator(node: ts.Node | undefined): boolean {
+  if (!node) return false
+  if (ts.isIdentifier(node)) return node.text === 'navigator'
+  return ts.isPropertyAccessExpression(node) && node.name.text === 'navigator'
+}
+
+/** The object a destructuring pattern reads from: `const { a } = <this>`, or null. */
+function destructuredFrom(el: ts.BindingElement): ts.Expression | undefined {
+  const decl = el.parent.parent
+  return ts.isVariableDeclaration(decl) || ts.isParameter(decl) ? decl.initializer : undefined
+}
+
+/**
+ * Storage boundary guard: outside `src/persistence/`, no file under `src/` or
+ * `scripts/` may import `idb-keyval` or reference `indexedDB`, `localStorage`
+ * (bare or as a property, e.g. `window.localStorage`) or `navigator.storage`.
+ * Pure; returns violations naming the file.
+ */
+export function checkStorageBoundary(files: readonly SourceFile[]): Violation[] {
+  const violations: Violation[] = []
+  for (const file of files) {
+    const path = normalize(file.path)
+    if (!/^(?:src|scripts)\//.test(path) || PERSISTENCE_FILE.test(path)) continue
+    const sf = ts.createSourceFile(path, file.source, ts.ScriptTarget.Latest, true, scriptKindFor(path))
+    const found: string[] = collectImports(sf).filter((spec) => STORAGE_PACKAGE.test(spec))
+    const visit = (node: ts.Node): void => {
+      if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
+        // `const { localStorage } = window`, `const { storage } = navigator`
+        const key = node.propertyName ?? node.name
+        const name = ts.isIdentifier(key) || ts.isStringLiteralLike(key) ? key.text : null
+        if (name !== null && STORAGE_GLOBALS.has(name)) found.push(name)
+        else if (name === 'storage' && isNavigator(destructuredFrom(node))) found.push('navigator.storage')
+      } else if (ts.isIdentifier(node) && STORAGE_GLOBALS.has(node.text)) {
+        const p = node.parent
+        // A bare reference, or a member access (`window.indexedDB`); not an object key or a declared name.
+        if (!isNameSlot(node) || (p && ts.isPropertyAccessExpression(p) && p.name === node)) found.push(node.text)
+      } else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression)) {
+        const key = node.argumentExpression.text
+        if (STORAGE_GLOBALS.has(key)) found.push(key)
+        else if (key === 'storage' && isNavigator(node.expression)) {
+          found.push('navigator.storage')
+        }
+      } else if (
+        ts.isPropertyAccessExpression(node) &&
+        node.name.text === 'storage' &&
+        isNavigator(node.expression)
+      ) {
+        found.push('navigator.storage')
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(sf)
+    for (const name of found) {
+      violations.push({
+        file: path,
+        kind: 'storage',
+        name,
+        message: `${path} uses ${name}; only src/persistence/ may touch storage (idb-keyval, indexedDB, localStorage, navigator.storage)`,
       })
     }
   }

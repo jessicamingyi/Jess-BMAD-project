@@ -220,6 +220,20 @@ html {
   background-color: var(--color-desk);
 }
 
+/*
+ * Until the saved document has loaded (main.tsx sets `data-ready`), nothing
+ * app-styled paints: the canvas is the plain system colour and the body is
+ * hidden, so a Lamplight player never sees the Daylight desk.
+ */
+html:not([data-ready]) {
+  color-scheme: light dark;
+  background-color: Canvas;
+}
+
+html:not([data-ready]) body {
+  visibility: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100vh;

@@ -16,6 +16,7 @@
     "check:placeholders": "node scripts/check-placeholders.ts"
   },
   "dependencies": {
+    "idb-keyval": "6.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
