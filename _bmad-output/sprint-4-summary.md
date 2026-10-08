@@ -8,7 +8,7 @@ updated: '2026-10-07'
 # Traveller Sudoku: Sprint 4: Hints and Postcards (Thu 8 Oct 2026)
 
 **Goal:** the game teaches and rewards.
-**Tickets:** 9 (TS-25 to TS-33). **Progress:** 4 / 9 done. Epic 2 (Hints) was built early on Wed 7 Oct; Epic 3 waits on the City content (TS-24).
+**Tickets:** 9 (TS-25 to TS-33). **Progress:** 5 / 9 done. Epic 2 (Hints) and Story 3.1 were built early on Wed 7 Oct. The City list is approved (TS-24); the Postcard lines (TS-40) are unscheduled, so deploys stay blocked.
 
 - **Epic 2, Stories 2.1 to 2.4:** nudge and explanation, "Show me the move", Technique definitions, Mistake Hints and "Something doesn't fit yet".
 - **Epic 3, Stories 3.1 to 3.5:** City catalogue and pre-built City Puzzles, choosing from the Album, receiving a Postcard, revisiting and replaying, picking up where you left off.
@@ -16,7 +16,7 @@ updated: '2026-10-07'
 **Done when:** you can choose Lisbon, get stuck, learn the Technique from a Hint, solve it and watch the Postcard arrive.
 **Risks:** the heaviest sprint (9 stories); deploys stay blocked until the City content is complete.
 
-## Tickets done (4 / 9)
+## Tickets done (5 / 9)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
@@ -24,12 +24,12 @@ updated: '2026-10-07'
 | TS-26 | [Story 2.2: Show me the move](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Wed 7 Oct (early) |
 | TS-27 | [Story 2.3: What's a [Technique]?](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Wed 7 Oct (early) |
 | TS-28 | [Story 2.4: Hints that find Mistakes, and "Something doesn't fit yet"](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Wed 7 Oct (early) |
+| TS-29 | [Story 3.1: City catalogue and pre-built City Puzzles](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Wed 7 Oct (early) |
 
-## Tickets not done yet (5)
+## Tickets not done yet (4)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-29 | [Story 3.1: City catalogue and pre-built City Puzzles](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.7 + City content |
 | TS-30 | [Story 3.2: Choose a destination from the Album](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 3.1 |
 | TS-31 | [Story 3.3: Receive a Postcard](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 3.2 |
 | TS-32 | [Story 3.4: Revisit Postcards and replay Cities](planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 3.3 |

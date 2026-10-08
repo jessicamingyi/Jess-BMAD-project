@@ -85,6 +85,11 @@ updated: '2026-10-07'
     - The line's Hint behaves like every other Hint control.
     - Screen readers hear "7. Something doesn't fit yet — want a hint?" once.
   - **Review:** 3 reviews and 5 fixes, plus a browser check in both themes.
+- **TS-29 Story 3.1, City catalogue and pre-built City Puzzles:**
+  - **Catalogue:** your 30 approved Cities, each with its own single-colour Stamp glyph (Lisbon ⛵). Lisbon has its real Postcard line, and 29 placeholder lines wait for TS-40.
+  - **Puzzles:** one frozen, verified Puzzle per City, generated once from the City's id and locked by a snapshot.
+  - **Deploy gate:** blocks publishing while placeholders remain. Normal CI is unaffected.
+  - **Review:** 3 reviews and 9 fixes. The fixes harden the gate against a silent skip and stop hand-edited Puzzles from reaching the snapshot.
 - **Epic 2 (Hints) is code-complete.** Stories 2.1–2.4 are committed locally on stacked branches up to `story/2-4-mistake-hints`; not yet on `main`.
 
 ## Tickets done (9 / 10)

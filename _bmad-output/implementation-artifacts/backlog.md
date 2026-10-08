@@ -62,7 +62,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 4: Hints and Postcards (Thu 8 Oct 2026)
 
 **Goal:** Epic 2 (Hints that teach) and Epic 3 (travel and collect Postcards).  
-**Progress:** 4 / 9 done (Epic 2, Stories 2.1–2.4, built early on Wed 7 Oct)
+**Progress:** 5 / 9 done (Epic 2 and Story 3.1 built early on Wed 7 Oct)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -70,7 +70,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-26 | [Story 2.2: Show me the move](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 2.1 |
 | TS-27 | [Story 2.3: What's a [Technique]?](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 2.1 |
 | TS-28 | [Story 2.4: Hints that find Mistakes, and "Something doesn't fit yet"](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 2.2 |
-| TS-29 | [Story 3.1: City catalogue and pre-built City Puzzles](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 1.7 + City content |
+| TS-29 | [Story 3.1: City catalogue and pre-built City Puzzles](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.7 + City content |
 | TS-30 | [Story 3.2: Choose a destination from the Album](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | To do | Story 3.1 |
 | TS-31 | [Story 3.3: Receive a Postcard](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 3.2 |
 | TS-32 | [Story 3.4: Revisit Postcards and replay Cities](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | To do | Story 3.3 |
