@@ -28,13 +28,20 @@ function putSession(state: AppState, key: string, session: Session): AppState {
  * The one place a Session's solve status is decided, after a step that changed
  * its digits (a digit placed, or `hintApplied`): solved when the digits are the
  * solution. The step that solves a City not yet in the Album also awards its
- * Postcard dated `date` (`journey.award`; Free Play and collected Cities award
- * nothing). `reducer` has already refused such a step when `date` is malformed.
+ * Postcard dated `date` (`journey.award`; Free Play awards nothing). Solving a
+ * collected City (a replay) awards nothing and adds its key to `ui.solvedAgain`.
+ * `reducer` has already refused such a step when `date` is malformed.
  */
 function settle(state: AppState, key: string, session: Session, date: string): AppState {
   const solved = session.digits === session.solution
   const next = putSession(state, key, { ...session, status: solved ? 'solved' : 'inProgress' })
   if (!solved || state.sessions[key]?.status === 'solved') return next
+  // A replay of a collected City awards nothing (`album` stays the same reference): it is "Solved again".
+  const city = cityOfKey(key)
+  if (city && isCollected(state.album, city)) {
+    if (next.ui.solvedAgain.includes(key)) return next
+    return { ...next, ui: { ...next.ui, solvedAgain: [...next.ui.solvedAgain, key] } }
+  }
   return award(next, key, date)
 }
 
@@ -350,7 +357,17 @@ function reduce(state: AppState, action: Action): AppState {
       return chooseCity(state, action.cityId)
     case 'albumRegionChosen':
       if (!isRegion(action.region) || state.ui.albumRegion === action.region) return state
-      return { ...state, ui: { ...state.ui, albumRegion: action.region } }
+      return { ...state, ui: { ...state.ui, albumRegion: action.region, viewer: null } }
+    case 'postcardViewed':
+      return viewPostcard(state, action.cityId)
+    case 'postcardViewerClosed':
+      return state.ui.viewer === null ? state : { ...state, ui: { ...state.ui, viewer: null } }
+    case 'replayRequested':
+      return requestReplay(state)
+    case 'replayConfirmed':
+      return state.ui.viewer?.confirming ? freshReplay(state, state.ui.viewer.cityId) : state
+    case 'replayKept':
+      return keepReplay(state)
     case 'freePlayResumed':
       return resumeFreePlay(state)
     case 'freePlayDifficultyPicked':
@@ -378,7 +395,10 @@ function openSession(state: AppState, key: string): AppState {
   }
 }
 
-/** Show the Puzzle screen, closing any open confirm and ending the Album visit (as any screen change does). */
+/**
+ * Show the Puzzle screen, closing any open confirm or Postcard viewer and ending
+ * the Album visit (as any screen change does).
+ */
 function showPuzzle(state: AppState): AppState {
   const fp = state.ui.freePlay
   return {
@@ -387,6 +407,7 @@ function showPuzzle(state: AppState): AppState {
       ...state.ui,
       screen: 'puzzle',
       restartConfirming: false,
+      viewer: null,
       justArrived: state.ui.justArrived.length === 0 ? state.ui.justArrived : [],
       freePlay: fp.confirmingReplace ? { ...fp, confirmingReplace: false } : fp,
     },
@@ -394,11 +415,26 @@ function showPuzzle(state: AppState): AppState {
 }
 
 /**
+ * A fresh Session `key` from `puzzle`, made current: Undo, selection, current
+ * digit and Restart confirm cleared, and that Session's Hint closed. Other
+ * Sessions and `meta.lastPlayedKey` are left alone; the screen is not changed.
+ */
+function freshCitySession(state: AppState, key: string, puzzle: Puzzle): AppState {
+  const hint = state.ui.hint?.sessionKey === key ? null : state.ui.hint
+  return {
+    ...state,
+    sessions: { ...state.sessions, [key]: createSession(key, puzzle) },
+    ui: { ...state.ui, activeKey: key, undo: [], selectedCell: null, currentDigit: null, restartConfirming: false, hint },
+  }
+}
+
+/**
  * An Album slot. A Reachable City with a Puzzle in progress opens as it was left
- * (the same Session). Otherwise (no Session yet, or solved) it gets a fresh
- * Session from its pre-built Puzzle, with Undo, selection and current digit
- * cleared and any Hint of that Session closed. Locked, unknown or Puzzle-less
- * Cities: the same state. Other Sessions are never touched. Never recorded in Undo.
+ * (the same Session). An uncollected City with no Session yet, or solved, gets a
+ * fresh Session from its pre-built Puzzle (`freshCitySession`). A collected City
+ * not in progress is the same state: a replay starts only from the viewer's
+ * "Play again". Locked, unknown or Puzzle-less Cities: the same state. Other
+ * Sessions are never touched. Never recorded in Undo.
  */
 function chooseCity(state: AppState, cityId: string): AppState {
   const city = typeof cityId === 'string' ? cityById(cityId) : undefined
@@ -407,12 +443,58 @@ function chooseCity(state: AppState, cityId: string): AppState {
   if (!isPuzzle(puzzle)) return state
   const key = cityKey(city.id)
   if (state.sessions[key]?.status === 'inProgress') return showPuzzle(openSession(state, key))
-  const hint = state.ui.hint?.sessionKey === key ? null : state.ui.hint
-  return showPuzzle({
-    ...state,
-    sessions: { ...state.sessions, [key]: createSession(key, puzzle) },
-    ui: { ...state.ui, activeKey: key, undo: [], selectedCell: null, currentDigit: null, restartConfirming: false, hint },
-  })
+  if (isCollected(state.album, city)) return state
+  return showPuzzle(freshCitySession(state, key, puzzle))
+}
+
+/**
+ * A Collected slot: open the viewer on the City's revealed Postcard (on the
+ * Album). Uncollected, unrevealed or unknown Cities, or another screen: the same state.
+ */
+function viewPostcard(state: AppState, cityId: string): AppState {
+  if (state.ui.screen !== 'album' || typeof cityId !== 'string') return state
+  const city = cityById(cityId)
+  if (!city || !state.album.some((p) => p.cityId === city.id && p.revealed)) return state
+  const viewer = state.ui.viewer
+  if (viewer?.cityId === city.id && !viewer.confirming) return state
+  return { ...state, ui: { ...state.ui, viewer: { cityId: city.id, confirming: false } } }
+}
+
+/**
+ * "Play again" in the viewer. With a replay in progress the inline confirm
+ * shows first; otherwise a fresh replay starts. No viewer, or the confirm
+ * already showing: the same state.
+ */
+function requestReplay(state: AppState): AppState {
+  const viewer = state.ui.viewer
+  if (viewer === null || viewer.confirming) return state
+  if (state.sessions[cityKey(viewer.cityId)]?.status === 'inProgress') {
+    return { ...state, ui: { ...state.ui, viewer: { ...viewer, confirming: true } } }
+  }
+  return freshReplay(state, viewer.cityId)
+}
+
+/**
+ * Replay a collected City: a fresh Session from content opens on the Puzzle
+ * screen (the viewer closes) and its key leaves `ui.solvedAgain`. The Album,
+ * `meta.lastPlayedKey` and other Sessions are untouched.
+ */
+function freshReplay(state: AppState, cityId: string): AppState {
+  const puzzle = cityPuzzle(cityId)
+  if (!isPuzzle(puzzle)) return state
+  const key = cityKey(cityId)
+  const next = showPuzzle(freshCitySession(state, key, puzzle))
+  if (!next.ui.solvedAgain.includes(key)) return next
+  return { ...next, ui: { ...next.ui, solvedAgain: next.ui.solvedAgain.filter((k) => k !== key) } }
+}
+
+/** "Keep going" in the replay confirm: the replay in progress opens as it was left. */
+function keepReplay(state: AppState): AppState {
+  const viewer = state.ui.viewer
+  if (!viewer?.confirming) return state
+  const key = cityKey(viewer.cityId)
+  if (state.sessions[key]?.status !== 'inProgress') return state
+  return showPuzzle(openSession(state, key))
 }
 
 /** Free Play entry "Carry on": the Free Play Puzzle becomes the current Puzzle and shows. */
@@ -452,6 +534,7 @@ function chooseScreen(state: AppState, screen: Screen): AppState {
       // Any screen change ends the Album visit the marks belong to: "just arrived" goes.
       justArrived: [],
       restartConfirming: false,
+      viewer: null,
       freePlay: unchanged ? fp : { ...fp, picked, status, confirmingReplace: false },
     },
   }

@@ -72,6 +72,8 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
   // App renders this screen only with a Session; stay safe if it ever doesn't.
   if (!session) return null
   const solved = session.status === 'solved'
+  // A replay of a collected City: no Postcard, just the "Solved again" line.
+  const solvedAgain = active !== null && ui.solvedAgain.includes(active.key)
 
   return (
     <div className={city ? 'puzzle-screen puzzle-screen--city' : 'puzzle-screen'} ref={screenRef}>
@@ -123,7 +125,7 @@ export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
           !revealing &&
           (city ? (
             <p className="puzzle-status">
-              {copy.solvedCity}{' '}
+              {solvedAgain ? copy.solvedAgain(city.name) : copy.solvedCity}{' '}
               <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'album' })}>
                 {copy.navAlbum}
               </button>

@@ -97,6 +97,16 @@ export const copy = {
   /** e.g. "Lisbon, Portugal". */
   addressCity: (city: string, country: string): string => `${city}, ${country}`,
 
+  /** The Postcard viewer over the Album (a Collected slot) and replay. */
+  slotSeePostcard: 'See Postcard',
+  playAgain: 'Play again',
+  startFresh: 'Start fresh',
+  /** The replay confirm's group label, e.g. "Start Lisbon again?". */
+  replayConfirmLabel: (city: string): string => `Start ${city} again?`,
+  replayConfirmText: 'This replaces your replay in progress.',
+  /** Solve line on a replayed City; followed by an "Album" link-styled button. */
+  solvedAgain: (city: string): string => `Solved again. ${city} is already in your Album.`,
+
   /** Free Play entry. */
   freePlayHeading: 'Free Play',
   difficultyPickerLabel: 'Difficulty',

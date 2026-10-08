@@ -129,12 +129,13 @@ describe('Album: slot states', () => {
     expect(host.querySelector('[role="grid"]')).toBeNull()
   })
 
-  it('Mid opens at 3 Near Postcards; Collected is a static card with name, caption and its own line, no action', () => {
+  it('Mid opens at 3 Near Postcards; Collected is a button with name, caption and its own line', () => {
     mount(withAlbum(postcards('europe-near-1', 'europe-near-2', 'europe-near-3')))
     expect(heading().textContent).toBe('Where to next?')
     expect(tab('Europe').textContent).toBe('Europe 3 / 10')
     const paris = slot('europe-near-1')
-    expect(paris.tagName).toBe('DIV')
+    expect(paris.tagName).toBe('BUTTON')
+    expect(paris.getAttribute('aria-label')).toBe('Paris, France, Near — See Postcard')
     expect(paris.textContent).toBe(`ParisFrance · Near${cityById('europe-near-1')!.line}`)
     expect(paris.querySelector('.album-slot-line')!.textContent).toBe(cityById('europe-near-1')!.line)
     expect(paris.querySelector('.album-slot-arrived')).toBeNull()

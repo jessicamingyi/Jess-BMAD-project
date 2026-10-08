@@ -178,12 +178,20 @@ describe('slotState', () => {
 
   it('collected beats in progress; in progress beats reachable; solved without a Postcard is reachable again', () => {
     const base = { ...createInitialState(), album: album(EU_NEAR[0], EU_NEAR[1], EU_NEAR[2]) }
-    const s = withSession(withSession(withSession(base, EU_NEAR[0], 'inProgress'), EU_NEAR[3], 'inProgress'), 'lisbon', 'solved')
+    const s = withSession(withSession(withSession(base, EU_NEAR[1], 'solved'), EU_NEAR[3], 'inProgress'), 'lisbon', 'solved')
     expect(slotState(s, city(EU_NEAR[0]))).toBe('collected')
+    expect(slotState(s, city(EU_NEAR[1]))).toBe('collected')
     expect(slotState(s, city(EU_NEAR[3]))).toBe('inProgress')
     expect(slotState(s, city('lisbon'))).toBe('reachable')
     expect(slotState(s, city(EU_MID[1]))).toBe('reachable')
     expect(slotState(s, city(EU_FAR[0]))).toBe('locked')
+  })
+
+  it('collectedReplay: collected with a replay in progress; solving it again is plain collected', () => {
+    const base = { ...createInitialState(), album: album(EU_NEAR[0]) }
+    expect(slotState(withSession(base, EU_NEAR[0], 'inProgress'), city(EU_NEAR[0]))).toBe('collectedReplay')
+    expect(slotState(withSession(base, EU_NEAR[0], 'solved'), city(EU_NEAR[0]))).toBe('collected')
+    expect(slotState(base, city(EU_NEAR[0]))).toBe('collected')
   })
 })
 

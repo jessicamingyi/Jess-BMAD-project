@@ -84,6 +84,8 @@ describe('game reducer', () => {
       freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
       hint: null,
       justArrived: [],
+      viewer: null,
+      solvedAgain: [],
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })

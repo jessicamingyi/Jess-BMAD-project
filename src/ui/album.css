@@ -51,7 +51,8 @@
 }
 
 .album-tab:focus-visible,
-.album-slot:focus-visible {
+.album-slot:focus-visible,
+.album-slot-carry-on:focus-visible {
   outline: var(--rule-frame) solid var(--color-focus);
   outline-offset: var(--rule-frame);
 }
@@ -66,7 +67,37 @@
 }
 
 .album-slot-item {
+  position: relative;
   display: flex;
+}
+
+/* The slots and the Postcard viewer over them. */
+.album-slots-area {
+  position: relative;
+}
+
+/*
+ * The Postcard viewer (Story 3.4): in place, centred over the slot grid, the
+ * reveal's width. Non-blocking: no scrim, no motion; the slots stay usable.
+ */
+.album-viewer {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(var(--size-postcard-width), 100%);
+  transform: translate(-50%, -50%);
+}
+
+/* The viewer's button row sits on card over the slots, so its text keeps the ink-on-card contrast. */
+.album-viewer .postcard-actions {
+  padding: var(--space-3);
+  border: var(--rule-thin) solid var(--color-rule-thin);
+  background-color: var(--color-card);
+}
+
+.album-viewer .action-row {
+  min-height: 0;
 }
 
 /* A slot is a blank card: City, "{country} · {Tier}", and its action. */
@@ -110,6 +141,33 @@ button.album-slot {
   font-size: var(--type-button-size);
   font-variant: var(--type-button-variant);
   letter-spacing: var(--type-button-letter-spacing);
+}
+
+/* A Collected slot with a replay in progress keeps room for its "Carry on" button. */
+.album-slot--replay {
+  padding-bottom: calc(var(--space-3) * 2 + var(--size-min-target));
+}
+
+/* "Carry on" on a Collected slot: a sibling button over the slot's foot, in the slot action style. */
+.album-slot-carry-on {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-airmail-red);
+  font-family: var(--font-family);
+  font-size: var(--type-button-size);
+  font-variant: var(--type-button-variant);
+  letter-spacing: var(--type-button-letter-spacing);
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
 }
 
 /*
@@ -222,5 +280,10 @@ button.album-slot--locked {
 
   .album-slot--collected::before {
     display: none;
+  }
+
+  /* The viewer's button row keeps a solid edge over the slots. */
+  .album-viewer .postcard-actions {
+    border-color: CanvasText;
   }
 }

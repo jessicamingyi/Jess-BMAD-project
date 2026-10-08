@@ -117,12 +117,14 @@ describe('cityChosen: carry on', () => {
 })
 
 describe('cityChosen: re-travel a solved City', () => {
-  it('replaces the solved Session with a fresh one', () => {
+  it('a collected City is the same state; "Play again" in the viewer replaces the solved Session with a fresh one', () => {
     const solved = solve(reducer(empty(), choose(NEAR)))
     expect(solved.sessions[`city:${NEAR}`].status).toBe('solved')
     const added = reducer(solved, { type: 'postcardAdded', cityId: NEAR })
     expect(added.album).toEqual([{ cityId: NEAR, collectedOn: '2026-10-07', revealed: true }])
-    const again = run(added, screen('album'), choose(NEAR))
+    const onAlbum = run(added, screen('album'))
+    expect(reducer(onAlbum, choose(NEAR))).toBe(onAlbum)
+    const again = run(onAlbum, { type: 'postcardViewed', cityId: NEAR }, { type: 'replayRequested' })
     expect(again.sessions[`city:${NEAR}`]).toEqual(createSession(`city:${NEAR}`, near))
     expect(again.ui.undo).toEqual([])
     expect(again.ui.selectedCell).toBeNull()

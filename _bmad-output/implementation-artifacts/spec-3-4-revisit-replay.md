@@ -2,7 +2,8 @@
 title: 'Story 3.4: Revisit Postcards and replay Cities'
 type: 'feature'
 created: '2026-10-07'
-status: 'draft'
+status: 'in-review'
+baseline_commit: '16c626a14a4a0f2eea8d6688c8c932a313d575f0'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -71,15 +72,15 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/game/types.ts`, `src/game/session.ts` -- add `ui.viewer` and `ui.solvedAgain` (initially `null` / `[]`) and the five actions with doc comments.
-- [ ] `src/game/journey.ts` -- add `'collectedReplay'` to `slotState`.
-- [ ] `src/game/reducer.ts` -- factor `freshCitySession(state, key, puzzle)` out of `chooseCity`. Add the viewer and replay actions per the matrix. `chooseCity` on a collected City: resume if `inProgress`, else same state. `settle` marks `solvedAgain`. `chooseScreen`, `albumRegionChosen` and `showPuzzle` clear `viewer`.
-- [ ] `src/content/copy.ts` -- `playAgain`, `startFresh`, `slotSeePostcard`, `solvedAgain(city)`, plus the confirm label and text (OQ1). Reuse `keepGoing` and `slotCarryOn`.
-- [ ] `src/ui/postcard.tsx` -- optional `confirm?: ReactNode` rendered in place of the primary button. Non-modal `role="dialog"`.
-- [ ] `src/ui/album-screen.tsx`, `album.css` -- the Collected face button and the "Carry on" button. Render the viewer (OQ4) with `<Postcard actionLabel={copy.playAgain}>`. The inline confirm mirrors Free Play's markup, with focus on "Keep going" when it opens. Add outside-click handling (OQ2), Esc (OQ3) and focus return to the slot. Add a forced-colors edge.
-- [ ] `src/ui/app.tsx` -- wire the Album callbacks to the new actions.
-- [ ] `src/ui/puzzle-screen.tsx` -- for a solved City in `ui.solvedAgain`, show `copy.solvedAgain(city.name)` plus the Album link instead of `solvedCity`.
-- [ ] Tests:
+- [x] `src/game/types.ts`, `src/game/session.ts` -- add `ui.viewer` and `ui.solvedAgain` (initially `null` / `[]`) and the five actions with doc comments.
+- [x] `src/game/journey.ts` -- add `'collectedReplay'` to `slotState`.
+- [x] `src/game/reducer.ts` -- factor `freshCitySession(state, key, puzzle)` out of `chooseCity`. Add the viewer and replay actions per the matrix. `chooseCity` on a collected City: resume if `inProgress`, else same state. `settle` marks `solvedAgain`. `chooseScreen`, `albumRegionChosen` and `showPuzzle` clear `viewer`.
+- [x] `src/content/copy.ts` -- `playAgain`, `startFresh`, `slotSeePostcard`, `solvedAgain(city)`, plus the confirm label and text (OQ1). Reuse `keepGoing` and `slotCarryOn`.
+- [x] `src/ui/postcard.tsx` -- optional `confirm?: ReactNode` rendered in place of the primary button. Non-modal `role="dialog"`.
+- [x] `src/ui/album-screen.tsx`, `album.css` -- the Collected face button and the "Carry on" button. Render the viewer (OQ4) with `<Postcard actionLabel={copy.playAgain}>`. The inline confirm mirrors Free Play's markup, with focus on "Keep going" when it opens. Add outside-click handling (OQ2), Esc (OQ3) and focus return to the slot. Add a forced-colors edge.
+- [x] `src/ui/app.tsx` -- wire the Album callbacks to the new actions.
+- [x] `src/ui/puzzle-screen.tsx` -- for a solved City in `ui.solvedAgain`, show `copy.solvedAgain(city.name)` plus the Album link instead of `solvedCity`.
+- [x] Tests:
   - New `tests/game/replay.test.ts`: every matrix row, the gate blocking the new actions, other Sessions untouched, and `lastPlayedKey` unchanged by opening.
   - `tests/game/journey.test.ts`: `collectedReplay`.
   - Move `nearly()` into `tests/ui/city-fixtures.ts` (shared with `postcard.test.ts`).
@@ -95,6 +96,26 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+*Status at end of day 2026-10-07: the three reviews are done and triaged below. The patches are NOT yet applied, and the browser check was still running at wrap-up (results in `scratchpad/smoke-replay/` if it finished). Resume by sending the patch list to an implementer, rerunning the browser check, then committing.*
+
+| # | Source | Finding | Verdict | Route | Evidence |
+|---|---|---|---|---|---|
+| 1 | blind | The viewer has no visible close control | medium | patch | Esc or an outside click is the only dismiss, which isn't discoverable for touch or screen-reader users. Add a "Close" text control in the viewer. |
+| 2 | blind | The "Solved again" line reads "…in your Album. Album" | low | patch | The sentence is followed by the "Album" link button. Make the sentence's word "Album" the link itself (UX-DR46 wording unchanged). |
+| 3 | blind, edge | Clicking the open slot's own face reopens instead of closing; a click on another face resets the confirm silently | low | patch | The capture close is followed by `onView`. Own face should close; another face should switch. |
+| 4 | edge | The Collected face's `aria-label` hides "just arrived" and the City's line from screen readers | medium | patch | It replaced the old div's text. Put them in the name or use `aria-describedby`. Also add `aria-haspopup="dialog"` and `aria-expanded`. |
+| 5 | edge | The confirm appears even when the replay in progress is untouched | low | patch | Nothing would be lost; start fresh directly when digits equal Givens and there are no Notes. |
+| 6 | VG | The focus-return guard is untested (focus kept on a clicked Album control) | low | patch | Removing the guard passes everything; add a test with the Europe tab focused and clicked. |
+| 7 | blind | A no-op `cityChosen` leaves the viewer open | low | patch | The matrix says "viewer null"; close the viewer in the reducer on any `cityChosen`. |
+| 8 | blind | `album-screen.tsx` imports all of `puzzle.css` for the button styles | low | patch | Move the shared `.button`/`.action-row` styles to a common stylesheet. |
+| 9 | blind | Untested `postcardViewed` confirm reset, `freshReplay` no-puzzle guard, and `solvedAgain` lifecycle | low | patch | Add tests for the confirm reset and for Restart or Undo on a solved replay. |
+| 10 | blind | Contrast pairs for the new "Carry on" over the card and the viewer button row | low | patch | Add them to the contrast test if they aren't already listed (both themes). |
+| 11 | blind | The viewer can be clipped on small grids | low | check | Confirm in the browser check at 900px. Add a `max-height` or overflow only if it is clipped. |
+| 12 | edge | `replayKept` when the Session is no longer in progress | low | reject | The Session can't change while the Album viewer is open. |
+| 13 | edge | `ui.solvedAgain` or `ui.viewer` missing from a loaded state | low | reject | Epic 4's load will normalise `ui` from `createInitialState`. |
+| 14 | edge | "Solved again" is lost after a reload | — | reject | Accepted in the spec: `solvedAgain` is UI-only until Epic 4. |
+| 15 | blind | Spec notes are empty | — | reject | The workflow manages them; recorded here. |
 
 ## Verification
 

@@ -93,11 +93,13 @@ export function openingRegion(album: Album): Region {
   return 'europe'
 }
 
-export type SlotState = 'collected' | 'inProgress' | 'reachable' | 'locked'
+/** `collectedReplay`: collected, with a replay in progress (the slot adds "Carry on"). */
+export type SlotState = 'collected' | 'collectedReplay' | 'inProgress' | 'reachable' | 'locked'
 
 export function slotState(state: AppState, city: City): SlotState {
-  if (isCollected(state.album, city)) return 'collected'
-  if (state.sessions[cityKey(city.id)]?.status === 'inProgress') return 'inProgress'
+  const inProgress = state.sessions[cityKey(city.id)]?.status === 'inProgress'
+  if (isCollected(state.album, city)) return inProgress ? 'collectedReplay' : 'collected'
+  if (inProgress) return 'inProgress'
   return isReachable(state.album, city) ? 'reachable' : 'locked'
 }
 

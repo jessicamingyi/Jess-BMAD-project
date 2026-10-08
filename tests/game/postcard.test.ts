@@ -46,7 +46,9 @@ const withAlbum = (album: Album, base: AppState = createInitialState()): AppStat
 
 /** A City opened from the Album with every empty cell but the last filled correctly; returns the state and that cell. */
 function oneLeft(cityId: string, base: AppState = createInitialState()): { state: AppState; last: number; digit: number } {
-  let s = reducer(base, choose(cityId))
+  // A collected City replays through the Postcard viewer's "Play again" (Story 3.4).
+  const collected = base.album.some((p) => p.cityId === cityId)
+  let s = collected ? run(base, { type: 'postcardViewed', cityId }, { type: 'replayRequested' }) : reducer(base, choose(cityId))
   const { session } = activeSession(s)!
   const cells = [...session.digits].flatMap((d, i) => (d === '0' ? [i] : []))
   for (const i of cells.slice(0, -1)) s = run(s, select(i), enter(Number(session.solution[i])))

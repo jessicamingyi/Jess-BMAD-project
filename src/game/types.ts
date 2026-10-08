@@ -135,6 +135,20 @@ export type UiState = {
    * their slots carry "just arrived". UI only, never saved.
    */
   readonly justArrived: readonly string[]
+  /** The Postcard viewer over the Album (a Collected slot); null when closed. UI only, never saved. */
+  readonly viewer: PostcardViewer | null
+  /**
+   * Session keys (`city:<id>`) of collected Cities solved again since their last
+   * fresh replay: their solved line reads "Solved again…". UI only, never saved.
+   */
+  readonly solvedAgain: readonly string[]
+}
+
+/** The open Postcard viewer: a revealed Postcard of a known City. */
+export type PostcardViewer = {
+  readonly cityId: string
+  /** The inline "Start fresh / Keep going" confirm shows in place of "Play again". */
+  readonly confirming: boolean
 }
 
 export type Announcement = {
@@ -219,6 +233,23 @@ export type Action =
    * the Album opens on its Region. Never recorded in Undo.
    */
   | { readonly type: 'postcardAdded'; readonly cityId: string }
+  /*
+   * The Postcard viewer and replay (Story 3.4). None is ever recorded in Undo,
+   * and all wait while a Postcard is pending (the reveal gate).
+   */
+  /** A Collected slot: open the viewer on its revealed Postcard. Anything else: no change. */
+  | { readonly type: 'postcardViewed'; readonly cityId: string }
+  /** Esc or a click outside the viewer: close it (and any confirm in it). */
+  | { readonly type: 'postcardViewerClosed' }
+  /**
+   * "Play again" in the viewer: a fresh Session from content opens on the
+   * Puzzle screen, or, with a replay in progress, the inline confirm shows.
+   */
+  | { readonly type: 'replayRequested' }
+  /** "Start fresh" in the confirm: replace the replay in progress with a fresh Session. */
+  | { readonly type: 'replayConfirmed' }
+  /** "Keep going" in the confirm: the replay in progress opens as it was left. */
+  | { readonly type: 'replayKept' }
 
 type Undated<A> = A extends { readonly date: string } ? Omit<A, 'date'> : A
 

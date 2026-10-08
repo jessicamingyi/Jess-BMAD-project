@@ -95,6 +95,11 @@ export function App({ initialState, createWorker, today }: Props) {
         headingRef={headingRef}
         onRegion={(region) => dispatch({ type: 'albumRegionChosen', region })}
         onCity={(cityId) => dispatch({ type: 'cityChosen', cityId })}
+        onView={(cityId) => dispatch({ type: 'postcardViewed', cityId })}
+        onCloseViewer={() => dispatch({ type: 'postcardViewerClosed' })}
+        onPlayAgain={() => dispatch({ type: 'replayRequested' })}
+        onStartFresh={() => dispatch({ type: 'replayConfirmed' })}
+        onKeepGoing={() => dispatch({ type: 'replayKept' })}
       />
     )
   } else {
