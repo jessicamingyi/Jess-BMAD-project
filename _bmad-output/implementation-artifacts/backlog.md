@@ -79,14 +79,14 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
 
 **Goal:** Epic 4 (saving, offline, updates), release v1 and a retrospective.  
-**Progress:** 3 / 6 done (Epic 4 stories built early, on Thu 8 Oct)
+**Progress:** 4 / 6 done (Epic 4 stories built early, on Thu 8 Oct)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
 | TS-34 | [Story 4.1: Autosave and restore](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 3.5 |
 | TS-35 | [Story 4.2: Safe across versions and tabs](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Story 4.1 |
 | TS-36 | [Story 4.3: Play offline and update gently](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 4.1 |
-| TS-37 | [Story 4.4: Storage notice and keeping your data](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 4.2 |
+| TS-37 | [Story 4.4: Storage notice and keeping your data](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 4.2 |
 | TS-38 | Release v1: no placeholders, deploy gate green, offline + Safari smoke test | Chore | S | Jessica + Claude | To do | All stories |
 | TS-39 | Retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
 

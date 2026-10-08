@@ -8,7 +8,7 @@ updated: '2026-10-08'
 # Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
 
 **Goal:** a durable, offline v1 on the web.
-**Tickets:** 6 (TS-34 to TS-39). **Progress:** 3 / 6 done. Stories 4.1 to 4.3 were built early, on Thu 8 Oct.
+**Tickets:** 6 (TS-34 to TS-39). **Progress:** 4 / 6 done. Epic 4 complete: Stories 4.1 to 4.4 were built early, on Thu 8 Oct. Release v1 (TS-38) waits on the Postcard lines (TS-40).
 
 - **Epic 4, Stories 4.1 to 4.4:** autosave and restore; safe across versions and tabs; offline play and gentle updates; storage notice and keeping your data.
 - **Release v1:** no placeholders, deploy gate green, smoke test offline and on Safari.
@@ -36,19 +36,26 @@ updated: '2026-10-08'
   - **Gentle updates:** a new version waits until every tab is closed; meanwhile "A new version is ready. It arrives next time you open the game." shows as the lowest-priority banner. The game never reloads itself. A tab coming back into view checks for a new deploy.
   - **Built with `bmad-build-auto`:** 4 review layers, 19 findings, 5 fixes (a build test that the real bundle registers the worker, every built file precached, the update check for long-open tabs), 2 deferred (install icons for Add to Dock, a future schema v2 behind an old worker); headless Chrome offline and update checks.
 
-## Tickets done (3 / 6)
+- **TS-37 Story 4.4, Storage notice and keeping your data:**
+  - **Storage notice:** "Your Album lives in this browser only. Clearing browser data erases it." shows on first launch above the Album slots (or at the top of the side column in a Puzzle) without blocking play, until "Got it".
+  - **Keeping your data:** "Got it" asks the browser to keep the Album (`navigator.storage.persist()`); the first Postcard asks again if it wasn't granted; a grant the browser already gave (or dropped) is recorded at start.
+  - **Safari:** on desktop macOS Safari 17+, a refusal shows "Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it."; other browsers show nothing.
+  - **Saved data v2:** the two new fields arrive through the first real migration; existing saves load and are rewritten as v2 with every Postcard and Puzzle intact. The banner order is now complete.
+  - **Built with `bmad-build-auto`:** 4 review layers, 27 findings, 9 fixes (Add to Dock limited to desktop macOS Safari 17+ that isn't already installed, rejected storage calls handled, a dropped grant corrected); headless Chrome first-launch and v1-save checks.
+
+## Tickets done (4 / 6)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
 | TS-34 | [Story 4.1: Autosave and restore](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 | TS-35 | [Story 4.2: Safe across versions and tabs](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 | TS-36 | [Story 4.3: Play offline and update gently](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
+| TS-37 | [Story 4.4: Storage notice and keeping your data](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 
-## Tickets not done yet (3)
+## Tickets not done yet (2)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-37 | [Story 4.4: Storage notice and keeping your data](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | To do | Story 4.2 |
 | TS-38 | Release v1: no placeholders, deploy gate green, offline + Safari smoke test | Chore | S | Jessica + Claude | To do | All stories |
 | TS-39 | Retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
 

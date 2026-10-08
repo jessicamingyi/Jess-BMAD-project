@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-08-2026 19:00
+last_updated: 10-08-2026 20:00
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -61,11 +61,11 @@ development_status:
   3-5-pick-up-where-you-left-off: done
   epic-3-retrospective: done
 
-  epic-4: in-progress
+  epic-4: done
   4-1-autosave-and-restore: done
   4-2-safe-across-versions-and-tabs: done
   4-3-play-offline-and-update-gently: done
-  4-4-storage-notice-and-keeping-your-data: backlog
+  4-4-storage-notice-and-keeping-your-data: done
   epic-4-retrospective: optional
 sprints:
   sprint-1:
@@ -122,7 +122,7 @@ sprints:
       - 4-2-safe-across-versions-and-tabs
       - 4-3-play-offline-and-update-gently
       - 4-4-storage-notice-and-keeping-your-data
-    tickets: {TS-34: done, TS-35: done, TS-36: done, TS-37: todo, TS-38: todo, 
+    tickets: {TS-34: done, TS-35: done, TS-36: done, TS-37: done, TS-38: todo, 
         TS-39: todo}
   unscheduled:
     tickets: {TS-40: todo}
