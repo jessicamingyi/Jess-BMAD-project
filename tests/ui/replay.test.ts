@@ -32,6 +32,14 @@ function mount(initialState: AppState) {
   act(() => root!.render(createElement(App, { initialState, today: TODAY })))
 }
 
+/** Launch with a replay in progress (the launch rule opens it), then go to the Album. */
+function mountOnAlbum(initialState: AppState) {
+  mount(initialState)
+  expect(host.querySelector('.puzzle-screen')).not.toBeNull()
+  act(() => [...host.querySelectorAll<HTMLButtonElement>('nav button')].find((b) => b.textContent === 'Album')!.click())
+  expect(heading()?.textContent).toMatch(/^Where to/)
+}
+
 afterEach(() => {
   act(() => root?.unmount())
   root = null
@@ -96,7 +104,7 @@ describe('the Collected slot', () => {
   })
 
   it('with a replay in progress adds a sibling "Carry on" in the same list item', () => {
-    mount(replaying())
+    mountOnAlbum(replaying())
     const face = slot('lisbon')
     expect(face.className).toContain('album-slot--replay')
     const c = carryOn()!
@@ -172,7 +180,7 @@ describe('the Postcard viewer', () => {
   })
 
   it('"Close" stays during the replay confirm and closes the whole viewer', () => {
-    mount(replaying())
+    mountOnAlbum(replaying())
     openLisbon()
     act(() => button('Play again')!.click())
     act(() => button('Close')!.click())
@@ -229,7 +237,7 @@ describe('the Postcard viewer', () => {
 
 describe('the replay confirm', () => {
   it('"Play again" with a replay in progress asks inline, focus on "Keep going"', () => {
-    mount(replaying())
+    mountOnAlbum(replaying())
     openLisbon()
     act(() => button('Play again')!.click())
     const group = viewer()!.querySelector('[role="group"]')!
@@ -242,7 +250,7 @@ describe('the replay confirm', () => {
   })
 
   it('Esc during the confirm closes the whole viewer', () => {
-    mount(replaying())
+    mountOnAlbum(replaying())
     openLisbon()
     act(() => button('Play again')!.click())
     press('Escape', button('Keep going'))
@@ -251,7 +259,7 @@ describe('the replay confirm', () => {
   })
 
   it('"Start fresh" opens a fresh grid', () => {
-    mount(replaying())
+    mountOnAlbum(replaying())
     openLisbon()
     act(() => button('Play again')!.click())
     act(() => button('Start fresh')!.click())
@@ -260,7 +268,7 @@ describe('the replay confirm', () => {
 
   it('"Keep going" opens the replay as it was left', () => {
     const state = replaying()
-    mount(state)
+    mountOnAlbum(state)
     openLisbon()
     act(() => button('Play again')!.click())
     act(() => button('Keep going')!.click())
@@ -271,7 +279,7 @@ describe('the replay confirm', () => {
 describe('"Carry on" and solving again', () => {
   it('"Carry on" opens the replay; one keyed digit shows "Solved again", no Postcard, and the slot is plain Collected', () => {
     const state = replaying()
-    mount(state)
+    mountOnAlbum(state)
     act(() => carryOn()!.click())
     const digits = state.sessions['city:lisbon'].digits
     expect(grid()).toBe(digits)

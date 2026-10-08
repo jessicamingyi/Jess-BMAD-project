@@ -57,6 +57,8 @@ export const copy = {
     `${REGION_NAMES[region]} ${collected} / ${total}`,
   albumHeadingEmpty: 'Where to first?',
   albumHeading: 'Where to next?',
+  /** Under the Album heading while any Puzzle is in progress. */
+  albumNoRush: 'No rush - your Puzzle will wait.',
   /** A slot's caption, e.g. "Portugal · Mid". */
   slotCaption: (country: string, tier: keyof typeof TIER_NAMES): string => `${country} · ${TIER_NAMES[tier]}`,
   slotTravel: 'Travel here',

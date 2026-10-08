@@ -14,6 +14,15 @@
   line-height: var(--type-city-title-line-height);
 }
 
+/* "No rush - your Puzzle will wait.": a status line in meta italic ink-muted. */
+.album-no-rush {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--type-meta-size);
+  font-style: var(--type-meta-status-style);
+  line-height: var(--type-meta-line-height);
+}
+
 .album-heading:focus-visible {
   outline: var(--rule-frame) solid var(--color-focus);
   outline-offset: var(--rule-frame);

@@ -122,10 +122,11 @@ describe('City Puzzle header (Story 3.2)', () => {
       state = reducer(reducer(state, { type: 'cellSelected', cell: i }), { type: 'digitEntered', digit: Number(solution[i]), date: '2026-10-07' })
     }
     state = reducer(state, { type: 'postcardAdded', cityId: 'lisbon' })
-    state = reducer(state, { type: 'screenChosen', screen: 'puzzle' })
     act(() => root.unmount())
     root = createRoot(host)
     act(() => root.render(createElement(App, { initialState: state, today: '2026-10-06' })))
+    // Nothing in progress: the launch rule opens the Album; "Puzzle" returns to the last-played (solved) City.
+    act(() => navLink('Puzzle').click())
     const line = host.querySelector('.puzzle-status')!
     expect(line.textContent).toBe('Solved. Where to next? Album')
     act(() => line.querySelector('button')!.click())

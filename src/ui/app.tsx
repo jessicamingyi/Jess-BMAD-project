@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { withAnnouncement } from '../game/announce.ts'
 import { cityKey, cityOfKey, pendingPostcard } from '../game/journey.ts'
+import { launch } from '../game/launch.ts'
 import { showPendingPostcard } from '../game/reducer.ts'
 import { activeSession, createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
 import type { AppState, Screen } from '../game/types.ts'
@@ -27,13 +28,14 @@ const emptyState = () => createInitialState()
 
 /**
  * Owns AppState (one reducer for every screen) so settings, Sessions and Undo
- * history survive switching screens. With nothing in progress the app starts on
- * the Album. Settings start from their defaults on every load; nothing is saved
- * yet (Epic 4).
+ * history survive switching screens. At start the launch rule (`game/launch`)
+ * opens the last-played Puzzle if in progress, else the first City in progress
+ * in catalogue order, else Free Play in progress, else the Album. Settings start
+ * from their defaults on every load; nothing is saved yet (Epic 4).
  */
 export function App({ initialState, createWorker, today }: Props) {
-  // An unrevealed Postcard shows first, before anything else (Story 3.5's launch rule gives way to it).
-  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => showPendingPostcard(s ?? emptyState()))
+  // The launch rule picks the opening screen; an unrevealed Postcard still shows first (it runs afterwards).
+  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => showPendingPostcard(launch(s ?? emptyState())))
   const start = useGenerator(dispatch, createWorker)
   const { screen } = state.ui
   const { lamplight } = state.settings
@@ -41,8 +43,8 @@ export function App({ initialState, createWorker, today }: Props) {
   const freeSession = state.sessions[FREE_PLAY_KEY]
   const mainRef = useRef<HTMLElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
-  /** The screen focus was last moved for; focus moves once a changed screen has rendered. */
-  const focusedScreen = useRef(screen)
+  /** The screen focus was last moved for (null before mount); focus moves once a changed screen has rendered. */
+  const focusedScreen = useRef<Screen | null>(null)
   const date = today ?? localDate()
   const showPuzzle = screen === 'puzzle' && active !== null
   // The Postcard reveal: "Add to Album" (or Esc) is the only way forward, so the nav is inert.
@@ -60,8 +62,9 @@ export function App({ initialState, createWorker, today }: Props) {
     }
   }, [lamplight])
 
-  // On a screen change (nav, "Carry on", a slot, the solved link, or a new Puzzle
-  // opening from the entry): focus the grid's tab-stop cell, or the page heading.
+  // On mount (the launch screen) and on a screen change (nav, "Carry on", a slot, the
+  // solved link, or a new Puzzle opening from the entry): focus the grid's tab-stop
+  // cell, or the page heading.
   useEffect(() => {
     if (focusedScreen.current === screen) return
     focusedScreen.current = screen

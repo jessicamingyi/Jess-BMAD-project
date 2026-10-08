@@ -3,7 +3,7 @@ import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
-import { createInitialState } from '../../src/game/session.ts'
+import { createInitialState, FREE_PLAY_KEY } from '../../src/game/session.ts'
 import type { AppState } from '../../src/game/types.ts'
 import { App } from '../../src/ui/app.tsx'
 import { HINT_POSITIONS, PUZZLES } from '../engine/fixtures.ts'
@@ -495,7 +495,13 @@ describe('a Hint move that solves', () => {
 describe('solved Puzzle', () => {
   it('Hint is aria-disabled, focusable, and does nothing (click or H)', () => {
     const solvedState = createInitialState(samplePuzzle)
-    mount({ ...solvedState, sessions: { free: { ...solvedState.sessions.free, digits: solution, status: 'solved' } } })
+    // Nothing in progress: the launch rule opens the Album with the last-played Puzzle current; "Puzzle" returns to it.
+    mount({
+      ...solvedState,
+      sessions: { free: { ...solvedState.sessions.free, digits: solution, status: 'solved' } },
+      meta: { lastPlayedKey: FREE_PLAY_KEY },
+    })
+    click([...host.querySelectorAll<HTMLButtonElement>('nav button')].find((b) => b.textContent === 'Puzzle')!)
     const button = hintButton()
     expect(button.getAttribute('aria-disabled')).toBe('true')
     expect(button.disabled).toBe(false)

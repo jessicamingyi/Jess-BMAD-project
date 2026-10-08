@@ -38,6 +38,13 @@ function render(element: ReturnType<typeof createElement>) {
   act(() => root!.render(element))
 }
 const mount = (initialState?: AppState) => render(createElement(App, { initialState, today: TODAY }))
+/** Launch on a state with a Puzzle in progress (the launch rule opens it), then go to the Album. */
+function mountOnAlbum(initialState: AppState) {
+  mount(initialState)
+  expect(host.querySelector('.puzzle-screen')).not.toBeNull()
+  act(() => navLink('Album').click())
+  expect(heading().textContent).toMatch(/^Where to/)
+}
 
 afterEach(() => {
   act(() => root?.unmount())
@@ -88,7 +95,7 @@ function travelAndSolve(cityId: string) {
 
 describe('the reveal', () => {
   it('slides the Postcard onto the finished grid: region, line, divider, Postmark over Stamp, address lines', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     const pc = postcard()!
     expect(pc).not.toBeNull()
@@ -122,7 +129,7 @@ describe('the reveal', () => {
   })
 
   it('the grid keeps its finished digits; grid, side column and nav are inert; focus is on "Add to Album"; "Solved" is announced', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     const { solution } = cityPuzzle('lisbon')!
     expect([...host.querySelectorAll('[role="gridcell"]')].map((c) => c.textContent).join('')).toBe(solution)
@@ -136,7 +143,7 @@ describe('the reveal', () => {
   })
 
   it('a click outside the Postcard (grid, side column, nav, page) does nothing', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     act(() => cell(0).click())
     act(() => host.querySelector<HTMLButtonElement>('.side-column button')!.click())
@@ -148,7 +155,7 @@ describe('the reveal', () => {
   })
 
   it('Esc adds the Postcard', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     press('Escape', addButton())
     expect(postcard()).toBeNull()
@@ -156,7 +163,7 @@ describe('the reveal', () => {
   })
 
   it('is a labelled modal dialog', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     expect(postcard()!.getAttribute('role')).toBe('dialog')
     expect(postcard()!.getAttribute('aria-modal')).toBe('true')
@@ -164,7 +171,7 @@ describe('the reveal', () => {
   })
 
   it('Esc still adds after focus has left the Postcard (a click outside)', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     act(() => (document.activeElement as HTMLElement).blur())
     expect(document.activeElement).toBe(document.body)
@@ -237,10 +244,12 @@ describe('keys on "Add to Album" (PuzzleScreen with a spy dispatch)', () => {
 
 describe('after "Add to Album"', () => {
   it('the Album opens on the City’s Region: "Where to next?", count +1, focus on the heading, Lisbon "just arrived"', () => {
-    mount({ ...LISBON_READY(), ui: { ...createInitialState().ui, albumRegion: 'asia' } })
-    act(() => tab('Europe').click())
+    mountOnAlbum(LISBON_READY())
     expect(tab('Europe').textContent).toBe('Europe 3 / 10')
-    travelAndSolve('lisbon')
+    // Leave the Album on another Region, then finish Lisbon (current since launch).
+    act(() => tab('Asia').click())
+    act(() => navLink('Puzzle').click())
+    solveByKeys('lisbon')
     act(() => addButton().click())
 
     expect(heading().textContent).toBe('Where to next?')
@@ -265,7 +274,7 @@ describe('after "Add to Album"', () => {
   })
 
   it('the solved City shows "Solved. Where to next?" when revisited through "Puzzle"', () => {
-    mount(LISBON_READY())
+    mountOnAlbum(LISBON_READY())
     travelAndSolve('lisbon')
     act(() => addButton().click())
     act(() => navLink('Puzzle').click())
@@ -275,7 +284,7 @@ describe('after "Add to Album"', () => {
   })
 
   it('the third Near Postcard opens that Region’s Mid slots: "Travel here", no extra message', () => {
-    mount(nearly(withAlbum(revealed('europe-near-1', 'europe-near-2')), 'europe-near-3'))
+    mountOnAlbum(nearly(withAlbum(revealed('europe-near-1', 'europe-near-2')), 'europe-near-3'))
     expect(slot('lisbon').getAttribute('aria-disabled')).toBe('true')
     travelAndSolve('europe-near-3')
     act(() => addButton().click())
@@ -332,7 +341,7 @@ describe('a pending Postcard at launch (state fixture)', () => {
 describe('UJ-1: the Lisbon journey end to end', () => {
   it('Album → Lisbon with Stamp → Notes → Hint nudge and explanation → solve → Postcard → Add to Album → Europe, "just arrived"', () => {
     // Lisbon is part-played (two cells left), so the journey runs in a few moves.
-    mount(nearly(withAlbum(revealed('europe-near-1', 'europe-near-2', 'europe-near-3')), 'lisbon', 2))
+    mountOnAlbum(nearly(withAlbum(revealed('europe-near-1', 'europe-near-2', 'europe-near-3')), 'lisbon', 2))
     expect(heading().textContent).toBe('Where to next?')
     act(() => slot('lisbon').click())
     expect(title()).toBe('Lisbon · Mid · Medium')

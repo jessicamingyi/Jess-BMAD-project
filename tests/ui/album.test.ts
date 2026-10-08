@@ -237,6 +237,8 @@ describe('Postcard line secrecy', () => {
     const key = cityKey('europe-near-1')
     const digits = puzzle.solution.slice(0, last) + '0' + puzzle.solution.slice(last + 1)
     mount({ ...base, sessions: { ...base.sessions, [key]: { ...createSession(key, puzzle), digits } } })
+    // The launch rule opens Paris (in progress); the tour starts from the Album.
+    act(() => navLink('Album').click())
     const check = (where: string) => {
       const secret = CITIES.filter((c) => !collected.includes(c.id))
       const text = exposed()

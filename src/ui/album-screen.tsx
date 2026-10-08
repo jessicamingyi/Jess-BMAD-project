@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, type RefObject } from 'react'
 import { copy } from '../content/copy.ts'
 import { cityById, type City, type Region } from '../content/cities.ts'
 import { postcardCount, regionCities, REGIONS, slotState, UNLOCK_COUNT } from '../game/journey.ts'
+import { isPuzzleKey } from '../game/launch.ts'
 import type { AppState } from '../game/types.ts'
 import { useDocumentEscape } from './keyboard.ts'
 import { Postcard } from './postcard.tsx'
@@ -38,6 +39,8 @@ type Props = {
 export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onCloseViewer, onPlayAgain, onStartFresh, onKeepGoing }: Props) {
   const { album } = state
   const region = state.ui.albumRegion
+  // Any Puzzle in progress (a known City or Free Play) gets the reassurance line.
+  const anyInProgress = Object.entries(state.sessions).some(([key, s]) => isPuzzleKey(key) && s.status === 'inProgress')
   const regionName = copy.regionName(region)
   const screenRef = useRef<HTMLElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
@@ -89,6 +92,7 @@ export function AlbumScreen({ state, headingRef, onRegion, onCity, onView, onClo
       <h1 className="album-heading" tabIndex={-1} ref={headingRef}>
         {album.length === 0 ? copy.albumHeadingEmpty : copy.albumHeading}
       </h1>
+      {anyInProgress && <p className="album-no-rush">{copy.albumNoRush}</p>}
       <div className="album-tabs" role="group" aria-label={copy.albumRegionsLabel}>
         {REGIONS.map((r) => (
           <button
