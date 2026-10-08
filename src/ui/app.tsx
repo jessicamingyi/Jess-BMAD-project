@@ -7,9 +7,11 @@ import { showPendingPostcard } from '../game/reducer.ts'
 import { activeSession, createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
 import type { AppState, BannerKind, Screen, UiState } from '../game/types.ts'
 import { toDocument, type Slices } from '../persistence/document.ts'
+import { isPersisted, requestPersist } from '../persistence/storage-persist.ts'
 import { createSaver, type SaveStore } from '../persistence/store.ts'
 import { AlbumScreen } from './album-screen.tsx'
 import { AppNav } from './app-nav.tsx'
+import { isSafari as isSafariBrowser } from './browser.ts'
 import { FreePlayScreen } from './free-play-screen.tsx'
 import { LiveRegion } from './live-region.tsx'
 import { NoticeBanner } from './notice-banner.tsx'
@@ -40,7 +42,17 @@ type Props = {
    * Read once, at mount. The update banner only informs: nothing reloads.
    */
   onUpdateReady?: (listener: () => void) => () => void
+  /** Ask the browser to keep the data (`navigator.storage.persist()`); true when granted. Read once, at mount. */
+  persist?: () => Promise<boolean>
+  /** Whether the browser already keeps the data (`navigator.storage.persisted()`). Read once, at mount. */
+  persisted?: () => Promise<boolean>
+  /** Whether this is Safari (a refusal there shows the Add to Dock banner). Read once, at mount. */
+  isSafari?: () => boolean
 }
+
+const defaultPersist = () => requestPersist()
+const defaultPersisted = () => isPersisted()
+const defaultIsSafari = () => isSafariBrowser()
 
 /**
  * Owns AppState (one reducer for every screen) so settings, Sessions and Undo
@@ -51,9 +63,22 @@ type Props = {
  * Puzzle if in progress, else the first City in progress in catalogue order,
  * else Free Play in progress, else the Album.
  * A read-only tab (`notices.readOnly`) never writes. One notice banner at a time
- * shows the read-only, save-failed, unreadable or update-ready notice (`game/banners`).
+ * shows the read-only, save-failed, unreadable, storage, Add to Dock or update-ready notice (`game/banners`).
+ * Persistent storage is requested after the storage notice's "Got it" and again after the
+ * first Postcard if not yet granted; at start an already-persisted origin is recorded.
  */
-export function App({ initialState, createWorker, today, loaded, store, notices, onUpdateReady }: Props) {
+export function App({
+  initialState,
+  createWorker,
+  today,
+  loaded,
+  store,
+  notices,
+  onUpdateReady,
+  persist = defaultPersist,
+  persisted = defaultPersisted,
+  isSafari = defaultIsSafari,
+}: Props) {
   // The launch rule picks the opening screen; an unrevealed Postcard still shows first (it runs afterwards).
   const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => {
     const base = s ?? { ...createInitialState(), ...loaded }
@@ -98,6 +123,62 @@ export function App({ initialState, createWorker, today, loaded, store, notices,
   const [subscribeUpdate] = useState(() => onUpdateReady)
   useEffect(() => subscribeUpdate?.(() => dispatch({ type: 'updateAvailable' })), [subscribeUpdate])
 
+  // Persistent storage (writable tab only; a read-only tab never asks or records anything).
+  const [storageApi] = useState(() => ({ persist, persisted, isSafari }))
+  const writable = state.ui.readOnly === null
+  /** Ask the browser to keep the data and record its answer. A rejection is a refusal; a throwing Safari check is false. */
+  const askPersist = useRef(() => {
+    void storageApi
+      .persist()
+      .catch(() => false)
+      .then((granted) => {
+        let safari = false
+        if (!granted) {
+          try {
+            safari = storageApi.isSafari()
+          } catch {
+            safari = false
+          }
+        }
+        dispatch({ type: 'persistResolved', granted, safari })
+      })
+  })
+  // At start: an origin the browser already keeps is recorded as granted (no Safari tip later);
+  // a saved grant the browser has since dropped is corrected (no tip), so the first Postcard asks again.
+  // A rejection counts as not persisted.
+  const [atStart] = useState(() => ({ writable, granted: state.meta.persistGranted }))
+  useEffect(() => {
+    if (!atStart.writable) return
+    let live = true
+    void storageApi
+      .persisted()
+      .catch(() => false)
+      .then((yes) => {
+        if (!live) return
+        if (yes) dispatch({ type: 'persistResolved', granted: true, safari: false })
+        else if (atStart.granted === true) dispatch({ type: 'persistResolved', granted: false, safari: false })
+      })
+    return () => {
+      live = false
+    }
+  }, [storageApi, atStart])
+  // "Got it" on the storage notice (seenStorageNotice false → true): ask, unless already granted.
+  const { seenStorageNotice, persistGranted } = state.meta
+  const seenBefore = useRef(seenStorageNotice)
+  useEffect(() => {
+    const was = seenBefore.current
+    seenBefore.current = seenStorageNotice
+    if (!was && seenStorageNotice && persistGranted !== true && writable) askPersist.current()
+  }, [seenStorageNotice, persistGranted, writable])
+  // The first Postcard added to the Album (revealed 0 → 1, Album length 1): ask again unless granted.
+  const revealedCount = album.filter((p) => p.revealed).length
+  const revealedBefore = useRef(revealedCount)
+  useEffect(() => {
+    const was = revealedBefore.current
+    revealedBefore.current = revealedCount
+    if (was === 0 && revealedCount === 1 && album.length === 1 && persistGranted !== true && writable) askPersist.current()
+  }, [revealedCount, album.length, persistGranted, writable])
+
   // Lamplight comes only from the toggle; the system colour scheme is ignored.
   useEffect(() => {
     const root = document.documentElement
@@ -121,12 +202,13 @@ export function App({ initialState, createWorker, today, loaded, store, notices,
   }, [screen, revealing])
 
   // The one notice banner, by priority; on the Puzzle screen it heads the side column.
-  const banner = visibleBanner(state.ui)
+  const banner = visibleBanner(state)
   /** "Got it" was pressed: once the banner has gone, focus the grid's tab-stop (Puzzle) or the page heading. */
   const refocus = useRef(false)
   const dismiss = (kind: BannerKind) => {
     refocus.current = true
-    dispatch({ type: 'bannerDismissed', banner: kind })
+    // The storage notice's "Got it" is remembered (saved), then persistence is requested.
+    dispatch(kind === 'storageNotice' ? { type: 'storageNoticeAcknowledged' } : { type: 'bannerDismissed', banner: kind })
   }
   useEffect(() => {
     if (!refocus.current) return

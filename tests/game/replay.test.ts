@@ -43,7 +43,7 @@ function onAlbum(album: Album, sessions: Record<string, Session> = {}): AppState
     ...base,
     album,
     sessions: { [FREE_PLAY_KEY]: free, ...sessions },
-    meta: { lastPlayedKey: FREE_PLAY_KEY },
+    meta: { lastPlayedKey: FREE_PLAY_KEY, seenStorageNotice: true, persistGranted: null },
   })
 }
 

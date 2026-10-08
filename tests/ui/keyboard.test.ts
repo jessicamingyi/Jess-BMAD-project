@@ -24,7 +24,9 @@ beforeEach(() => {
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
-  act(() => root.render(createElement(App, { initialState: createInitialState(samplePuzzle) })))
+  // The storage notice was acknowledged long ago: the tab order under test has no banner.
+  const initial = createInitialState(samplePuzzle)
+  act(() => root.render(createElement(App, { initialState: { ...initial, meta: { ...initial.meta, seenStorageNotice: true } } })))
 })
 
 afterEach(() => {

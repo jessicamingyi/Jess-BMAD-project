@@ -28,7 +28,7 @@ const free = (status: Session['status'] = 'inProgress'): Session => ({ ...create
 /** A frozen launch state: the empty start plus `sessions`, `lastPlayedKey` and `album`. */
 function at(sessions: Record<string, Session>, lastPlayedKey: string | null, album: Album = []): AppState {
   const base = createInitialState()
-  return deepFreeze({ ...base, album, sessions, meta: { lastPlayedKey } })
+  return deepFreeze({ ...base, album, sessions, meta: { lastPlayedKey, seenStorageNotice: true, persistGranted: null } })
 }
 
 const opened = (s: AppState) => ({ screen: s.ui.screen, activeKey: s.ui.activeKey })

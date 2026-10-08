@@ -2,7 +2,7 @@ import { isDateString } from '../game/journey.ts'
 import type { Album, AppState, Difficulty, Meta, Postcard, Session, Settings } from '../game/types.ts'
 
 /** The saved document's version. Older documents are migrated forward (`migrations.ts`). */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 /** The saved slices of AppState: everything but `ui`, which is never saved. */
 export type Slices = Pick<AppState, 'album' | 'sessions' | 'settings' | 'meta'>
@@ -40,7 +40,11 @@ export function toDocument(state: Slices): SaveDocument {
       lamplight: state.settings.lamplight,
       freePlayDifficulty: state.settings.freePlayDifficulty,
     },
-    meta: { lastPlayedKey: state.meta.lastPlayedKey },
+    meta: {
+      lastPlayedKey: state.meta.lastPlayedKey,
+      seenStorageNotice: state.meta.seenStorageNotice,
+      persistGranted: state.meta.persistGranted,
+    },
   }
 }
 
@@ -82,7 +86,7 @@ function readSettings(v: unknown): Settings | null {
 }
 
 /**
- * The saved slices in `value`, or null when it is not a valid version-1 document
+ * The saved slices in `value`, or null when it is not a valid current-version document
  * (wrong shape, a bad field, or another `schemaVersion`). Never throws. Pure.
  */
 export function fromDocument(value: unknown): Slices | null {
@@ -110,8 +114,10 @@ export function fromDocument(value: unknown): Slices | null {
   if (!settings) return null
 
   if (!isObject(value.meta)) return null
-  const { lastPlayedKey } = value.meta
+  const { lastPlayedKey, seenStorageNotice, persistGranted } = value.meta
   if (lastPlayedKey !== null && typeof lastPlayedKey !== 'string') return null
+  if (typeof seenStorageNotice !== 'boolean') return null
+  if (persistGranted !== null && typeof persistGranted !== 'boolean') return null
 
-  return { album, sessions, settings, meta: { lastPlayedKey } }
+  return { album, sessions, settings, meta: { lastPlayedKey, seenStorageNotice, persistGranted } }
 }

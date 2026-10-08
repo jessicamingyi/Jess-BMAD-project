@@ -63,7 +63,7 @@ function fakeBackend() {
   }
 }
 
-const doc = (lastPlayedKey: string) => toDocument({ ...createInitialState(samplePuzzle), meta: { lastPlayedKey } })
+const doc = (lastPlayedKey: string) => toDocument({ ...createInitialState(samplePuzzle), meta: { lastPlayedKey, seenStorageNotice: true, persistGranted: null } })
 
 describe('createSaver', () => {
   it('runs writes one at a time, in order, and the last write wins', async () => {
@@ -128,9 +128,9 @@ describe('loadSaved', () => {
 
   it('is newer for a newer document, and unreadable (with the raw value) for an invalid one; nothing is written', async () => {
     const b = fakeBackend()
-    const newer = { ...doc('free'), schemaVersion: 2 }
+    const newer = { ...doc('free'), schemaVersion: 3 }
     b.data.set(SAVE_KEY, newer)
-    // Best effort: a newer document that still reads as v1 shows its slices (read-only); the stored value is untouched.
+    // Best effort: a newer document that still reads as v2 shows its slices (read-only); the stored value is untouched.
     const bytes = JSON.stringify(newer)
     const result = await loadSaved(b.store)
     expect(result.kind).toBe('newer')

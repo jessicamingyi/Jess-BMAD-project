@@ -212,6 +212,8 @@ export const copy = {
   bannerNewerVersion: 'A newer version saved your progress. Reload to carry on.',
   /** Also the read-only text when storage can't be read or backed up (nothing was touched). */
   bannerUnreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten.",
+  bannerStorageNotice: 'Your Album lives in this browser only. Clearing browser data erases it.',
+  bannerAddToDock: 'Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it.',
   bannerUpdateReady: 'A new version is ready. It arrives next time you open the game.',
   bannerGotIt: 'Got it',
 } as const

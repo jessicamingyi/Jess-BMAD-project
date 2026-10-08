@@ -17,7 +17,7 @@ function played(): AppState {
     album: [{ cityId: 'asia-near-1', collectedOn: '2026-10-07', revealed: false }],
     sessions: { ...base.sessions, [paris.key]: { ...paris, notes, hintsUsed: 2 } },
     settings: { ...base.settings, lamplight: true, mistakeHighlighting: true, freePlayDifficulty: 'hard' },
-    meta: { lastPlayedKey: paris.key },
+    meta: { lastPlayedKey: paris.key, seenStorageNotice: true, persistGranted: null },
     ui: { ...base.ui, undo: [{ digits: paris.digits, notes }], selectedCell: 4, entryMode: 'notes' },
   }
 }
@@ -29,7 +29,8 @@ describe('toDocument', () => {
     const doc = toDocument(played())
     expect(Object.keys(doc).sort()).toEqual(['album', 'meta', 'schemaVersion', 'sessions', 'settings'])
     expect(doc.schemaVersion).toBe(SCHEMA_VERSION)
-    expect(SCHEMA_VERSION).toBe(1)
+    expect(SCHEMA_VERSION).toBe(2)
+    expect(doc.meta).toEqual({ lastPlayedKey: 'city:europe-near-1', seenStorageNotice: true, persistGranted: null })
     expect(JSON.stringify(doc)).not.toContain('undo')
     expect(JSON.stringify(doc)).not.toContain('selectedCell')
   })
@@ -66,13 +67,14 @@ describe('fromDocument', () => {
       album: [],
       sessions: {},
       settings: state.settings,
-      meta: { lastPlayedKey: null },
+      meta: { lastPlayedKey: null, seenStorageNotice: false, persistGranted: null },
     })
   })
 
   it('rejects another or a missing schemaVersion', () => {
-    expect(fromDocument({ ...docOf(), schemaVersion: 2 })).toBeNull()
-    expect(fromDocument({ ...docOf(), schemaVersion: '1' })).toBeNull()
+    expect(fromDocument({ ...docOf(), schemaVersion: 1 })).toBeNull()
+    expect(fromDocument({ ...docOf(), schemaVersion: 3 })).toBeNull()
+    expect(fromDocument({ ...docOf(), schemaVersion: '2' })).toBeNull()
     const { schemaVersion: _, ...unversioned } = docOf()
     expect(fromDocument(unversioned)).toBeNull()
   })
@@ -113,7 +115,11 @@ describe('fromDocument', () => {
     ['a non-boolean setting', { settings: { ...createInitialState().settings, lamplight: 'yes' } }],
     ['an unknown Free Play Difficulty', { settings: { ...createInitialState().settings, freePlayDifficulty: 'extreme' } }],
     ['no meta', { meta: undefined }],
-    ['a numeric lastPlayedKey', { meta: { lastPlayedKey: 3 } }],
+    ['a numeric lastPlayedKey', { meta: { lastPlayedKey: 3, seenStorageNotice: true, persistGranted: null } }],
+    ['no seenStorageNotice (a v1 meta)', { meta: { lastPlayedKey: null } }],
+    ['a non-boolean seenStorageNotice', { meta: { lastPlayedKey: null, seenStorageNotice: 'yes', persistGranted: null } }],
+    ['no persistGranted', { meta: { lastPlayedKey: null, seenStorageNotice: true } }],
+    ['a non-boolean persistGranted', { meta: { lastPlayedKey: null, seenStorageNotice: true, persistGranted: 'granted' } }],
   ])('rejects %s', (_name, patch) => {
     expect(fromDocument({ ...docOf(), ...patch })).toBeNull()
   })

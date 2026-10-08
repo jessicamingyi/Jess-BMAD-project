@@ -119,7 +119,9 @@ function solvedCity(cityId: string): Session {
   return { ...s, digits: s.solution, status: 'solved' }
 }
 
-const docFor = (patch: Partial<AppState>) => toDocument({ ...createInitialState(), ...patch })
+/** A saved document; the storage notice was acknowledged long ago unless `patch.meta` says otherwise. */
+const docFor = (patch: Partial<AppState>) =>
+  toDocument({ ...createInitialState(), meta: { lastPlayedKey: null, seenStorageNotice: true, persistGranted: null }, ...patch })
 const card = (cityId: string, collectedOn: string, revealed = true) => ({ cityId, collectedOn, revealed })
 
 describe('when to write', () => {
@@ -133,7 +135,7 @@ describe('when to write', () => {
   })
 
   it('a restore writes nothing until a saved slice changes', async () => {
-    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } }))
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null } }))
     await boot(fake)
     await flush()
     expect(title()).toBe('Paris · Near · Easy')
@@ -147,7 +149,7 @@ describe('when to write', () => {
     await flush()
     expect(fake.save).toHaveBeenCalledTimes(1)
     const doc = fake.box.value as SaveDocument
-    expect(doc.schemaVersion).toBe(1)
+    expect(doc.schemaVersion).toBe(2)
     expect(Object.keys(doc).sort()).toEqual(['album', 'meta', 'schemaVersion', 'sessions', 'settings'])
     expect(doc.sessions[cityKey(PARIS)].digits).toBe(cityPuzzle(PARIS)!.givens)
   })
@@ -157,7 +159,7 @@ describe('when to write', () => {
       docFor({
         album: [card(LONDON, '2026-10-01')],
         sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) },
-        meta: { lastPlayedKey: FREE_PLAY_KEY },
+        meta: { lastPlayedKey: FREE_PLAY_KEY, seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake)
@@ -241,7 +243,7 @@ describe('reload', () => {
       docFor({
         sessions: { [paris.key]: paris, [tokyo.key]: tokyo, [FREE_PLAY_KEY]: free },
         settings: { ...DEFAULT_SETTINGS, mistakeHighlighting: true, sameDigitHighlighting: false, lamplight: true, freePlayDifficulty: 'hard' },
-        meta: { lastPlayedKey: tokyo.key },
+        meta: { lastPlayedKey: tokyo.key, seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake)
@@ -276,7 +278,7 @@ describe('reload', () => {
       docFor({
         album: [card(PARIS, '2026-10-01')],
         sessions: { [cityKey(PARIS)]: solvedCity(PARIS), [cityKey(LONDON)]: partPlayed(LONDON) },
-        meta: { lastPlayedKey: cityKey(PARIS) },
+        meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake)
@@ -288,7 +290,7 @@ describe('reload', () => {
       docFor({
         album: [card(PARIS, '2026-10-07', false)],
         sessions: { [cityKey(LONDON)]: partPlayed(LONDON) },
-        meta: { lastPlayedKey: cityKey(LONDON) },
+        meta: { lastPlayedKey: cityKey(LONDON), seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake)
@@ -307,7 +309,7 @@ describe('reload', () => {
     const puzzle = cityPuzzle(PARIS)!
     const last = puzzle.givens.lastIndexOf('0')
     const digits = puzzle.solution.slice(0, last) + '0' + puzzle.solution.slice(last + 1)
-    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: { ...createSession(cityKey(PARIS), puzzle), digits } }, meta: { lastPlayedKey: cityKey(PARIS) } }))
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: { ...createSession(cityKey(PARIS), puzzle), digits } }, meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null } }))
     await boot(fake)
     act(() => cell(last).focus())
     press(puzzle.solution[last])
@@ -328,7 +330,7 @@ describe('reload', () => {
       docFor({
         album: [card(PARIS, '2026-09-30')],
         sessions: { [cityKey(PARIS)]: solvedCity(PARIS) },
-        meta: { lastPlayedKey: cityKey(PARIS) },
+        meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake)
@@ -343,8 +345,8 @@ describe('reload', () => {
 })
 
 describe('unreadable saved data', () => {
-  it('a newer schemaVersion that does not read as v1: defaults, read-only, never written, the stored value byte-for-byte untouched', async () => {
-    const stored = { ...docFor({}), schemaVersion: 2, album: { renamed: true } }
+  it('a newer schemaVersion that does not read as v2: defaults, read-only, never written, the stored value byte-for-byte untouched', async () => {
+    const stored = { ...docFor({}), schemaVersion: 3, album: { renamed: true } }
     const bytes = JSON.stringify(stored)
     const fake = fakeStore(stored)
     await boot(fake)
@@ -360,10 +362,10 @@ describe('unreadable saved data', () => {
     expect(JSON.stringify(fake.box.value)).toBe(bytes)
   })
 
-  it('a newer schemaVersion that still reads as v1: its half-finished Puzzle shows, not editable; never written', async () => {
+  it('a newer schemaVersion that still reads as v2: its half-finished Puzzle shows, not editable; never written', async () => {
     const stored = {
-      ...docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } }),
-      schemaVersion: 2,
+      ...docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null } }),
+      schemaVersion: 3,
       extra: 'from the future',
     }
     const bytes = JSON.stringify(stored)
@@ -391,7 +393,7 @@ describe('unreadable saved data', () => {
     expect(fake.backups).toEqual(new Map([['traveller-save-backup-2026-10-08T09:30:00.000Z', stored]]))
     // Then the main key gets the default document, so the next load is clean.
     expect(fake.save).toHaveBeenCalledTimes(1)
-    expect(fake.box.value).toEqual(docFor({}))
+    expect(fake.box.value).toEqual(toDocument(createInitialState()))
     expect(heading().textContent).toBe('Where to first?')
     expect(bannerText()).toBe(UNREADABLE)
     expect(q('.app-banner .notice-banner')).not.toBeNull()
@@ -411,15 +413,17 @@ describe('unreadable saved data', () => {
     await reload(fake)
     expect(fake.saveBackup).toHaveBeenCalledTimes(1)
     expect(fake.backups.size).toBe(1)
-    expect(banner()).toBeNull()
+    // The defaults were saved: no unreadable notice, only the storage notice (never acknowledged in them).
+    expect(banner()!.dataset.banner).toBe('storageNotice')
     expect(heading().textContent).toBe('Where to first?')
   })
 
   it('a migration that throws is unreadable: backup, defaults, banner', async () => {
-    const stored = { ...docFor({}), schemaVersion: 0 }
+    const stored = { ...docFor({}), schemaVersion: 1 }
     const fake = fakeStore(stored)
     await boot(fake, {
       migrations: [
+        () => ({}),
         () => {
           throw new Error('boom')
         },
@@ -427,7 +431,7 @@ describe('unreadable saved data', () => {
     })
     expect([...fake.backups.values()]).toEqual([stored])
     expect(bannerText()).toBe(UNREADABLE)
-    expect(fake.box.value).toEqual(docFor({}))
+    expect(fake.box.value).toEqual(toDocument(createInitialState()))
   })
 
   it('the backup write fails: read-only with the unreadable text, nothing written, no throw', async () => {
@@ -457,47 +461,51 @@ describe('unreadable saved data', () => {
 })
 
 describe('migrations', () => {
-  /** A pretend v0 of `v1`: `album` was called `postcards`. */
-  const toV0 = ({ album, ...rest }: SaveDocument) => ({ ...rest, schemaVersion: 0, postcards: album })
-  const v0to1 = ({ postcards, ...doc }: Readonly<Record<string, unknown>>) => ({ ...doc, album: postcards })
+  /** `v2` exactly as Story 4.3's build saved it: version 1, `meta` with only `lastPlayedKey`. */
+  const toV1 = ({ meta, ...rest }: SaveDocument) => JSON.parse(JSON.stringify({ ...rest, schemaVersion: 1, meta: { lastPlayedKey: meta.lastPlayedKey } }))
+  const unseen = (lastPlayedKey: string | null) => ({ lastPlayedKey, seenStorageNotice: false, persistGranted: null })
 
-  it('a v0 document loads as v1 with every Postcard and Session, written back once', async () => {
-    const v1 = docFor({
+  it('a v1 document loads as v2 with every Postcard, Session and Setting, written back once', async () => {
+    const v2 = docFor({
       album: [card(LONDON, '2026-10-01')],
       sessions: { [cityKey(PARIS)]: partPlayed(PARIS, 2), [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) },
-      meta: { lastPlayedKey: cityKey(PARIS) },
+      settings: { ...DEFAULT_SETTINGS, mistakeHighlighting: true },
+      meta: unseen(cityKey(PARIS)),
     })
-    const fake = fakeStore(toV0(v1))
-    await boot(fake, { migrations: [v0to1] })
+    const fake = fakeStore(toV1(v2))
+    await boot(fake)
     await flush()
     expect(title()).toBe('Paris · Near · Easy')
-    expect(banner()).toBeNull()
+    // The v1 player never saw the storage notice.
+    expect(banner()!.dataset.banner).toBe('storageNotice')
     expect(fake.save).toHaveBeenCalledTimes(1)
-    expect(fake.box.value).toEqual(v1)
+    expect(fake.box.value).toEqual(v2)
+    expect((fake.box.value as SaveDocument).schemaVersion).toBe(2)
     // Nothing more is written until a saved slice changes.
     act(() => navLink('Album').click())
     await flush()
     expect(fake.save).toHaveBeenCalledTimes(1)
+    expect(slot(LONDON).textContent).toContain('London')
   })
 
   it('the write-back is rejected: the Puzzle still loads and the save-failed banner shows', async () => {
-    const v1 = docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } })
-    const fake = fakeStore(toV0(v1))
+    const v2 = docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: unseen(cityKey(PARIS)) })
+    const fake = fakeStore(toV1(v2))
     fake.save.mockRejectedValueOnce(new Error('QuotaExceededError'))
-    await boot(fake, { migrations: [v0to1] })
+    await boot(fake)
     expect(title()).toBe('Paris · Near · Easy')
     expect(bannerText()).toBe("Your last change couldn't be saved. Your next move will try again - your Puzzle is still here.")
     expect(banner()!.classList.contains('notice-banner--alert')).toBe(true)
   })
 
   it('a second tab migrates in memory but never writes back', async () => {
-    const v0 = toV0(docFor({ album: [card(LONDON, '2026-10-01')] }))
-    const fake = fakeStore(v0)
-    await boot(fake, { migrations: [v0to1], acquireLock: otherTab })
+    const v1 = toV1(docFor({ album: [card(LONDON, '2026-10-01')] }))
+    const fake = fakeStore(v1)
+    await boot(fake, { acquireLock: otherTab })
     await flush()
     expect(slot(LONDON).textContent).toContain('London')
     expect(fake.save).not.toHaveBeenCalled()
-    expect(fake.box.value).toBe(v0)
+    expect(fake.box.value).toBe(v1)
   })
 })
 
@@ -505,7 +513,7 @@ describe('a second tab', () => {
   const OTHER_TAB = 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.'
 
   it('shows the saved state read-only: banner, inert grid and side column, Hint unavailable, nothing written', async () => {
-    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS) } }))
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null } }))
     await boot(fake, { acquireLock: otherTab })
     expect(title()).toBe('Paris · Near · Easy')
     expect(bannerText()).toBe(OTHER_TAB)
@@ -534,7 +542,7 @@ describe('a second tab', () => {
     const fake = fakeStore(
       docFor({
         sessions: { [cityKey(PARIS)]: partPlayed(PARIS), [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) },
-        meta: { lastPlayedKey: FREE_PLAY_KEY },
+        meta: { lastPlayedKey: FREE_PLAY_KEY, seenStorageNotice: true, persistGranted: null },
       }),
     )
     await boot(fake, { acquireLock: otherTab })
@@ -563,7 +571,8 @@ describe('a second tab', () => {
     const fake = fakeStore()
     await boot(fake, { acquireLock: otherTab })
     act(() => gotIt().click())
-    expect(banner()).toBeNull()
+    // The next pending banner: the storage notice (a first visit).
+    expect(banner()!.dataset.banner).toBe('storageNotice')
     expect(document.activeElement).toBe(heading())
     act(() => slot(PARIS).click())
     await flush()
@@ -599,7 +608,7 @@ describe('a second tab', () => {
     expect((navigator as Navigator & { locks?: unknown }).locks).toBeUndefined()
     const fake = fakeStore()
     await boot(fake)
-    expect(banner()).toBeNull()
+    expect(banner()!.dataset.banner).toBe('storageNotice')
     act(() => slot(PARIS).click())
     await flush()
     expect(fake.save).toHaveBeenCalledTimes(1)
@@ -678,14 +687,14 @@ describe('boot', () => {
   it('a lock request that throws counts as the holder', async () => {
     const fake = fakeStore()
     await boot(fake, { acquireLock: () => Promise.reject(new Error('SecurityError')) })
-    expect(banner()).toBeNull()
+    expect(banner()!.dataset.banner).toBe('storageNotice')
     act(() => slot(PARIS).click())
     await flush()
     expect(fake.save).toHaveBeenCalledTimes(1)
   })
 
   it.each([
-    ['newerVersion', { ...docFor({}), schemaVersion: 2 }, undefined],
+    ['newerVersion', { ...docFor({}), schemaVersion: 3 }, undefined],
     ['storageUnavailable', undefined, () => Promise.reject(new Error('IndexedDB unavailable'))],
   ] as const)('a holder that ends read-only (%s) releases the lock', async (_name, stored, load) => {
     const fake = fakeStore(stored)
@@ -709,7 +718,7 @@ describe('boot', () => {
         }
       },
     } as unknown as LockManager
-    await boot(fakeStore({ ...docFor({}), schemaVersion: 2 }), { acquireLock: () => acquireSaveLock(locks) })
+    await boot(fakeStore({ ...docFor({}), schemaVersion: 3 }), { acquireLock: () => acquireSaveLock(locks) })
     expect(bannerText()).toBe('A newer version saved your progress. Reload to carry on.')
     await flush()
     expect(held.has(LOCK_NAME)).toBe(false)

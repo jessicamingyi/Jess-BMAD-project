@@ -82,7 +82,9 @@ const heading = () => q<HTMLHeadingElement>('main h1')!
 const navLink = (name: string) => [...host!.querySelectorAll<HTMLButtonElement>('nav button')].find((b) => b.textContent === name)!
 const cell = (i: number) => q(`[data-cell="${i}"]`)!
 const otherTab = async () => ({ held: false, release: () => {} })
-const docFor = (patch: Partial<AppState>) => toDocument({ ...createInitialState(), ...patch })
+/** A saved document whose storage notice was acknowledged long ago (so only the banners under test show). */
+const docFor = (patch: Partial<AppState>) =>
+  toDocument({ ...createInitialState(), meta: { lastPlayedKey: null, seenStorageNotice: true, persistGranted: null }, ...patch })
 const freePlayDoc = () => docFor({ sessions: { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, samplePuzzle) } })
 const emptyCells = [...samplePuzzle.givens].flatMap((d, i) => (d === '0' ? [i] : []))
 
@@ -95,7 +97,7 @@ function press(key: string, target: Element | null = document.activeElement) {
 describe('update ready', () => {
   it('registers once at boot; a waiting worker shows the info banner under the header; nothing reloads or saves', async () => {
     const sw = fakeRegister()
-    const fake = fakeStore()
+    const fake = fakeStore(docFor({}))
     await boot(fake.store, { registerSW: sw.register })
     expect(sw.register).toHaveBeenCalledTimes(1)
     expect(banner()).toBeNull()
@@ -118,7 +120,7 @@ describe('update ready', () => {
       o.onNeedRefresh?.()
       return updateSW
     })
-    await boot(fakeStore().store, { registerSW: eager })
+    await boot(fakeStore(docFor({})).store, { registerSW: eager })
     expect(bannerText()).toBe(UPDATE)
     expect(updateSW).not.toHaveBeenCalled()
   })
@@ -139,7 +141,7 @@ describe('update ready', () => {
 
   it('"Got it" on the Album focuses the page heading', async () => {
     const sw = fakeRegister()
-    await boot(fakeStore().store, { registerSW: sw.register })
+    await boot(fakeStore(docFor({})).store, { registerSW: sw.register })
     sw.waiting()
     act(() => gotIt().click())
     expect(banner()).toBeNull()
@@ -148,7 +150,7 @@ describe('update ready', () => {
 
   it('read-only outranks it; it shows once the read-only banner is dismissed', async () => {
     const sw = fakeRegister()
-    await boot(fakeStore().store, { registerSW: sw.register, acquireLock: otherTab })
+    await boot(fakeStore(docFor({})).store, { registerSW: sw.register, acquireLock: otherTab })
     sw.waiting()
     expect(bannerText()).toBe(OTHER_TAB)
     expect(host!.querySelectorAll('.notice-banner')).toHaveLength(1)
@@ -178,6 +180,9 @@ describe('update ready', () => {
     sw.waiting()
     expect(bannerText()).toBe(UNREADABLE)
     act(() => gotIt().click())
+    // The defaults never saw the storage notice: it ranks above the update.
+    expect(banner()!.dataset.banner).toBe('storageNotice')
+    act(() => gotIt().click())
     expect(bannerText()).toBe(UPDATE)
     act(() => navLink('Settings').click())
     expect(bannerText()).toBe(UPDATE)
@@ -186,7 +191,7 @@ describe('update ready', () => {
   it('no service worker support: registration skipped, the app works', async () => {
     delete (navigator as { serviceWorker?: unknown }).serviceWorker
     const sw = fakeRegister()
-    await boot(fakeStore().store, { registerSW: sw.register })
+    await boot(fakeStore(docFor({})).store, { registerSW: sw.register })
     expect(sw.register).not.toHaveBeenCalled()
     expect(heading().textContent).toBe('Where to first?')
     expect(banner()).toBeNull()
@@ -198,14 +203,14 @@ describe('update ready', () => {
       o.onRegisterError?.(new Error('SecurityError'))
       return async () => {}
     })
-    await boot(fakeStore().store, { registerSW: rejected })
+    await boot(fakeStore(docFor({})).store, { registerSW: rejected })
     expect(heading().textContent).toBe('Where to first?')
     expect(banner()).toBeNull()
     unmount()
     const throwing = vi.fn(() => {
       throw new Error('boom')
     })
-    await boot(fakeStore().store, { registerSW: throwing })
+    await boot(fakeStore(docFor({})).store, { registerSW: throwing })
     expect(throwing).toHaveBeenCalledTimes(1)
     expect(heading().textContent).toBe('Where to first?')
     expect(banner()).toBeNull()

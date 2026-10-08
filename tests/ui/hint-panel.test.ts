@@ -254,6 +254,9 @@ describe('Hint panel', () => {
   })
 
   it('focus order with the panel open: grid, panel button, mode segments, pad, Undo, Hint, Restart', () => {
+    // The storage notice was acknowledged long ago: no banner heads the side column.
+    const initial = createInitialState(samplePuzzle)
+    mount({ ...initial, meta: { ...initial.meta, seenStorageNotice: true } })
     focus(cell(OTHER))
     press('h')
     const tabbable = [...host.querySelectorAll<HTMLElement>('main button, main [tabindex]')].filter((el) => el.tabIndex >= 0)
@@ -500,7 +503,7 @@ describe('solved Puzzle', () => {
     mount({
       ...solvedState,
       sessions: { free: { ...solvedState.sessions.free, digits: solution, status: 'solved' } },
-      meta: { lastPlayedKey: FREE_PLAY_KEY },
+      meta: { lastPlayedKey: FREE_PLAY_KEY, seenStorageNotice: true, persistGranted: null },
     })
     click([...host.querySelectorAll<HTMLButtonElement>('nav button')].find((b) => b.textContent === 'Puzzle')!)
     const button = hintButton()
@@ -596,7 +599,8 @@ describe("Something doesn't fit yet", () => {
   function mountAlmost() {
     const base = createInitialState(samplePuzzle)
     const digits = solution.slice(0, A) + solution[B] + '0' + solution.slice(B + 1)
-    mount({ ...base, sessions: { free: { ...base.sessions.free, digits } } })
+    // The storage notice was acknowledged long ago: no banner heads the side column.
+    mount({ ...base, sessions: { free: { ...base.sessions.free, digits } }, meta: { ...base.meta, seenStorageNotice: true } })
   }
   /** Fill B with A's digit: the grid is full and wrong. */
   function fillWrong() {

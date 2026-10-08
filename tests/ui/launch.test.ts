@@ -54,7 +54,7 @@ function parisPlayed(): Session {
 }
 
 function state(sessions: Record<string, Session>, lastPlayedKey: string | null, album: Album = []): AppState {
-  return { ...createInitialState(), album, sessions, meta: { lastPlayedKey } }
+  return { ...createInitialState(), album, sessions, meta: { lastPlayedKey, seenStorageNotice: true, persistGranted: null } }
 }
 
 const revealed = (...ids: string[]): Album => ids.map((cityId) => ({ cityId, collectedOn: '2026-10-01', revealed: true }))

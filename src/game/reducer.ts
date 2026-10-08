@@ -243,8 +243,10 @@ function refusedReadOnly(prev: AppState, next: AppState, action: Action): boolea
 }
 
 /**
- * Save outcomes, a waiting update and banner dismissals: `ui` only, applied whatever else is going
- * on (a pending Postcard, read-only). Null for any other action.
+ * Save outcomes, a waiting update, banner dismissals and the storage notice / persistence
+ * answers: applied whatever else is going on (a pending Postcard, read-only). The last two
+ * change `meta` only in a writable tab (a read-only tab never changes a saved slice).
+ * Null for any other action.
  */
 function noticeAction(state: AppState, action: Action): AppState | null {
   const { ui } = state
@@ -258,12 +260,37 @@ function noticeAction(state: AppState, action: Action): AppState | null {
     }
     case 'updateAvailable':
       return ui.updateReady ? state : { ...state, ui: { ...ui, updateReady: true } }
+    case 'storageNoticeAcknowledged':
+      // A read-only tab can't save the flag: "Got it" only hides the notice for this page.
+      if (ui.readOnly !== null) {
+        return ui.dismissed.includes('storageNotice') ? state : { ...state, ui: { ...ui, dismissed: [...ui.dismissed, 'storageNotice'] } }
+      }
+      return state.meta.seenStorageNotice ? state : { ...state, meta: { ...state.meta, seenStorageNotice: true } }
+    case 'persistResolved':
+      return resolvePersist(state, action.granted, action.safari)
     case 'bannerDismissed':
       if (!isBannerKind(action.banner) || ui.dismissed.includes(action.banner)) return state
       return { ...state, ui: { ...ui, dismissed: [...ui.dismissed, action.banner] } }
     default:
       return null
   }
+}
+
+/**
+ * A persistent-storage answer: saved in `meta.persistGranted`. A grant clears the
+ * Add to Dock tip; a Safari refusal shows it (again, if it was dismissed earlier).
+ * A read-only tab never asks, and changes nothing.
+ */
+function resolvePersist(state: AppState, granted: boolean, safari: boolean): AppState {
+  const { ui } = state
+  if (ui.readOnly !== null) return state
+  const meta = state.meta.persistGranted === granted ? state.meta : { ...state.meta, persistGranted: granted }
+  let nextUi = ui
+  if (granted && ui.addToDockPending) nextUi = { ...ui, addToDockPending: false }
+  else if (!granted && safari && (!ui.addToDockPending || ui.dismissed.includes('addToDock'))) {
+    nextUi = { ...ui, addToDockPending: true, dismissed: ui.dismissed.filter((b) => b !== 'addToDock') }
+  }
+  return meta === state.meta && nextUi === ui ? state : { ...state, meta, ui: nextUi }
 }
 
 /**

@@ -5,7 +5,11 @@ import { reducer } from '../../src/game/reducer.ts'
 import { createInitialState } from '../../src/game/session.ts'
 import type { AppState } from '../../src/game/types.ts'
 
-const fresh = (): AppState => createInitialState(samplePuzzle)
+/** A Puzzle in play; the storage notice was acknowledged long ago. */
+const fresh = (): AppState => {
+  const s = createInitialState(samplePuzzle)
+  return { ...s, meta: { ...s.meta, seenStorageNotice: true } }
+}
 
 describe('updateAvailable', () => {
   it('starts false and sets ui.updateReady, changing no saved slice', () => {
@@ -17,7 +21,7 @@ describe('updateAvailable', () => {
     expect(next.sessions).toBe(s.sessions)
     expect(next.settings).toBe(s.settings)
     expect(next.meta).toBe(s.meta)
-    expect(visibleBanner(next.ui)).toBe('updateReady')
+    expect(visibleBanner(next)).toBe('updateReady')
   })
 
   it('a second signal changes nothing', () => {
@@ -30,8 +34,8 @@ describe('updateAvailable', () => {
     const ro = { ...s, ui: { ...s.ui, readOnly: 'otherTab' as const } }
     const next = reducer(ro, { type: 'updateAvailable' })
     expect(next.ui.updateReady).toBe(true)
-    expect(visibleBanner(next.ui)).toBe('readOnly')
-    expect(visibleBanner(reducer(next, { type: 'bannerDismissed', banner: 'readOnly' }).ui)).toBe('updateReady')
+    expect(visibleBanner(next)).toBe('readOnly')
+    expect(visibleBanner(reducer(next, { type: 'bannerDismissed', banner: 'readOnly' }))).toBe('updateReady')
   })
 
   it('applies while a Postcard waits to be revealed', () => {
@@ -44,7 +48,7 @@ describe('updateAvailable', () => {
     const ready = reducer(fresh(), { type: 'updateAvailable' })
     const dismissed = reducer(ready, { type: 'bannerDismissed', banner: 'updateReady' })
     expect(dismissed.ui.updateReady).toBe(true)
-    expect(visibleBanner(dismissed.ui)).toBeNull()
+    expect(visibleBanner(dismissed)).toBeNull()
     expect(reducer(dismissed, { type: 'updateAvailable' })).toBe(dismissed)
   })
 })

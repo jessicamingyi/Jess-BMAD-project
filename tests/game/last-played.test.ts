@@ -39,7 +39,7 @@ function playing(...setup: Action[]): AppState {
   }
   const opened = run(start, { type: 'cityChosen', cityId: PARIS }, ...setup)
   expect(opened.ui.activeKey).toBe(PARIS_KEY)
-  return { ...opened, meta: { lastPlayedKey: OTHER_KEY } }
+  return { ...opened, meta: { lastPlayedKey: OTHER_KEY, seenStorageNotice: true, persistGranted: null } }
 }
 
 describe('lastPlayedKey is set by every action that changes digits or Notes', () => {

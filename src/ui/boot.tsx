@@ -32,6 +32,12 @@ export type BootOptions = {
   now?: () => Date
   /** Tests only: a fake `registerSW` (the real one needs a built service worker). */
   registerSW?: RegisterSW
+  /** Ask the browser to keep the data (true when granted). Defaults to `navigator.storage.persist()` (`persistence/storage-persist`); tests inject a fake. */
+  persist?: () => Promise<boolean>
+  /** Whether the browser already keeps the data. Defaults to `navigator.storage.persisted()`; tests inject a fake. */
+  persisted?: () => Promise<boolean>
+  /** Whether the Add to Dock tip applies (desktop macOS Safari 17+). Defaults to `ui/browser.isSafari` over the real browser; tests inject a fake. */
+  isSafari?: () => boolean
 }
 
 /**
@@ -42,10 +48,13 @@ export type BootOptions = {
  * after a newer document, or whose storage failed or hung, is read-only and never writes;
  * a lock it got is released. Lock, load and settle together are bounded by the timeout.
  * After rendering, register the service worker; a waiting new version only shows the
- * update banner (nothing reloads).
+ * update banner (nothing reloads). The App then handles persistent storage: a writable
+ * tab checks `persisted()` at start, and asks `persist()` after the storage notice's
+ * "Got it" and after the first Postcard (unless granted); a Safari refusal shows the
+ * Add to Dock tip. `persist`, `persisted` and `isSafari` default to the real browser.
  */
 export async function boot(store: SaveStore, rootEl: HTMLElement, html: HTMLElement, options: BootOptions = {}): Promise<Root> {
-  const { today, acquireLock = acquireSaveLock, migrations, now = () => new Date(), registerSW } = options
+  const { today, acquireLock = acquireSaveLock, migrations, now = () => new Date(), registerSW, persist, persisted, isSafari } = options
   /** Set once the timeout wins: the page renders read-only, so a lock granted later is given back. */
   let gaveUp = false
   const sequence = async (): Promise<Start> => {
@@ -70,7 +79,16 @@ export async function boot(store: SaveStore, rootEl: HTMLElement, html: HTMLElem
   const root = createRoot(rootEl)
   root.render(
     <StrictMode>
-      <App loaded={loaded} store={store} notices={notices} today={today} onUpdateReady={update.subscribe} />
+      <App
+        loaded={loaded}
+        store={store}
+        notices={notices}
+        today={today}
+        onUpdateReady={update.subscribe}
+        persist={persist}
+        persisted={persisted}
+        isSafari={isSafari}
+      />
     </StrictMode>,
   )
   registerServiceWorker(update.notify, registerSW)

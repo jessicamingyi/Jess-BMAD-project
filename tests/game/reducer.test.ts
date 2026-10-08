@@ -90,9 +90,10 @@ describe('game reducer', () => {
       saveFailed: false,
       unreadableNotice: false,
       updateReady: false,
+      addToDockPending: false,
       dismissed: [],
     })
-    expect(state.meta.lastPlayedKey).toBeNull()
+    expect(state.meta).toEqual({ lastPlayedKey: null, seenStorageNotice: false, persistGranted: null })
   })
 
   it('select: sets ui.selectedCell, Givens included', () => {

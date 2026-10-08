@@ -70,6 +70,10 @@ export type FreePlayUi = {
 
 export type Meta = {
   readonly lastPlayedKey: string | null
+  /** The storage notice was acknowledged ("Got it"); it never shows again. */
+  readonly seenStorageNotice: boolean
+  /** The last answer to persistent storage: granted, refused, or never asked (null). */
+  readonly persistGranted: boolean | null
 }
 
 /** Digit places digits; Notes toggles pencil marks. */
@@ -157,6 +161,8 @@ export type UiState = {
    * time the game opens (never during this session). Never saved.
    */
   readonly updateReady: boolean
+  /** Safari refused persistent storage: the Add to Dock tip is pending. Never saved. */
+  readonly addToDockPending: boolean
   /** Notice banners hidden with "Got it" (this page load only). Never saved. */
   readonly dismissed: readonly BannerKind[]
 }
@@ -165,7 +171,7 @@ export type UiState = {
 export type ReadOnlyReason = 'newerVersion' | 'otherTab' | 'storageUnavailable'
 
 /** The inline notice banners, one shown at a time by priority (`game/banners`). */
-export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable' | 'updateReady'
+export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable' | 'storageNotice' | 'addToDock' | 'updateReady'
 
 /** The open Postcard viewer: a revealed Postcard of a known City. */
 export type PostcardViewer = {
@@ -279,6 +285,13 @@ export type Action =
   | { readonly type: 'saveSucceeded' }
   /** The shell: a new version is waiting (`ui/service-worker`). Sets `ui.updateReady`; nothing reloads. */
   | { readonly type: 'updateAvailable' }
+  /** "Got it" on the storage notice: `meta.seenStorageNotice` (saved); a read-only tab only hides it for the page. */
+  | { readonly type: 'storageNoticeAcknowledged' }
+  /**
+   * The shell: the browser answered a persistent-storage request (or already persists).
+   * Sets `meta.persistGranted`; a refusal in Safari shows the Add to Dock banner.
+   */
+  | { readonly type: 'persistResolved'; readonly granted: boolean; readonly safari: boolean }
   /** "Got it" on a notice banner: hide it for this page load (a read-only tab stays read-only). */
   | { readonly type: 'bannerDismissed'; readonly banner: BannerKind }
 

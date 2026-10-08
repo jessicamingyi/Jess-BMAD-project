@@ -50,7 +50,7 @@ export function createInitialState(puzzle?: Puzzle): AppState {
     album: [],
     sessions: puzzle ? { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) } : {},
     settings: DEFAULT_SETTINGS,
-    meta: { lastPlayedKey: null },
+    meta: { lastPlayedKey: null, seenStorageNotice: false, persistGranted: null },
     ui: {
       screen: puzzle ? 'puzzle' : 'album',
       activeKey: puzzle ? FREE_PLAY_KEY : null,
@@ -72,6 +72,7 @@ export function createInitialState(puzzle?: Puzzle): AppState {
       saveFailed: false,
       unreadableNotice: false,
       updateReady: false,
+      addToDockPending: false,
       dismissed: [],
     },
   }
