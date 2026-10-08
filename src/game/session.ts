@@ -2,6 +2,14 @@ import type { AppState, Puzzle, Session, Settings } from './types.ts'
 
 export const FREE_PLAY_KEY = 'free'
 
+/** The current Puzzle: the Session under `ui.activeKey`, or null when there is none. */
+export function activeSession(state: AppState): { readonly key: string; readonly session: Session } | null {
+  const key = state.ui.activeKey
+  if (key === null) return null
+  const session = state.sessions[key]
+  return session ? { key, session } : null
+}
+
 export function createSession(key: string, puzzle: Puzzle): Session {
   return {
     key,
@@ -33,17 +41,21 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 /**
- * The starting AppState. The app passes no Puzzle: `sessions` is empty and the
- * Free Play entry shows. Tests pass a fixture Puzzle to start on the Puzzle screen.
+ * The starting AppState. The app passes no Puzzle: `sessions` and the Album are
+ * empty and the Album shows ("Where to first?"). Tests pass a fixture Puzzle to
+ * start on the Puzzle screen with it as the current Free Play Puzzle.
  */
 export function createInitialState(puzzle?: Puzzle): AppState {
   return {
-    album: {},
+    album: [],
     sessions: puzzle ? { [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) } : {},
     settings: DEFAULT_SETTINGS,
     meta: { lastPlayedKey: null },
     ui: {
-      screen: puzzle ? 'puzzle' : 'freePlay',
+      screen: puzzle ? 'puzzle' : 'album',
+      activeKey: puzzle ? FREE_PLAY_KEY : null,
+      albumRegion: 'europe',
+      albumSeen: 0,
       selectedCell: null,
       entryMode: 'digit',
       inputMode: 'cellFirst',

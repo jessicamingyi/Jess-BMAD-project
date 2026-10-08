@@ -1,0 +1,146 @@
+/* Album (UX › Album): heading, Region tabs, 10 slots in a 5-column grid. Tokens only. */
+
+.album-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.album-heading {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--type-city-title-size);
+  font-weight: var(--type-city-title-weight);
+  line-height: var(--type-city-title-line-height);
+}
+
+.album-heading:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+/* Region tabs: small-caps labels; the active one sits on a 3px double ink rule. */
+.album-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.album-tab {
+  min-width: var(--size-min-target);
+  min-height: var(--size-min-target);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-bottom: var(--rule-double) double transparent;
+  border-radius: var(--rounded-none);
+  background-color: transparent;
+  color: var(--color-ink-muted);
+  font-family: var(--font-family);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.album-tab[aria-pressed='true'] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink);
+}
+
+.album-tab:focus-visible,
+.album-slot:focus-visible {
+  outline: var(--rule-frame) solid var(--color-focus);
+  outline-offset: var(--rule-frame);
+}
+
+.album-slots {
+  display: grid;
+  grid-template-columns: repeat(var(--size-album-columns), minmax(0, 1fr));
+  gap: var(--size-album-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.album-slot-item {
+  display: flex;
+}
+
+/* A slot is a blank card: City, "{country} · {Tier}", and its action. */
+.album-slot {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-height: var(--size-album-slot-min-height);
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--rule-thin) solid var(--color-rule-thin);
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  text-align: left;
+}
+
+button.album-slot {
+  cursor: pointer;
+}
+
+.album-slot-name {
+  font-size: var(--type-hint-text-size);
+  line-height: var(--type-hint-text-line-height);
+}
+
+.album-slot-caption {
+  color: var(--color-ink-muted);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+}
+
+.album-slot-action {
+  margin-top: auto;
+  color: var(--color-airmail-red);
+  font-size: var(--type-button-size);
+  font-variant: var(--type-button-variant);
+  letter-spacing: var(--type-button-letter-spacing);
+}
+
+/* Interim Collected caption (Story 3.3 restyles the Collected slot). */
+.album-slot-collected {
+  margin-top: auto;
+  color: var(--color-ink-muted);
+  font-size: var(--type-label-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+/* Locked: dashed border, no name, faded by fill and border only (the line keeps full ink-muted contrast). */
+.album-slot--locked {
+  justify-content: center;
+  border: var(--rule-dashed) dashed var(--color-rule-thin);
+  background-color: transparent;
+  color: var(--color-ink-muted);
+}
+
+button.album-slot--locked {
+  cursor: default;
+}
+
+.album-slot-locked {
+  font-size: var(--type-meta-size);
+  font-style: var(--type-meta-status-style);
+  line-height: var(--type-meta-line-height);
+}
+
+@media (max-width: 719.98px) {
+  .album-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

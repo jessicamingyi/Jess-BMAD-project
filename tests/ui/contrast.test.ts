@@ -38,11 +38,13 @@ const NON_TEXT = 3
 /** DESIGN › Colors › Measured contrast. */
 const PAIRS: readonly Pair[] = [
   { fg: 'ink', bg: 'desk', min: TEXT, what: 'text' },
+  /** Also the locked slot's line on its transparent (desk) slot. */
   { fg: 'ink-muted', bg: 'desk', min: TEXT, what: 'text' },
   { fg: 'player-ink', bg: 'fill-selected', min: TEXT, what: 'text' },
   { fg: 'note', bg: 'fill-highlight', min: TEXT, what: 'text' },
   { fg: 'note', bg: 'fill-selected', min: TEXT, what: 'text' },
   { fg: 'mistake', bg: 'card', min: TEXT, what: 'text' },
+  /** Also a slot's "Travel here" / "Carry on" on the card slot. */
   { fg: 'airmail-red', bg: 'card', min: TEXT, what: 'text' },
   { fg: 'rule-thin', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   { fg: 'rule-thin', bg: 'fill-same-digit', min: NON_TEXT, what: 'non-text' },
@@ -52,6 +54,13 @@ const PAIRS: readonly Pair[] = [
   { fg: 'focus', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   /** An aria-disabled primary button (Hint when solved): card text on an ink-muted fill. */
   { fg: 'card', bg: 'ink-muted', min: TEXT, what: 'text' },
+  /** Album slots: City name and caption on a card slot. */
+  { fg: 'ink', bg: 'card', min: TEXT, what: 'text' },
+  { fg: 'ink-muted', bg: 'card', min: TEXT, what: 'text' },
+  /** Stamp: country, glyph and Tier in card ink on the airmail-red face. */
+  { fg: 'card', bg: 'airmail-red', min: TEXT, what: 'text' },
+  /** A locked slot's dashed border on the desk (no fill). */
+  { fg: 'rule-thin', bg: 'desk', min: NON_TEXT, what: 'non-text' },
 ]
 
 /** `--color-<name>: #RRGGBB;` from theme.css, or undefined. */

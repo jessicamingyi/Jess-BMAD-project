@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { copy, type CellKind } from '../content/copy.ts'
 import type { CSSProperties } from 'react'
 import type { GridMarks } from '../game/assists.ts'
@@ -15,6 +15,8 @@ type Props = {
   onClick: (cell: number) => void
   /** A cell received focus (Tab, arrows, click); selects it. */
   onFocusCell?: (cell: number) => void
+  /** Drawn on the grid card, outside the grid (a City Puzzle's Postmark). */
+  decoration?: ReactNode
 }
 
 const ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -51,7 +53,7 @@ function NoteGrid({ mask }: { mask: number }) {
  * selected cell (or cell 0) is the one tab stop; selection moves focus there,
  * and focusing a cell selects it. Keys are handled by `ui/keyboard`, not here.
  */
-export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, onFocusCell }: Props) {
+export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, onFocusCell, decoration }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
   const lastSelected = useRef(selectedCell)
   const tabStop = selectedCell ?? 0
@@ -66,6 +68,7 @@ export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, o
 
   return (
     <div className="grid-card">
+      {decoration}
       {marks?.units && (
         <>
           <span className="frame-tick frame-tick--row" aria-hidden="true" style={tickStyle(marks.units.row)} />

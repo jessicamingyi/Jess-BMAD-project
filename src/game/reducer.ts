@@ -1,54 +1,62 @@
+import { cityById } from '../content/cities.ts'
+import { cityPuzzle } from '../content/city-puzzles.ts'
 import { hintFor } from '../engine/hints.ts'
 import { activeHint, hintMove, hintTechnique } from './hint.ts'
+import { cityKey, isReachable, isRegion, openingRegion } from './journey.ts'
 import { toggleNote } from './notes.ts'
-import { createSession, FREE_PLAY_KEY } from './session.ts'
-import type { Action, AppState, Difficulty, Puzzle, Screen, UndoEntry } from './types.ts'
+import { activeSession, createSession, FREE_PLAY_KEY } from './session.ts'
+import type { Action, AppState, Difficulty, Puzzle, Screen, Session, UndoEntry } from './types.ts'
 
 const isCell = (c: number) => Number.isInteger(c) && c >= 0 && c < 81
 const isDigit = (d: number) => Number.isInteger(d) && d >= 1 && d <= 9
 const isDifficulty = (d: unknown): d is Difficulty => d === 'easy' || d === 'medium' || d === 'hard'
-const isScreen = (s: unknown): s is Screen => s === 'puzzle' || s === 'freePlay' || s === 'settings'
+const isScreen = (s: unknown): s is Screen => s === 'puzzle' || s === 'album' || s === 'freePlay' || s === 'settings'
 const isGridString = (s: unknown) => typeof s === 'string' && /^[0-9]{81}$/.test(s)
 const isPuzzle = (p: Puzzle | undefined): p is Puzzle =>
   !!p && isGridString(p.givens) && isGridString(p.solution) && isDifficulty(p.difficulty)
 
+/** Write `session` back under `key` as the last-played Session. */
+function putSession(state: AppState, key: string, session: Session): AppState {
+  return {
+    ...state,
+    sessions: { ...state.sessions, [key]: session },
+    meta: { ...state.meta, lastPlayedKey: key },
+  }
+}
+
 /**
- * Apply `digit` to `cell` in the current entry mode.
+ * The one place a Session's solve status is decided, after a step that changed
+ * its digits (a digit placed, or `hintApplied`): solved when the digits are the
+ * solution. Story 3.3 hooks `journey.award` in here.
+ */
+function settle(state: AppState, key: string, session: Session): AppState {
+  const status = session.digits === session.solution ? 'solved' : 'inProgress'
+  return putSession(state, key, { ...session, status })
+}
+
+/**
+ * Apply `digit` to `cell` of the current Puzzle in the current entry mode.
  * Digit: place, replace, or clear when the same digit is already there.
  * Notes: toggle Note `digit`, only in empty cells. Placing a digit hides Notes but keeps the mask.
- * Refused (same state) when solved or on a Given.
+ * Refused (same state) with no current Puzzle, when solved or on a Given.
  */
 export function applyDigit(state: AppState, cell: number, digit: number): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
-  if (!session || !isCell(cell) || !isDigit(digit)) return state
+  const active = activeSession(state)
+  if (!active || !isCell(cell) || !isDigit(digit)) return state
+  const { key, session } = active
   if (session.status === 'solved' || session.givens[cell] !== '0') return state
 
   if (state.ui.entryMode === 'notes') {
     if (session.digits[cell] !== '0') return state
     const notes = session.notes.slice()
     notes[cell] = toggleNote(notes[cell], digit)
-    return {
-      ...state,
-      sessions: { ...state.sessions, [FREE_PLAY_KEY]: { ...session, notes } },
-      meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-    }
+    return putSession(state, key, { ...session, notes })
   }
 
   const ch = String(digit)
   const next = session.digits[cell] === ch ? '0' : ch
   const digits = session.digits.slice(0, cell) + next + session.digits.slice(cell + 1)
-  return {
-    ...state,
-    sessions: {
-      ...state.sessions,
-      [FREE_PLAY_KEY]: {
-        ...session,
-        digits,
-        status: digits === session.solution ? 'solved' : 'inProgress',
-      },
-    },
-    meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-  }
+  return settle(state, key, { ...session, digits })
 }
 
 /**
@@ -57,25 +65,18 @@ export function applyDigit(state: AppState, cell: number, digit: number): AppSta
  * when there is nothing to clear.
  */
 export function clearCell(state: AppState, cell: number): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
-  if (!session || !isCell(cell)) return state
+  const active = activeSession(state)
+  if (!active || !isCell(cell)) return state
+  const { key, session } = active
   if (session.status === 'solved' || session.givens[cell] !== '0') return state
   if (session.digits[cell] !== '0') {
     const digits = session.digits.slice(0, cell) + '0' + session.digits.slice(cell + 1)
-    return {
-      ...state,
-      sessions: { ...state.sessions, [FREE_PLAY_KEY]: { ...session, digits } },
-      meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-    }
+    return putSession(state, key, { ...session, digits })
   }
   if (session.notes[cell] === 0) return state
   const notes = session.notes.slice()
   notes[cell] = 0
-  return {
-    ...state,
-    sessions: { ...state.sessions, [FREE_PLAY_KEY]: { ...session, notes } },
-    meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-  }
+  return putSession(state, key, { ...session, notes })
 }
 
 function select(state: AppState, cell: number): AppState {
@@ -87,13 +88,16 @@ const sameNotes = (a: readonly number[], b: readonly number[]) =>
   a === b || (a.length === b.length && a.every((m, i) => m === b[i]))
 
 /**
- * Push the pre-change `{ digits, notes }` of `prev` onto `next.ui.undo` when the
- * grid changed, and close any open Restart confirm. ui-only changes and no-ops record nothing.
+ * Push the pre-change `{ digits, notes }` of the current Puzzle in `prev` onto
+ * `next.ui.undo` when its grid changed, and close any open Restart confirm.
+ * ui-only changes, no-ops and changes of the current Puzzle record nothing.
  */
 function record(prev: AppState, next: AppState): AppState {
   if (next === prev) return next
-  const before = prev.sessions[FREE_PLAY_KEY]
-  const after = next.sessions[FREE_PLAY_KEY]
+  const key = prev.ui.activeKey
+  if (key === null || next.ui.activeKey !== key) return next
+  const before = prev.sessions[key]
+  const after = next.sessions[key]
   if (!before || !after || before === after) return next
   if (before.digits === after.digits && sameNotes(before.notes, after.notes)) return next
   const entry: UndoEntry = { digits: before.digits, notes: before.notes }
@@ -101,52 +105,45 @@ function record(prev: AppState, next: AppState): AppState {
 }
 
 function undo(state: AppState): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
+  const active = activeSession(state)
   const history = state.ui.undo
-  if (!session || session.status === 'solved' || history.length === 0) return state
+  if (!active || active.session.status === 'solved' || history.length === 0) return state
   const { digits, notes } = history[history.length - 1]
-  return {
-    ...state,
-    sessions: { ...state.sessions, [FREE_PLAY_KEY]: { ...session, digits, notes, status: 'inProgress' } },
-    meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-    ui: { ...state.ui, undo: history.slice(0, -1), restartConfirming: false },
-  }
+  const next = putSession(state, active.key, { ...active.session, digits, notes, status: 'inProgress' })
+  return { ...next, ui: { ...state.ui, undo: history.slice(0, -1), restartConfirming: false } }
 }
 
 /** Clear to the Givens. Snapshots first (so one Undo brings everything back); clean grids record nothing. */
 function restart(state: AppState): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
-  if (!session || session.status === 'solved') return state
+  const active = activeSession(state)
+  if (!active || active.session.status === 'solved') return state
+  const { key, session } = active
   const closed = state.ui.restartConfirming ? { ...state, ui: { ...state.ui, restartConfirming: false } } : state
   const clean = session.digits === session.givens && session.notes.every((m) => m === 0)
   if (clean) return closed
-  return record(closed, {
-    ...closed,
-    sessions: {
-      ...closed.sessions,
-      [FREE_PLAY_KEY]: {
-        ...session,
-        digits: session.givens,
-        notes: Array.from({ length: 81 }, () => 0),
-        status: 'inProgress',
-      },
-    },
-    meta: { ...closed.meta, lastPlayedKey: FREE_PLAY_KEY },
-  })
+  return record(
+    closed,
+    putSession(closed, key, {
+      ...session,
+      digits: session.givens,
+      notes: Array.from({ length: 81 }, () => 0),
+      status: 'inProgress',
+    }),
+  )
 }
 
 function setRestartConfirming(state: AppState, open: boolean): AppState {
   if (state.ui.restartConfirming === open) return state
   // Opening is refused once solved; closing an already-open confirm is always allowed.
-  if (open && state.sessions[FREE_PLAY_KEY]?.status === 'solved') return state
+  if (open && activeSession(state)?.session.status === 'solved') return state
   return { ...state, ui: { ...state.ui, restartConfirming: open } }
 }
 
 /**
  * The only way AppState changes. Pure: never mutates `state`, and returns
- * `state` itself when an action changes nothing. Every change to the session's
- * digits or Notes is recorded in `ui.undo`. Any change to the digits of the
- * Session an open Hint belongs to sets that Hint back to idle in the same step.
+ * `state` itself when an action changes nothing. Every change to the current
+ * Puzzle's digits or Notes is recorded in `ui.undo`. Any change to the digits of
+ * the Session an open Hint belongs to sets that Hint back to idle in the same step.
  */
 export function reducer(state: AppState, action: Action): AppState {
   return resetHintOnDigits(state, reduce(state, action))
@@ -162,22 +159,23 @@ function resetHintOnDigits(prev: AppState, next: AppState): AppState {
 }
 
 /**
- * H or a step button. Refused when there is no Session or it is solved.
+ * H or a step button. Refused when there is no current Puzzle or it is solved.
  * Closed or idle → find a Hint from the digits: the first Mistake if any, else
  * a Technique chain; step 1 (nudge), or idle when the Techniques find no
  * placement. Nudge → explain. Explain → no change (the move
  * is placed by `hintApplied`). Never recorded in Undo.
  */
 function requestHint(state: AppState): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
-  if (!session || session.status === 'solved') return state
-  const hint = activeHint(state, FREE_PLAY_KEY)
+  const active = activeSession(state)
+  if (!active || active.session.status === 'solved') return state
+  const { key, session } = active
+  const hint = activeHint(state, key)
   const withHint = (next: NonNullable<AppState['ui']['hint']>): AppState => ({ ...state, ui: { ...state.ui, hint: next } })
   if (hint === null || hint.step === 'idle') {
     // Digits are unchanged since an idle "no Hint" result, so it would be the same again.
     if (hint?.result?.kind === 'none') return state
     const result = hintFor(session.givens, session.digits, session.solution)
-    return withHint({ sessionKey: FREE_PLAY_KEY, step: result.kind === 'none' ? 'idle' : 'nudge', result })
+    return withHint({ sessionKey: key, step: result.kind === 'none' ? 'idle' : 'nudge', result })
   }
   if (hint.step === 'nudge') return withHint({ ...hint, step: 'explain' })
   return state
@@ -188,15 +186,16 @@ function requestHint(state: AppState): AppState {
  * whatever the entry mode (Notes stay, hidden under the digit). A Mistake
  * (digit 0): clear its cell (the Notes mask is kept, so its Notes show again).
  * Either way add 1 to `hintsUsed` and detect a solve in the same step. Refused
- * (same state) with no Session, when solved, without the active Session's own
- * Hint at step 2, when a placement's target isn't an empty non-Given cell, or
+ * (same state) with no current Puzzle, when solved, without the current
+ * Puzzle's own Hint at step 2, when a placement's target isn't an empty non-Given cell, or
  * when a Mistake's cell is a Given or no longer holds the reported digit.
  * `reduce` records it in Undo; `resetHintOnDigits` then sets the Hint idle.
  */
 function applyHint(state: AppState): AppState {
-  const session = state.sessions[FREE_PLAY_KEY]
-  if (!session || session.status === 'solved') return state
-  const hint = activeHint(state, FREE_PLAY_KEY)
+  const active = activeSession(state)
+  if (!active || active.session.status === 'solved') return state
+  const { key, session } = active
+  const hint = activeHint(state, key)
   const move = hintMove(hint)
   if (!move || !isCell(move.cell)) return state
   const { cell, digit } = move
@@ -206,28 +205,17 @@ function applyHint(state: AppState): AppState {
     if (hint?.result?.kind !== 'mistake' || session.digits[cell] !== String(hint.result.digit)) return state
   } else if (!isDigit(digit) || session.digits[cell] !== '0') return state
   const digits = session.digits.slice(0, cell) + String(digit) + session.digits.slice(cell + 1)
-  return {
-    ...state,
-    sessions: {
-      ...state.sessions,
-      [FREE_PLAY_KEY]: {
-        ...session,
-        digits,
-        hintsUsed: session.hintsUsed + 1,
-        status: digits === session.solution ? 'solved' : 'inProgress',
-      },
-    },
-    meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
-  }
+  return settle(state, key, { ...session, digits, hintsUsed: session.hintsUsed + 1 })
 }
 
 /**
- * Open or close the "What's a…" definition. Only the active Session's own Hint
+ * Open or close the "What's a…" definition. Only the current Puzzle's own Hint
  * at step 1 or 2 with a chain, and only when the value changes; otherwise the
  * same state. Touches nothing but `ui.hint.definitionOpen`. Never recorded in Undo.
  */
 function setDefinitionOpen(state: AppState, open: boolean): AppState {
-  const hint = activeHint(state, FREE_PLAY_KEY)
+  const key = activeSession(state)?.key
+  const hint = key === undefined ? null : activeHint(state, key)
   if (!hint || hintTechnique(hint) === null) return state
   if ((hint.definitionOpen ?? false) === open) return state
   return { ...state, ui: { ...state.ui, hint: { ...hint, definitionOpen: open } } }
@@ -255,6 +243,13 @@ function reduce(state: AppState, action: Action): AppState {
       return restart(state)
     case 'screenChosen':
       return chooseScreen(state, action.screen)
+    case 'cityChosen':
+      return chooseCity(state, action.cityId)
+    case 'albumRegionChosen':
+      if (!isRegion(action.region) || state.ui.albumRegion === action.region) return state
+      return { ...state, ui: { ...state.ui, albumRegion: action.region } }
+    case 'freePlayResumed':
+      return resumeFreePlay(state)
     case 'freePlayDifficultyPicked':
     case 'freePlayRequested':
     case 'freePlayReplaceRequested':
@@ -268,13 +263,75 @@ function reduce(state: AppState, action: Action): AppState {
 }
 
 /**
+ * Make Session `key` the current Puzzle. Changing the current Puzzle clears the
+ * Undo history, the selection, the current digit and any Restart confirm;
+ * returning to the same Puzzle keeps them. Never touches `meta.lastPlayedKey`.
+ */
+function openSession(state: AppState, key: string): AppState {
+  if (state.ui.activeKey === key) return state
+  return {
+    ...state,
+    ui: { ...state.ui, activeKey: key, undo: [], selectedCell: null, currentDigit: null, restartConfirming: false },
+  }
+}
+
+/** Show the Puzzle screen, closing any open confirm (as any screen change does). */
+function showPuzzle(state: AppState): AppState {
+  const fp = state.ui.freePlay
+  return {
+    ...state,
+    ui: {
+      ...state.ui,
+      screen: 'puzzle',
+      restartConfirming: false,
+      freePlay: fp.confirmingReplace ? { ...fp, confirmingReplace: false } : fp,
+    },
+  }
+}
+
+/**
+ * An Album slot. A Reachable City with a Puzzle in progress opens as it was left
+ * (the same Session). Otherwise (no Session yet, or solved) it gets a fresh
+ * Session from its pre-built Puzzle, with Undo, selection and current digit
+ * cleared and any Hint of that Session closed. Locked, unknown or Puzzle-less
+ * Cities: the same state. Other Sessions are never touched. Never recorded in Undo.
+ */
+function chooseCity(state: AppState, cityId: string): AppState {
+  const city = typeof cityId === 'string' ? cityById(cityId) : undefined
+  if (!city || !isReachable(state.album, city)) return state
+  const puzzle = cityPuzzle(city.id)
+  if (!isPuzzle(puzzle)) return state
+  const key = cityKey(city.id)
+  if (state.sessions[key]?.status === 'inProgress') return showPuzzle(openSession(state, key))
+  const hint = state.ui.hint?.sessionKey === key ? null : state.ui.hint
+  return showPuzzle({
+    ...state,
+    sessions: { ...state.sessions, [key]: createSession(key, puzzle) },
+    ui: { ...state.ui, activeKey: key, undo: [], selectedCell: null, currentDigit: null, restartConfirming: false, hint },
+  })
+}
+
+/** Free Play entry "Carry on": the Free Play Puzzle becomes the current Puzzle and shows. */
+function resumeFreePlay(state: AppState): AppState {
+  if (!state.sessions[FREE_PLAY_KEY]) return state
+  if (state.ui.activeKey === FREE_PLAY_KEY && state.ui.screen === 'puzzle') return state
+  return showPuzzle(openSession(state, FREE_PLAY_KEY))
+}
+
+/**
  * Switch screens. Leaving or entering a screen closes any open Restart or
- * replace confirm. The Puzzle screen needs a Session. Opening the Free Play entry
+ * replace confirm. The Puzzle screen needs a current Puzzle. The Album keeps its
+ * Region tab, or opens on the latest Postcard's Region when one is new since the last visit. Opening the Free Play entry
  * seeds the picker from the last Free Play Difficulty (unless a request is pending).
  */
 function chooseScreen(state: AppState, screen: Screen): AppState {
   if (!isScreen(screen) || state.ui.screen === screen) return state
-  if (screen === 'puzzle' && !state.sessions[FREE_PLAY_KEY]) return state
+  if (screen === 'puzzle' && !activeSession(state)) return state
+  // The Album keeps its Region tab, unless a Postcard arrived since the last visit:
+  // then it opens on the latest Postcard's Region.
+  const newPostcard = screen === 'album' && state.album.length > state.ui.albumSeen
+  const albumRegion = newPostcard ? openingRegion(state.album) : state.ui.albumRegion
+  const albumSeen = screen === 'album' ? state.album.length : state.ui.albumSeen
   const fp = state.ui.freePlay
   const entering = screen === 'freePlay' && fp.status !== 'generating'
   const picked = entering ? (state.settings.freePlayDifficulty ?? 'easy') : fp.picked
@@ -286,6 +343,8 @@ function chooseScreen(state: AppState, screen: Screen): AppState {
     ui: {
       ...state.ui,
       screen,
+      albumRegion,
+      albumSeen,
       restartConfirming: false,
       freePlay: unchanged ? fp : { ...fp, picked, status, confirmingReplace: false },
     },
@@ -322,20 +381,36 @@ function freePlay(state: AppState, action: Action): AppState {
       if (fp.status !== 'generating' || action.requestId !== fp.requestId) return state
       if (!isPuzzle(action.puzzle)) return withFreePlay({ status: 'failed' })
       const { puzzle } = action
+      const sessions = { ...state.sessions, [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) }
+      const settings = { ...state.settings, freePlayDifficulty: puzzle.difficulty }
+      const done = { ...fp, picked: puzzle.difficulty, status: 'idle' as const, confirmingReplace: false }
+      const { activeKey, hint } = state.ui
+      if (activeKey !== null && activeKey !== FREE_PLAY_KEY && state.ui.screen !== 'freePlay') {
+        // A City is current and the player has left the entry: the City stays
+        // current, with its Undo and Hint. Only the Free Play Puzzle is replaced;
+        // it waits under Free Play → "Carry on". (Still on the entry: it opens, below.)
+        return {
+          ...state,
+          sessions,
+          settings,
+          ui: { ...state.ui, freePlay: done, hint: hint?.sessionKey === FREE_PLAY_KEY ? null : hint },
+        }
+      }
       return {
         ...state,
-        sessions: { ...state.sessions, [FREE_PLAY_KEY]: createSession(FREE_PLAY_KEY, puzzle) },
-        settings: { ...state.settings, freePlayDifficulty: puzzle.difficulty },
+        sessions,
+        settings,
         meta: { ...state.meta, lastPlayedKey: FREE_PLAY_KEY },
         ui: {
           ...state.ui,
           // Open the Puzzle only if the player is still on the entry; elsewhere they stay put.
           screen: state.ui.screen === 'freePlay' ? 'puzzle' : state.ui.screen,
+          activeKey: FREE_PLAY_KEY,
           selectedCell: null,
           currentDigit: null,
           undo: [],
           restartConfirming: false,
-          freePlay: { ...fp, picked: puzzle.difficulty, status: 'idle', confirmingReplace: false },
+          freePlay: done,
           hint: null,
         },
       }

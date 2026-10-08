@@ -330,6 +330,7 @@ describe('keyboard play on the mounted Puzzle screen', () => {
     const names = tabbable.map((el) => (el.getAttribute('role') === 'gridcell' ? 'grid' : el.textContent))
     expect(names).toEqual([
       'Puzzle',
+      'Album',
       'Free Play',
       'Settings',
       'grid',

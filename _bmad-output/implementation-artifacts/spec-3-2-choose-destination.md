@@ -2,7 +2,8 @@
 title: 'Story 3.2: Choose a destination from the Album'
 type: 'feature'
 created: '2026-10-07'
-status: 'draft'
+status: 'done'
+baseline_commit: '9263fdb9c19478b2026f26db161314b10607f975'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -62,19 +63,19 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/game/types.ts` -- `Postcard`, `Album = readonly Postcard[]`, `Screen` gains `'album'`, `UiState.activeKey: string | null` and `UiState.albumRegion: Region`. Actions: `cityChosen { cityId }`, `albumRegionChosen { region }` and `freePlayResumed`.
-- [ ] `src/game/journey.ts` -- `cityKey(id)` → `city:<id>`; `regionCities(region)`; `postcardCount(album, region, tier?)` (ignores unknown ids); `isReachable(album, city)`; `slotPosition(city)` (1–10); `openingRegion(album)` (Region of the last Postcard with a known id, else `europe`); `slotState(state, city)`: `collected | inProgress | reachable | locked`.
-- [ ] `src/game/session.ts` -- `activeSession(state)` returns `{ key, session } | null`. `createInitialState()` sets `album: []`, screen `album`, `activeKey: null` and `albumRegion: 'europe'`. With a fixture, `activeKey` is `'free'`.
-- [ ] `src/game/reducer.ts` -- swap every `FREE_PLAY_KEY` read for the active key. Put the session's solve status in one helper, the place where 3.3 hooks `award`. Add `cityChosen` per the matrix, outside `record`, guarded by `isReachable` and `cityPuzzle`. A shared `openSession(state, key)` clears `undo`, `selectedCell`, `currentDigit` and `restartConfirming` only when the key changes (OQ1). Add `albumRegionChosen`. Add `freePlayResumed` (the entry's "Carry on"). In `chooseScreen`, `'album'` sets `albumRegion = openingRegion(album)`, and `'puzzle'` needs an active session. In `freePlayGenerated`, switch `activeKey` to `free` unless a City is active (matrix).
-- [ ] `src/game/announce.ts` -- use the active key.
-- [ ] `src/content/copy.ts` -- add `navAlbum`, Region names ("Europe", "Asia", "The Americas"), Tier names, `regionTabCount` ("Europe 4 / 10"), "Where to first?" / "Where to next?", "Travel here", the locked lines, `cityTitle` ("Lisbon · Mid · Medium"), `cityMeta` ("Portugal — Europe, Postcard 5 of 10"), `postmarkDate('2026-10-06')` → "06 OCT 26", and the interim City solve line "Solved. Where to next?" with an "Album" link.
-- [ ] `src/ui/album-screen.tsx`, `album.css` -- an `h1` (`tabIndex -1`, `headingRef`); a tab row of buttons with `aria-pressed`; a 5-column slot grid labelled with the Region name. Slot states: Reachable/In progress are buttons that dispatch `cityChosen`. Locked is `aria-disabled` (focusable), with no name and no fill. Collected is an interim static card with name and caption, no line and no action; 3.3 restyles it.
-- [ ] `src/ui/stamp.tsx` -- `Stamp` (with a size prop: 74×88 now, 52×62 in 3.3) and `Postmark` (City name and date), both `aria-hidden`. Glyph font: `--font-family`, `font-variant-emoji: text`.
-- [ ] `src/ui/puzzle-title.tsx` -- for City sessions, the title, meta line and Stamp. Free Play is unchanged.
-- [ ] `src/ui/puzzle-screen.tsx`, `puzzle.css` -- read the active session. For City sessions, place the Postmark outside the top-right of `.grid-card` and show the City solve line.
-- [ ] `src/ui/app.tsx`, `app-nav.tsx`, `free-play-screen.tsx` -- nav "Puzzle · Album · Free Play · Settings", with "Puzzle" enabled when the active session exists. Render the Album. Add a `today?: string` prop for tests; by default the shell builds the local `YYYY-MM-DD`. Free Play "Carry on" dispatches `freePlayResumed`.
-- [ ] `src/ui/theme.css` -- add any missing tokens (stamp perforation, double rule) as variables with twins.
-- [ ] Tests:
+- [x] `src/game/types.ts` -- `Postcard`, `Album = readonly Postcard[]`, `Screen` gains `'album'`, `UiState.activeKey: string | null` and `UiState.albumRegion: Region`. Actions: `cityChosen { cityId }`, `albumRegionChosen { region }` and `freePlayResumed`.
+- [x] `src/game/journey.ts` -- `cityKey(id)` → `city:<id>`; `regionCities(region)`; `postcardCount(album, region, tier?)` (ignores unknown ids); `isReachable(album, city)`; `slotPosition(city)` (1–10); `openingRegion(album)` (Region of the last Postcard with a known id, else `europe`); `slotState(state, city)`: `collected | inProgress | reachable | locked`.
+- [x] `src/game/session.ts` -- `activeSession(state)` returns `{ key, session } | null`. `createInitialState()` sets `album: []`, screen `album`, `activeKey: null` and `albumRegion: 'europe'`. With a fixture, `activeKey` is `'free'`.
+- [x] `src/game/reducer.ts` -- swap every `FREE_PLAY_KEY` read for the active key. Put the session's solve status in one helper, the place where 3.3 hooks `award`. Add `cityChosen` per the matrix, outside `record`, guarded by `isReachable` and `cityPuzzle`. A shared `openSession(state, key)` clears `undo`, `selectedCell`, `currentDigit` and `restartConfirming` only when the key changes (OQ1). Add `albumRegionChosen`. Add `freePlayResumed` (the entry's "Carry on"). In `chooseScreen`, `'album'` sets `albumRegion = openingRegion(album)`, and `'puzzle'` needs an active session. In `freePlayGenerated`, switch `activeKey` to `free` unless a City is active (matrix).
+- [x] `src/game/announce.ts` -- use the active key.
+- [x] `src/content/copy.ts` -- add `navAlbum`, Region names ("Europe", "Asia", "The Americas"), Tier names, `regionTabCount` ("Europe 4 / 10"), "Where to first?" / "Where to next?", "Travel here", the locked lines, `cityTitle` ("Lisbon · Mid · Medium"), `cityMeta` ("Portugal — Europe, Postcard 5 of 10"), `postmarkDate('2026-10-06')` → "06 OCT 26", and the interim City solve line "Solved. Where to next?" with an "Album" link.
+- [x] `src/ui/album-screen.tsx`, `album.css` -- an `h1` (`tabIndex -1`, `headingRef`); a tab row of buttons with `aria-pressed`; a 5-column slot grid labelled with the Region name. Slot states: Reachable/In progress are buttons that dispatch `cityChosen`. Locked is `aria-disabled` (focusable), with no name and no fill. Collected is an interim static card with name and caption, no line and no action; 3.3 restyles it.
+- [x] `src/ui/stamp.tsx` -- `Stamp` (with a size prop: 74×88 now, 52×62 in 3.3) and `Postmark` (City name and date), both `aria-hidden`. Glyph font: `--font-family`, `font-variant-emoji: text`.
+- [x] `src/ui/puzzle-title.tsx` -- for City sessions, the title, meta line and Stamp. Free Play is unchanged.
+- [x] `src/ui/puzzle-screen.tsx`, `puzzle.css` -- read the active session. For City sessions, place the Postmark outside the top-right of `.grid-card` and show the City solve line.
+- [x] `src/ui/app.tsx`, `app-nav.tsx`, `free-play-screen.tsx` -- nav "Puzzle · Album · Free Play · Settings", with "Puzzle" enabled when the active session exists. Render the Album. Add a `today?: string` prop for tests; by default the shell builds the local `YYYY-MM-DD`. Free Play "Carry on" dispatches `freePlayResumed`.
+- [x] `src/ui/theme.css` -- add any missing tokens (stamp perforation, double rule) as variables with twins.
+- [x] Tests:
   - `tests/game/journey.test.ts`: the AC reachability matrix, `openingRegion`, `slotPosition`, `slotState`.
   - `tests/game/city-session.test.ts`: every matrix row, plus the frozen state and the active-key switch for Undo.
   - `tests/ui/album.test.ts`: tabs, counts, empty-Album headings, slot states, focus, "Carry on" exactly as left, and line secrecy (container text, accessible names and live region against every `line`, with a Lisbon-collected fixture for contrast).
@@ -88,9 +89,42 @@ context:
 
 ## Implementation Notes
 
+- `journey` also exports `REGIONS`, `isRegion`, `UNLOCK_COUNT`, `isCollected` and `cityOfKey(key)` (the City of a `city:<id>` key; used by the header, Postmark and solve line). `slotState` precedence: collected > inProgress > reachable > locked.
+- Reducer: `putSession` writes a Session back; `settle` is the single solve-status helper (3.3 hooks `award` there). `record` skips any step where `activeKey` changes. `cityChosen` with a solved (or missing) Session builds a fresh one and always clears Undo/selection/current digit, even if the key was already active; `openSession` only resets on a key change.
+- `freePlayGenerated` while a City is current: if the player is still on the Free Play entry, the new Puzzle opens and becomes current (`activeKey` 'free', screen `puzzle`, Undo cleared), per the 1.8 decision. On any other screen it replaces only `sessions.free` (plus `settings.freePlayDifficulty` and the entry state), closes only a `free` Hint, and leaves `screen`, `activeKey`, `undo`, `selectedCell` and `meta` alone.
+- The Album keeps its Region tab across visits. `ui.albumSeen` (the Album length at the last visit) is UI-only; when the Album has grown since then, opening it switches to `openingRegion(album)`.
+- Slots carry explicit accessible names (`copy.slotLabel` / `copy.slotLockedLabel` with "n of 3" progress); Collected slots show a visible "Collected" caption. Unlock count and Region size come from `UNLOCK_COUNT` and `regionCities().length`, not copy literals.
+- `announce` keys on `prev.ui.activeKey` and is silent when the active key changes (so `cityChosen`/`freePlayResumed` never speak).
+- `SudokuGrid` gained a `decoration` prop; the Postmark renders inside `.grid-card` but outside `role="grid"`, positioned wholly above the frame's top-right corner (64px, half overhang), so neither cells nor the frame line cross its text. The date never wraps; names break only between words (no `overflow-wrap: anywhere`), with mixed-case Postmark names and tighter Stamp tracking. `.puzzle-screen--city` adds top padding for it.
+- Stamp/Postmark styles live in `src/ui/stamp.css`. New size/type tokens in `theme.css`; no new colour roles (Stamp uses `airmail-red`/`card`/`desk`, Postmark uses `postmark`), so Lamplight twins come from the existing role swap.
+- `src/ui/today.ts` (`localDate`) builds the local `YYYY-MM-DD`; `App` and `PuzzleScreen` accept `today?` for tests.
+- Manual checks (glyph rendering across browsers, Daylight/Lamplight visual pass, Postmark overlap) were not run: no browser available to the implementing agent. No glyph was swapped.
+
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Route | Evidence |
+|---|---|---|---|---|---|
+| 1 | blind, smoke, impl | A Free Play reply while a City is current leaves the waiting player on the entry | medium | patch | This conflicts with the 1.8 human decision "if the entry is still showing, it opens". The 3.2 decision covers only "player moved to another screen". |
+| 2 | VG | Puzzle actions in a City (Hint apply, definition, Notes, clear, Restart, announce) are untested | medium | patch | Every such test starts with Free Play active; leaving one site on `FREE_PLAY_KEY` passes everything. |
+| 3 | VG | `localDate` is untested | medium | patch | Dropping `+1` or the padding blanks the Postmark date. |
+| 4 | VG | The `freePlayGenerated` City branch leaves settings, `picked` and the free-owned Hint unpinned | low | patch | Dropping `settings` or the Hint guard passes. |
+| 5 | blind | The Album forgets the chosen Region tab | low | patch | `chooseScreen` always resets to `openingRegion`. |
+| 6 | blind | Slot names run together; locked slots sound identical; Collected has no cue | low | patch | Accessible name "ParisFrance · NearTravel here"; no collected styling or text. |
+| 7 | blind | Copy literals "3" and "10" duplicate journey constants | low | patch | Changing the rule would leave the copy stale. |
+| 8 | blind | Contrast pairs missing: `airmail-red` on `card`, `ink-muted` on `desk` | low | patch | Both are real text in the Album. |
+| 9 | smoke | The Postmark date wraps, the grid frame strikes the date, and names break mid-word | low | patch | Screenshots `zoom-rio.png` and `zoom-luang.png`; "NETHERLAND / S" on the Stamp. |
+| 10 | blind, edge | The Postmark date isn't tied to the Puzzle (midnight; viewing date vs solve date) | low | reject | 3.2 shows today's travel date; 3.3 owns the Postcard's `collectedOn`. The midnight edge is negligible. |
+| 11 | blind | Initial `albumRegion` is hard-coded | low | reject | No saved Album exists until Epic 4, which loads through the same reducer path. |
+| 12 | blind, edge | `cityChosen` for a collected City creates a fresh Session | low | reject | The UI offers no action; replay semantics belong to 3.4. |
+| 13 | edge | Forged `freePlayResumed` on a solved Free Play; unknown `city:` key; bad date strings; heading with unknown ids | low | reject | Unreachable from the UI and the typed data. |
+| 14 | edge | Test setup changes beyond "setup only" | low | reject | The first-load assertions changed because the start screen intentionally changed (UX launch rule). |
+| 15 | blind | Spec bookkeeping and the skipped manual checks | — | reject | The manual browser check has now run (below). |
+
+Real-browser check (Chrome 155, Edge 154; 1280 and 900px; both themes): all 30 Stamp glyphs render as single-colour text glyphs (Segoe UI Symbol or Book Antiqua), with no colour emoji and no tofu. The Album, reachability, City round trip, per-Puzzle Undo and Lamplight all pass with no console, CSP or network errors. No Postcard line is visible anywhere.
+
+Recheck after the fixes (Chrome 155, Edge 154; 1280 and 900px; both themes): the Postmark date stays on one line, the frame line clears the Postmark text, no names break mid-word (Luang Prabang, Ulaanbaatar, Netherlands), and nothing overlaps or scrolls. A Free Play Puzzle that finishes while the player waits on the entry now opens. In Lamplight the Postmark is faint against the dark background; it is decorative by design (75% opacity).
 
 ## Design Notes
 

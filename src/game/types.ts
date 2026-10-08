@@ -1,3 +1,4 @@
+import type { Region } from '../content/cities.ts'
 import type { Difficulty } from '../engine/grader.ts'
 import type { HintResult } from '../engine/hints.ts'
 
@@ -28,7 +29,16 @@ export type Session = {
   readonly hintsUsed: number
 }
 
-export type Album = Readonly<Record<string, never>>
+/** A collected City. At most one per City; the Album keeps them in the order collected. */
+export type Postcard = {
+  readonly cityId: string
+  /** Local date the City was solved, 'YYYY-MM-DD' (passed in by the shell). */
+  readonly collectedOn: string
+  readonly revealed: boolean
+}
+
+/** Postcards in the order collected. Reachability, counts and slot states are always computed from it, never stored. */
+export type Album = readonly Postcard[]
 /** Player preferences (Assists, Lamplight, last Free Play Difficulty). Reset on every load in Epic 1; saving is Epic 4. */
 export type Settings = {
   readonly mistakeHighlighting: boolean
@@ -43,7 +53,7 @@ export type Settings = {
 export type SettingName = 'mistakeHighlighting' | 'sameDigitHighlighting' | 'unitHighlighting' | 'lamplight'
 
 /** The screen shown under the header; switched by state, no router. */
-export type Screen = 'puzzle' | 'freePlay' | 'settings'
+export type Screen = 'puzzle' | 'album' | 'freePlay' | 'settings'
 
 export type FreePlayStatus = 'idle' | 'generating' | 'failed'
 
@@ -94,6 +104,15 @@ export type HintState = {
 
 export type UiState = {
   readonly screen: Screen
+  /**
+   * The Session key of the current Puzzle (`free` or `city:<id>`), null before
+   * any. "Puzzle" in the nav returns to it. UI state, never saved.
+   */
+  readonly activeKey: string | null
+  /** The Region tab the Album shows. */
+  readonly albumRegion: Region
+  /** Postcards in the Album at the last Album visit; a longer Album means a new Postcard. */
+  readonly albumSeen: number
   readonly selectedCell: number | null
   readonly entryMode: EntryMode
   readonly inputMode: InputMode
@@ -144,8 +163,17 @@ export type Action =
   | { readonly type: 'restartConfirmed' }
   /** Flip one Settings switch. Never recorded in Undo. */
   | { readonly type: 'settingToggled'; readonly setting: SettingName }
-  /** Header nav: show the Puzzle, Free Play entry or Settings screen. */
+  /** Header nav: show the Puzzle, Album, Free Play entry or Settings screen. */
   | { readonly type: 'screenChosen'; readonly screen: Screen }
+  /**
+   * An Album slot: travel to a Reachable City (a fresh Session) or carry on its
+   * Puzzle in progress. Locked or unknown Cities change nothing. Never recorded in Undo.
+   */
+  | { readonly type: 'cityChosen'; readonly cityId: string }
+  /** An Album Region tab. */
+  | { readonly type: 'albumRegionChosen'; readonly region: Region }
+  /** Free Play entry "Carry on": make the Free Play Puzzle current and show it. */
+  | { readonly type: 'freePlayResumed' }
   /** Free Play entry. None of these is ever recorded in Undo. */
   | { readonly type: 'freePlayDifficultyPicked'; readonly difficulty: Difficulty }
   /** The shell started generating; `requestId` and the seed come from the shell. */

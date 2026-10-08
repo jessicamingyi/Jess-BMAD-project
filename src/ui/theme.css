@@ -110,6 +110,30 @@
   --rule-box: 2px;
   --rule-frame: 3px;
 
+  /* Album (UX: 5-column slot grid, 12px gap; active tab under a 3px double ink rule) */
+  --size-album-columns: 5;
+  --size-album-gap: var(--space-3);
+  --size-album-slot-min-height: 132px;
+  --rule-double: 3px;
+  --rule-dashed: 1px;
+
+  /* Stamp: 74x88 in the City header (52x62 on a Postcard), airmail-red face, perforated edge, +3deg */
+  --size-stamp-width: 74px;
+  --size-stamp-height: 88px;
+  --size-stamp-small-width: 52px;
+  --size-stamp-small-height: 62px;
+  --size-stamp-perforation: 3px;
+  --stamp-tilt: 3deg;
+  --type-stamp-size: 9px;
+  --type-stamp-letter-spacing: 0.04em;
+  --type-stamp-glyph-size: 30px;
+  --type-stamp-small-glyph-size: 20px;
+
+  /* Postmark: a double circle in postmark at 75% opacity, wholly outside the grid frame's top-right corner */
+  --size-postmark: 64px;
+  --postmark-opacity: 0.75;
+  --type-postmark-size: 8px;
+
   /* Shape (UX-DR5) */
   --rounded-none: 0;
   --rounded-sm: 2px;

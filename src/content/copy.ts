@@ -2,6 +2,9 @@ export type CellKind = 'given' | 'player' | 'notes' | 'empty'
 
 /** Difficulty names (content may not import engine/game, so the union is restated here). */
 const DIFFICULTY_NAMES = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const
+const REGION_NAMES = { europe: 'Europe', asia: 'Asia', americas: 'The Americas' } as const
+const TIER_NAMES = { near: 'Near', mid: 'Mid', far: 'Far' } as const
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'] as const
 
 /** User-facing strings, kept in one place. */
 export const copy = {
@@ -36,10 +39,53 @@ export const copy = {
     return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}${suffix}`
   },
 
-  /** Header nav ("Puzzle · Free Play · Settings"). */
+  /** Calm solve line in a City Puzzle until the Postcard reveal (Story 3.3); followed by an "Album" link-styled button. */
+  solvedCity: 'Solved. Where to next?',
+
+  /** Header nav ("Puzzle · Album · Free Play · Settings"). */
   navLabel: 'Main',
   navPuzzle: 'Puzzle',
+  navAlbum: 'Album',
   navFreePlay: 'Free Play',
+
+  /** Album: Region tabs, heading, slots. */
+  regionName: (region: keyof typeof REGION_NAMES): string => REGION_NAMES[region],
+  tierName: (tier: keyof typeof TIER_NAMES): string => TIER_NAMES[tier],
+  albumRegionsLabel: 'Regions',
+  /** A Region tab, e.g. "Europe 4 / 10". */
+  regionTabCount: (region: keyof typeof REGION_NAMES, collected: number, total: number): string =>
+    `${REGION_NAMES[region]} ${collected} / ${total}`,
+  albumHeadingEmpty: 'Where to first?',
+  albumHeading: 'Where to next?',
+  /** A slot's caption, e.g. "Portugal · Mid". */
+  slotCaption: (country: string, tier: keyof typeof TIER_NAMES): string => `${country} · ${TIER_NAMES[tier]}`,
+  slotTravel: 'Travel here',
+  slotCarryOn: 'Carry on',
+  /** A Collected slot's caption (interim until Story 3.3). */
+  slotCollected: 'Collected',
+  /** A Reachable / In progress slot's accessible name, e.g. "Paris, France, Near — Travel here". */
+  slotLabel: (name: string, country: string, tier: keyof typeof TIER_NAMES, action: string): string =>
+    `${name}, ${country}, ${TIER_NAMES[tier]} — ${action}`,
+  /** A locked slot's line, e.g. "Opens after 3 Near Postcards" (`waitTier` is the Tier it waits on). */
+  slotLocked: (waitTier: keyof typeof TIER_NAMES, need: number): string =>
+    `Opens after ${need} ${TIER_NAMES[waitTier]} Postcards`,
+  /** A locked slot's accessible name, e.g. "Mid slot — opens after 3 Near Postcards, 1 of 3". */
+  slotLockedLabel: (tier: keyof typeof TIER_NAMES, waitTier: keyof typeof TIER_NAMES, have: number, need: number): string =>
+    `${TIER_NAMES[tier]} slot — opens after ${need} ${TIER_NAMES[waitTier]} Postcards, ${have} of ${need}`,
+
+  /** City Puzzle header, e.g. "Lisbon · Mid · Medium". */
+  cityTitle: (name: string, tier: keyof typeof TIER_NAMES, difficulty: keyof typeof DIFFICULTY_NAMES): string =>
+    `${name} · ${TIER_NAMES[tier]} · ${DIFFICULTY_NAMES[difficulty]}`,
+  /** City Puzzle meta line, e.g. "Portugal — Europe, Postcard 5 of 10" (the slot position). */
+  cityMeta: (country: string, region: keyof typeof REGION_NAMES, position: number, total: number): string =>
+    `${country} — ${REGION_NAMES[region]}, Postcard ${position} of ${total}`,
+  /** Postmark date from 'YYYY-MM-DD': "06 OCT 26". */
+  postmarkDate: (date: string): string => {
+    const [, year, month, day] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date) ?? []
+    const name = MONTHS[Number(month) - 1]
+    if (!name) return ''
+    return `${day} ${name} ${year.slice(2)}`
+  },
   navSettings: 'Settings',
 
   /** Free Play entry. */

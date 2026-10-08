@@ -29,17 +29,21 @@ const emptyCells = [...givens].flatMap((ch, i) => (ch === '0' ? [i] : []))
 const MEDIUM: Puzzle = { givens, solution, difficulty: 'medium' }
 const HARD: Puzzle = { givens: solution.slice(0, 40) + givens.slice(40), solution, difficulty: 'hard' }
 
-const empty = () => deepFreeze(createInitialState())
+/** First load now opens on the Album (Story 3.2); these tests start from the Free Play entry. */
+const empty = () => deepFreeze(reducer(createInitialState(), { type: 'screenChosen', screen: 'freePlay' }))
 const playing = () => deepFreeze(createInitialState(samplePuzzle))
 
 describe('Free Play: first load', () => {
-  it('starts on the entry with no Session, picker on Easy, nothing pending', () => {
+  it('starts on the Album with no Session; the entry has the picker on Easy, nothing pending', () => {
+    const first = createInitialState()
+    expect(first.sessions).toEqual({})
+    expect(first.ui.screen).toBe('album')
+    expect(first.ui.activeKey).toBeNull()
+    expect(first.album).toEqual([])
     const s = empty()
-    expect(s.sessions).toEqual({})
     expect(s.ui.screen).toBe('freePlay')
     expect(s.ui.freePlay).toEqual({ picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false })
     expect(s.settings.freePlayDifficulty).toBeNull()
-    expect(s.album).toEqual({})
   })
 
   it('refuses the Puzzle screen until a Session exists', () => {

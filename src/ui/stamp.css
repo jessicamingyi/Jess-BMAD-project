@@ -1,0 +1,92 @@
+/* Stamp and Postmark (DESIGN › City Puzzle header). Decorative, aria-hidden. Tokens only. */
+
+/*
+ * Airmail-red face with card text. The perforated edge is a card-coloured
+ * margin (box-shadow) punched by a dotted desk-coloured outline over it.
+ */
+.stamp {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: var(--space-1) var(--rule-box);
+  overflow: hidden;
+  background-color: var(--color-airmail-red);
+  color: var(--color-card);
+  box-shadow: 0 0 0 var(--size-stamp-perforation) var(--color-card);
+  outline: var(--size-stamp-perforation) dotted var(--color-desk);
+  outline-offset: var(--size-stamp-perforation);
+  font-family: var(--font-family);
+  text-align: center;
+  line-height: 1;
+  transform: rotate(var(--stamp-tilt));
+}
+
+.stamp--header {
+  width: var(--size-stamp-width);
+  height: var(--size-stamp-height);
+}
+
+.stamp--postcard {
+  width: var(--size-stamp-small-width);
+  height: var(--size-stamp-small-height);
+}
+
+.stamp-country,
+.stamp-tier {
+  max-width: 100%;
+  font-size: var(--type-stamp-size);
+  font-variant: var(--type-label-variant);
+  letter-spacing: var(--type-stamp-letter-spacing);
+}
+
+/* One serif family; text presentation so the glyph stays single-colour (no colour emoji). */
+.stamp-glyph {
+  font-family: var(--font-family);
+  font-size: var(--type-stamp-glyph-size);
+  font-variant-emoji: text;
+  line-height: 1;
+}
+
+.stamp--postcard .stamp-glyph {
+  font-size: var(--type-stamp-small-glyph-size);
+}
+
+/*
+ * Long names break only between words ("Rio de / Janeiro"); single words such as
+ * "Netherlands" fit the face at this size with the tighter tracking.
+ */
+/* Double circle in postmark ink at 75% opacity, City over date. */
+.postmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  width: var(--size-postmark);
+  height: var(--size-postmark);
+  padding: var(--rule-box);
+  overflow: hidden;
+  border: var(--rule-double) double var(--color-postmark);
+  border-radius: var(--rounded-full);
+  color: var(--color-postmark);
+  opacity: var(--postmark-opacity);
+  font-family: var(--font-family);
+  font-size: var(--type-postmark-size);
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Mixed case so the longest single word ("Ulaanbaatar") fits; breaks only between words. */
+.postmark-city {
+  max-width: 100%;
+}
+
+/* "06 OCT 26" always on one line. */
+.postmark-date {
+  white-space: nowrap;
+}

@@ -3,7 +3,7 @@ import { colOf, rowOf } from '../engine/grid.ts'
 import { activeHint, hintMove, hintView } from './hint.ts'
 import { hasNote } from './notes.ts'
 import { reducer } from './reducer.ts'
-import { FREE_PLAY_KEY, isFullNotSolved } from './session.ts'
+import { isFullNotSolved } from './session.ts'
 import type { Action, AppState } from './types.ts'
 
 /** The cell and digit an action tries to apply (null when it applies none). */
@@ -34,12 +34,15 @@ function digitTarget(prev: AppState, action: Action): { cell: number; digit: num
  * cue once: "7. Something doesn't fit yet — want a hint?".
  */
 export function announce(prev: AppState, next: AppState, action: Action): string | null {
-  const before = prev.sessions[FREE_PLAY_KEY]
-  const after = next.sessions[FREE_PLAY_KEY]
+  // Only the current Puzzle speaks; opening or switching Puzzles is silent.
+  const key = prev.ui.activeKey
+  if (key === null || next.ui.activeKey !== key) return null
+  const before = prev.sessions[key]
+  const after = next.sessions[key]
   if (!before || !after) return null
   // A Hint move says its placement, and the solve in the same message.
   if (action.type === 'hintApplied') {
-    const move = hintMove(activeHint(prev, FREE_PLAY_KEY))
+    const move = hintMove(activeHint(prev, key))
     if (!move || before.digits === after.digits) return null
     if (move.digit === 0) return copy.announceHintCleared(rowOf(move.cell) + 1, colOf(move.cell) + 1)
     const solved = before.status !== 'solved' && after.status === 'solved'
@@ -57,8 +60,8 @@ export function announce(prev: AppState, next: AppState, action: Action): string
       if (prev.ui.inputMode === next.ui.inputMode) return null
       return next.ui.inputMode === 'numberFirst' ? copy.statusNumberFirst : copy.statusCellFirst
     case 'hintRequested': {
-      const hint = activeHint(next, FREE_PLAY_KEY)
-      if (!hint || hint.step === 'idle' || hint.step === activeHint(prev, FREE_PLAY_KEY)?.step) return null
+      const hint = activeHint(next, key)
+      if (!hint || hint.step === 'idle' || hint.step === activeHint(prev, key)?.step) return null
       return hintView(hint, after.digits).text
     }
     case 'cellCleared': {

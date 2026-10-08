@@ -17,6 +17,38 @@
   line-height: var(--type-city-title-line-height);
 }
 
+/* City Puzzle header: title and meta line left, the Stamp right; on its own line beneath the wordmark. */
+.city-header {
+  flex-basis: 100%;
+  order: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.city-meta {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+}
+
+/*
+ * The Postmark sits wholly above the grid frame's top-right corner: its bottom
+ * clears the frame line, so neither cells nor the frame cross its text. It
+ * overhangs the corner by half its width, less than the gap beside the grid.
+ * The City screen leaves room above for it.
+ */
+.puzzle-screen--city {
+  padding-top: calc(var(--size-postmark) + var(--rule-frame));
+}
+
+.grid-card > .postmark {
+  position: absolute;
+  bottom: calc(100% + var(--rule-frame));
+  right: calc(var(--size-postmark) / -2);
+}
+
 .side-column {
   flex: 1 1 auto;
   max-width: var(--size-side-column-max);

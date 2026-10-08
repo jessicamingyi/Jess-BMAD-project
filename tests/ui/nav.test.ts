@@ -45,10 +45,10 @@ function press(key: string, init: KeyboardEventInit = {}, target: Element | null
 }
 
 describe('header nav', () => {
-  it('shows "Puzzle · Free Play · Settings" as buttons in a labelled nav, Puzzle current', () => {
+  it('shows "Puzzle · Album · Free Play · Settings" as buttons in a labelled nav, Puzzle current', () => {
     const nav = host.querySelector('header nav')!
     expect(nav.getAttribute('aria-label')).toBe('Main')
-    expect(nav.textContent).toBe('Puzzle·Free Play·Settings')
+    expect(nav.textContent).toBe('Puzzle·Album·Free Play·Settings')
     expect(navLink('Puzzle').hasAttribute('aria-disabled')).toBe(false)
     expect(navLink('Puzzle').getAttribute('aria-current')).toBe('page')
     expect(navLink('Settings').hasAttribute('aria-current')).toBe(false)
@@ -127,17 +127,26 @@ describe('header nav before any Puzzle exists', () => {
     act(() => root.render(createElement(App)))
   })
 
-  it('starts on Free Play; "Puzzle" is shown but aria-disabled, still focusable, and does nothing', () => {
+  it('starts on the Album; "Puzzle" is shown but aria-disabled, still focusable, and does nothing', () => {
     const nav = host.querySelector('header nav')!
-    expect(nav.textContent).toBe('Puzzle·Free Play·Settings')
-    expect(navLink('Free Play').getAttribute('aria-current')).toBe('page')
+    expect(nav.textContent).toBe('Puzzle·Album·Free Play·Settings')
+    expect(navLink('Album').getAttribute('aria-current')).toBe('page')
     const puzzle = navLink('Puzzle')
     expect(puzzle.getAttribute('aria-disabled')).toBe('true')
     expect(puzzle.disabled).toBe(false)
     expect(puzzle.tabIndex).toBe(0)
     act(() => puzzle.click())
-    expect(host.querySelector('main h1')!.textContent).toBe('Free Play')
+    expect(host.querySelector('main h1')!.textContent).toBe('Where to first?')
     expect(host.querySelector('[role="grid"]')).toBeNull()
+  })
+
+  it('Album from Settings focuses the Album heading', () => {
+    act(() => navLink('Settings').click())
+    act(() => navLink('Album').click())
+    const heading = host.querySelector('main h1')!
+    expect(heading.textContent).toBe('Where to first?')
+    expect(document.activeElement).toBe(heading)
+    expect(navLink('Album').getAttribute('aria-current')).toBe('page')
   })
 
   it('Free Play from Settings focuses the entry heading', () => {

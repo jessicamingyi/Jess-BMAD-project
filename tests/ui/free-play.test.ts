@@ -62,6 +62,12 @@ function mount(initialState?: AppState) {
     return w
   }
   act(() => root.render(createElement(App, { initialState, createWorker })))
+  // First load opens on the Album (Story 3.2); these tests start from the Free Play entry.
+  if (!initialState) openEntry()
+}
+
+function openEntry() {
+  act(() => [...host.querySelectorAll<HTMLButtonElement>('nav button')].find((b) => b.textContent === 'Free Play')!.click())
 }
 
 afterEach(() => {
@@ -228,6 +234,7 @@ describe('Free Play entry: starting', () => {
       throw new Error('no workers here')
     }
     act(() => root.render(createElement(App, { createWorker })))
+    openEntry()
     click(button('Start a Puzzle'))
     expect(host.querySelector('.free-play-error')).not.toBeNull()
   })

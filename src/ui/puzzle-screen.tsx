@@ -3,7 +3,8 @@ import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
 import { activeHint, hintAction, hintFocusCells, hintMistakeCell, hintTechnique, hintView } from '../game/hint.ts'
-import { FREE_PLAY_KEY, isFullNotSolved } from '../game/session.ts'
+import { cityOfKey } from '../game/journey.ts'
+import { activeSession, isFullNotSolved } from '../game/session.ts'
 import type { Action, AppState } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
 import { DigitPad } from './digit-pad.tsx'
@@ -12,7 +13,9 @@ import { HintPanel } from './hint-panel.tsx'
 import { isMacPlatform, keyCaption } from './key-caption.ts'
 import { useKeyboard } from './keyboard.ts'
 import { ModeIndicator } from './mode-indicator.tsx'
+import { Postmark } from './stamp.tsx'
 import { SudokuGrid } from './sudoku-grid.tsx'
+import { localDate } from './today.ts'
 import './puzzle.css'
 
 const platform = typeof navigator === 'undefined' ? '' : (navigator.platform ?? '')
@@ -22,13 +25,17 @@ type Props = {
   /** AppState and dispatch are owned by `App`, so the Session outlives a visit to Settings. */
   state: AppState
   dispatch: (action: Action) => void
+  /** Today's local date, 'YYYY-MM-DD' (the Postmark date); defaults to the local clock. */
+  today?: string
 }
 
-export function PuzzleScreen({ state, dispatch }: Props) {
-  const session = state.sessions[FREE_PLAY_KEY]
+export function PuzzleScreen({ state, dispatch, today }: Props) {
+  const active = activeSession(state)
+  const session = active?.session
+  const city = cityOfKey(active?.key ?? null)
   const { ui } = state
   const screenRef = useRef<HTMLDivElement>(null)
-  const hint = activeHint(state, FREE_PLAY_KEY)
+  const hint = active ? activeHint(state, active.key) : null
   // At step 2 every Hint control (H, the panel button, the action-row Hint) places the move.
   const hintNext = hintAction(hint)
   useKeyboard(screenRef, dispatch, {
@@ -49,7 +56,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
   const solved = session.status === 'solved'
 
   return (
-    <div className="puzzle-screen" ref={screenRef}>
+    <div className={city ? 'puzzle-screen puzzle-screen--city' : 'puzzle-screen'} ref={screenRef}>
       <SudokuGrid
         session={session}
         selectedCell={ui.selectedCell}
@@ -57,6 +64,7 @@ export function PuzzleScreen({ state, dispatch }: Props) {
         hintCells={hintFocusCells(hint)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
+        decoration={city && <Postmark name={city.name} date={today ?? localDate()} />}
       />
       <div className="side-column">
         <HintPanel
@@ -92,14 +100,22 @@ export function PuzzleScreen({ state, dispatch }: Props) {
           onCancel={() => dispatch({ type: 'restartCancelled' })}
           onConfirm={() => dispatch({ type: 'restartConfirmed' })}
         />
-        {solved && (
-          <p className="puzzle-status">
-            {copy.solvedFreePlay}{' '}
-            <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'freePlay' })}>
-              {copy.navFreePlay}
-            </button>
-          </p>
-        )}
+        {solved &&
+          (city ? (
+            <p className="puzzle-status">
+              {copy.solvedCity}{' '}
+              <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'album' })}>
+                {copy.navAlbum}
+              </button>
+            </p>
+          ) : (
+            <p className="puzzle-status">
+              {copy.solvedFreePlay}{' '}
+              <button type="button" className="link-button" onClick={() => dispatch({ type: 'screenChosen', screen: 'freePlay' })}>
+                {copy.navFreePlay}
+              </button>
+            </p>
+          ))}
         {!solved && isFullNotSolved(session) && <FullGridLine onHint={() => dispatch(hintNext)} focusGrid={focusGrid} />}
       </div>
     </div>

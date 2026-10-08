@@ -4,21 +4,22 @@ import type { Screen } from '../game/types.ts'
 
 type Props = {
   current: Screen
-  /** False before any Puzzle exists: "Puzzle" stays in place but is disabled. */
+  /** False without a current Puzzle: "Puzzle" stays in place but is disabled. */
   puzzleAvailable: boolean
   onChoose: (screen: Screen) => void
 }
 
 const ITEMS = [
   { screen: 'puzzle', label: copy.navPuzzle },
+  { screen: 'album', label: copy.navAlbum },
   { screen: 'freePlay', label: copy.navFreePlay },
   { screen: 'settings', label: copy.navSettings },
 ] as const satisfies readonly { screen: Screen; label: string }[]
 
 /**
- * Header nav "Puzzle · Free Play · Settings" (UX-DR14). Screens switch by state,
+ * Header nav "Puzzle · Album · Free Play · Settings" (UX-DR14). Screens switch by state,
  * no router, so the links are buttons; the current one carries aria-current="page".
- * Before any Puzzle exists, "Puzzle" is aria-disabled (still focusable, ink-muted)
+ * Without a current Puzzle, "Puzzle" is aria-disabled (still focusable, ink-muted)
  * so the nav keeps its shape. No key shortcuts here.
  */
 export function AppNav({ current, puzzleAvailable, onChoose }: Props) {

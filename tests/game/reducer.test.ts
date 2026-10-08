@@ -71,6 +71,9 @@ describe('game reducer', () => {
     })
     expect(state.ui).toEqual({
       screen: 'puzzle',
+      activeKey: 'free',
+      albumRegion: 'europe',
+      albumSeen: 0,
       selectedCell: null,
       entryMode: 'digit',
       inputMode: 'cellFirst',
@@ -631,7 +634,7 @@ describe('settings and screens (Story 1.6)', () => {
     expect(settings.ui.screen).toBe('settings')
     expect(settings.ui.undo).toBe(state.ui.undo)
     expect(settings.sessions).toBe(state.sessions)
-    expect(reducer(state, { type: 'screenChosen', screen: 'album' } as unknown as Action)).toBe(state)
+    expect(reducer(state, { type: 'screenChosen', screen: 'map' } as unknown as Action)).toBe(state)
   })
 
   it('screenChosen closes an open Restart confirm; choosing the current screen leaves it', () => {
