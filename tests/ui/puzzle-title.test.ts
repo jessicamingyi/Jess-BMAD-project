@@ -114,13 +114,15 @@ describe('City Puzzle header (Story 3.2)', () => {
     expect(postmark.closest('[role="grid"]')).toBeNull()
   })
 
-  it('shows the interim solve line "Solved. Where to next?" with an Album link', () => {
+  it('after the Postcard is added, a revisited solved City shows "Solved. Where to next?" with an Album link', () => {
     const { givens, solution } = cityPuzzle('lisbon')!
     let state = lisbonState()
     for (let i = 0; i < 81; i++) {
       if (givens[i] !== '0') continue
-      state = reducer(reducer(state, { type: 'cellSelected', cell: i }), { type: 'digitEntered', digit: Number(solution[i]) })
+      state = reducer(reducer(state, { type: 'cellSelected', cell: i }), { type: 'digitEntered', digit: Number(solution[i]), date: '2026-10-07' })
     }
+    state = reducer(state, { type: 'postcardAdded', cityId: 'lisbon' })
+    state = reducer(state, { type: 'screenChosen', screen: 'puzzle' })
     act(() => root.unmount())
     root = createRoot(host)
     act(() => root.render(createElement(App, { initialState: state, today: '2026-10-06' })))

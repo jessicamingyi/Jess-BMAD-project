@@ -15,8 +15,8 @@ function deepFreeze<T>(value: T): T {
 
 const run = (state: AppState, ...actions: Action[]) => actions.reduce(reducer, state)
 const select = (cell: number): Action => ({ type: 'cellSelected', cell })
-const enter = (digit: number): Action => ({ type: 'digitEntered', digit })
-const click = (cell: number): Action => ({ type: 'cellClicked', cell })
+const enter = (digit: number): Action => ({ type: 'digitEntered', digit, date: '2026-10-07' })
+const click = (cell: number): Action => ({ type: 'cellClicked', cell, date: '2026-10-07' })
 const notesMode: Action = { type: 'entryModeChosen', mode: 'notes' }
 const digitMode: Action = { type: 'entryModeChosen', mode: 'digit' }
 const toggleInput: Action = { type: 'inputModeToggled' }
@@ -83,6 +83,7 @@ describe('game reducer', () => {
       announcement: null,
       freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
       hint: null,
+      justArrived: [],
     })
     expect(state.meta.lastPlayedKey).toBeNull()
   })
@@ -496,7 +497,7 @@ describe('Undo and Restart', () => {
 
 describe('keyboard actions (Story 1.5)', () => {
   const clear: Action = { type: 'cellCleared' }
-  const place: Action = { type: 'currentDigitPlaced' }
+  const place: Action = { type: 'currentDigitPlaced', date: '2026-10-07' }
   const toggleEntry: Action = { type: 'entryModeToggled' }
   const undo: Action = { type: 'undoRequested' }
   const free = (s: AppState) => s.sessions.free

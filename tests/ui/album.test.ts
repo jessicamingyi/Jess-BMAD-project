@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { CITIES, cityById } from '../../src/content/cities.ts'
 import { cityPuzzle } from '../../src/content/city-puzzles.ts'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
-import { createInitialState } from '../../src/game/session.ts'
+import { cityKey } from '../../src/game/journey.ts'
+import { createInitialState, createSession } from '../../src/game/session.ts'
 import type { Album, AppState } from '../../src/game/types.ts'
 import { App } from '../../src/ui/app.tsx'
 
@@ -128,14 +129,15 @@ describe('Album: slot states', () => {
     expect(host.querySelector('[role="grid"]')).toBeNull()
   })
 
-  it('Mid opens at 3 Near Postcards; Collected is a static card with name and caption, no line, no action', () => {
+  it('Mid opens at 3 Near Postcards; Collected is a static card with name, caption and its own line, no action', () => {
     mount(withAlbum(postcards('europe-near-1', 'europe-near-2', 'europe-near-3')))
     expect(heading().textContent).toBe('Where to next?')
     expect(tab('Europe').textContent).toBe('Europe 3 / 10')
     const paris = slot('europe-near-1')
     expect(paris.tagName).toBe('DIV')
-    expect(paris.textContent).toBe('ParisFrance · NearCollected')
-    expect(paris.querySelector('.album-slot-collected')!.textContent).toBe('Collected')
+    expect(paris.textContent).toBe(`ParisFrance · Near${cityById('europe-near-1')!.line}`)
+    expect(paris.querySelector('.album-slot-line')!.textContent).toBe(cityById('europe-near-1')!.line)
+    expect(paris.querySelector('.album-slot-arrived')).toBeNull()
     expect(paris.querySelector('button')).toBeNull()
     expect(slot('lisbon').textContent).toBe('LisbonPortugal · MidTravel here')
     expect(slot('lisbon').getAttribute('aria-label')).toBe('Lisbon, Portugal, Mid — Travel here')
@@ -224,10 +226,18 @@ describe('Album: travel and carry on', () => {
 })
 
 describe('Postcard line secrecy', () => {
-  /** Album on every Region, then a City Puzzle played to solved: no uncollected City's line anywhere. */
-  function tour(collected: readonly string[]) {
-    const secret = CITIES.filter((c) => !collected.includes(c.id))
+  /**
+   * Album on every Region, then Paris (part-played to its last cell) carried on,
+   * solved and its Postcard added: no uncollected City's line anywhere.
+   */
+  function tour(base: AppState, collected: string[]) {
+    const puzzle = cityPuzzle('europe-near-1')!
+    const last = puzzle.givens.lastIndexOf('0')
+    const key = cityKey('europe-near-1')
+    const digits = puzzle.solution.slice(0, last) + '0' + puzzle.solution.slice(last + 1)
+    mount({ ...base, sessions: { ...base.sessions, [key]: { ...createSession(key, puzzle), digits } } })
     const check = (where: string) => {
+      const secret = CITIES.filter((c) => !collected.includes(c.id))
       const text = exposed()
       const announced = live()
       for (const c of secret) {
@@ -242,29 +252,26 @@ describe('Postcard line secrecy', () => {
     act(() => tab('Europe').click())
     act(() => slot('europe-near-1').click())
     check('City Puzzle')
-    const { givens, solution } = cityPuzzle('europe-near-1')!
-    for (let i = 0; i < 81; i++) {
-      if (givens[i] !== '0') continue
-      act(() => cell(i).focus())
-      press(solution[i])
-    }
+    act(() => cell(last).focus())
+    press(puzzle.solution[last])
     expect(live()).toBe('Solved')
-    check('solved City Puzzle')
-    act(() => navLink('Album').click())
+    // The solve put Paris in the Album: its own line may now show (on the Postcard), no other.
+    collected.push('europe-near-1')
+    check('Postcard reveal')
+    const add = [...host.querySelectorAll<HTMLButtonElement>('main button')].find((b) => b.textContent === 'Add to Album')!
+    act(() => add.click())
     check('Album after a solve')
   }
 
   it('an empty Album exposes no line in text, accessible names or the live region', () => {
-    mount()
-    tour([])
+    tour(createInitialState(), [])
   })
 
-  it('with Lisbon collected, no other City’s line appears (and the interim Collected card shows none)', () => {
+  it('with Lisbon collected, its Collected slot shows its own line and no other City’s line appears', () => {
     const collected = ['europe-near-2', 'europe-near-3', 'europe-near-4', 'lisbon']
-    mount(withAlbum(postcards(...collected)))
-    expect(slot('lisbon').textContent).toBe('LisbonPortugal · MidCollected')
-    expect(exposed()).not.toContain(cityById('lisbon')!.line)
-    tour(collected)
+    tour(withAlbum(postcards(...collected)), collected)
+    act(() => tab('Europe').click())
+    expect(slot('lisbon').textContent).toBe(`LisbonPortugal · Mid${cityById('lisbon')!.line}`)
   })
 })
 

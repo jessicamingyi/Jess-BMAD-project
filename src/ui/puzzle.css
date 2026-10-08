@@ -74,6 +74,38 @@
   animation: none;
 }
 
+/*
+ * The Postcard reveal: the one sanctioned motion, after the solve with input
+ * stopped (grid and side column inert). The Postcard lies over the finished
+ * grid and rises 24px into place as it fades in. Under reduced motion the
+ * global rule in theme.css zeroes the duration, and fill-mode both leaves it
+ * resting in place.
+ */
+.puzzle-screen {
+  position: relative;
+}
+
+.puzzle-screen .postcard-reveal {
+  position: absolute;
+  z-index: 2;
+  top: var(--size-postcard-offset-y);
+  left: var(--size-postcard-offset-x);
+  width: min(var(--size-postcard-width), calc(100% - var(--size-postcard-offset-x)));
+  animation: postcard-arrive var(--motion-postcard-arrive) var(--motion-ease-out) both;
+}
+
+@keyframes postcard-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-postcard-rise));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Grid card (UX-DR7) */
 .grid-card {
   position: relative;

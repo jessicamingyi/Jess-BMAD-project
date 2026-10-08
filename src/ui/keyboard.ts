@@ -1,5 +1,5 @@
 import { useEffect, type RefObject } from 'react'
-import type { Action, InputMode } from '../game/types.ts'
+import type { InputMode, UndatedAction } from '../game/types.ts'
 
 /**
  * The one keyboard handler (AD-1, UX-DR60). No other file adds key listeners or
@@ -38,7 +38,7 @@ const ARROWS: Readonly<Record<string, readonly [number, number]>> = {
 }
 
 /** Map a key press to an action, or null when the key is not ours (the browser keeps it). Pure. */
-export function keyToAction(input: KeyInput, ctx: KeyContext): Action | null {
+export function keyToAction(input: KeyInput, ctx: KeyContext): UndatedAction | null {
   const { key, ctrlKey, metaKey, altKey, shiftKey } = input
 
   if ((key === 'z' || key === 'Z') && !altKey && !shiftKey && (ctx.isMac ? metaKey && !ctrlKey : ctrlKey && !metaKey)) {
@@ -101,7 +101,7 @@ function isGridCell(target: EventTarget | null): boolean {
  */
 export function useKeyboard(
   ref: RefObject<HTMLElement | null>,
-  dispatch: (action: Action) => void,
+  dispatch: (action: UndatedAction) => void,
   context: Omit<KeyContext, 'inGrid'>,
 ): void {
   const { inputMode, selectedCell, restartConfirming, hintOpen, definitionOpen, hintAtMove, isMac } = context
@@ -149,4 +149,23 @@ export function useEscape(ref: RefObject<HTMLElement | null>, onEscape: (() => v
     el.addEventListener('keydown', onKeyDown)
     return () => el.removeEventListener('keydown', onKeyDown)
   }, [ref, onEscape])
+}
+
+/**
+ * Esc anywhere on the page while `onEscape` is set (the Postcard reveal, so Esc
+ * still works after a click outside it drops focus to the page). Same rules as
+ * `useEscape`: a bare, non-repeated Escape not already handled.
+ */
+export function useDocumentEscape(onEscape: (() => void) | null): void {
+  useEffect(() => {
+    if (!onEscape) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.repeat) return
+      if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
+      e.preventDefault()
+      onEscape()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onEscape])
 }

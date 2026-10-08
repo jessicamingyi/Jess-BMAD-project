@@ -4,7 +4,7 @@ import { computeCandidates, digitsOf } from '../engine/candidates.ts'
 import { boxOf, colOf, parseGrid, rowOf, UNITS, type Grid, type Unit } from '../engine/grid.ts'
 import { applyStep } from '../engine/solver.ts'
 import type { CellDigit, Step } from '../engine/step.ts'
-import type { Action, AppState, HintState } from './types.ts'
+import type { AppState, HintState, UndatedAction } from './types.ts'
 
 /** The Hint for Session `key`, or null (closed, or another Session's Hint). */
 export function activeHint(state: AppState, key: string): HintState | null {
@@ -55,7 +55,7 @@ export function hintMove(hint: HintState | null): CellDigit | null {
 }
 
 /** What H or a Hint button does now: apply the move at step 2 (chain or Mistake), else ask for the next step. */
-export function hintAction(hint: HintState | null): Action {
+export function hintAction(hint: HintState | null): UndatedAction {
   return hintMove(hint) !== null ? { type: 'hintApplied' } : { type: 'hintRequested' }
 }
 

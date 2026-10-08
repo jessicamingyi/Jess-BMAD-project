@@ -7,12 +7,12 @@ import type { Action, AppState } from '../../src/game/types.ts'
 
 const run = (state: AppState, ...actions: Action[]) => actions.reduce(withAnnouncement, state)
 const select = (cell: number): Action => ({ type: 'cellSelected', cell })
-const enter = (digit: number): Action => ({ type: 'digitEntered', digit })
+const enter = (digit: number): Action => ({ type: 'digitEntered', digit, date: '2026-10-07' })
 const notesMode: Action = { type: 'entryModeChosen', mode: 'notes' }
 const toggleInput: Action = { type: 'inputModeToggled' }
 const toggleEntry: Action = { type: 'entryModeToggled' }
 const clear: Action = { type: 'cellCleared' }
-const place: Action = { type: 'currentDigitPlaced' }
+const place: Action = { type: 'currentDigitPlaced', date: '2026-10-07' }
 
 const { givens, solution } = samplePuzzle
 const emptyCells = [...givens].flatMap((ch, i) => (ch === '0' ? [i] : []))
@@ -45,7 +45,7 @@ describe('announce', () => {
     expect(message(onGiven, clear)).toBe(GIVEN)
     const numberFirst = run(fresh(), toggleInput, enter(7), select(firstGiven))
     expect(message(numberFirst, place)).toBe(GIVEN)
-    expect(message(numberFirst, { type: 'cellClicked', cell: firstGiven })).toBe(GIVEN)
+    expect(message(numberFirst, { type: 'cellClicked', cell: firstGiven, date: '2026-10-07' })).toBe(GIVEN)
   })
 
   it('says "cleared" for Backspace on a digit or Notes; silent on a clean empty cell', () => {
@@ -69,7 +69,7 @@ describe('announce', () => {
     const ready = run(s, enter(7), select(firstEmpty))
     expect(message(ready, enter(7))).toBeNull()
     expect(message(ready, place)).toBe('7')
-    expect(message(ready, { type: 'cellClicked', cell: firstEmpty })).toBe('7')
+    expect(message(ready, { type: 'cellClicked', cell: firstEmpty, date: '2026-10-07' })).toBe('7')
   })
 
   it('says "Solved" when the last digit solves the Puzzle', () => {
@@ -81,7 +81,7 @@ describe('announce', () => {
 
   it('says a Hint move once as "5 placed, row 5, column 5"; a stale hintApplied is silent', () => {
     const hint: Action = { type: 'hintRequested' }
-    const apply: Action = { type: 'hintApplied' }
+    const apply: Action = { type: 'hintApplied', date: '2026-10-07' }
     const s = run(fresh(), hint, hint)
     expect(message(s, apply)).toBe('5 placed, row 5, column 5')
     const next = run(s, apply)
@@ -95,7 +95,7 @@ describe('announce', () => {
   it('a Hint move that solves says one message: "… column 5. Solved"', () => {
     const last = solution.slice(0, 40) + '0' + solution.slice(41)
     const s = run(createInitialState({ givens: last, solution, difficulty: 'easy' }), { type: 'hintRequested' }, { type: 'hintRequested' })
-    expect(message(s, { type: 'hintApplied' })).toBe('5 placed, row 5, column 5. Solved')
+    expect(message(s, { type: 'hintApplied', date: '2026-10-07' })).toBe('5 placed, row 5, column 5. Solved')
   })
 
   it('is silent for selection, Undo and Restart', () => {
@@ -176,7 +176,7 @@ describe('announce: Mistake Hints and a full but wrong grid', () => {
     const ready = run(almost(), toggleInput, enter(wrong), select(last))
     expect(ready.ui.inputMode).toBe('numberFirst')
     expect(message(ready, place)).toBe(cue)
-    expect(message(ready, { type: 'cellClicked', cell: last })).toBe(cue)
+    expect(message(ready, { type: 'cellClicked', cell: last, date: '2026-10-07' })).toBe(cue)
   })
 
   it('the cue follows not-full → full-but-wrong: clear then refill wrong says it again; a full grid changed in place does not', () => {
@@ -197,8 +197,8 @@ describe('announce: Mistake Hints and a full but wrong grid', () => {
     const s = run(almost(), select(last), enter(wrong), { type: 'hintRequested' }, { type: 'hintRequested' })
     const r = Math.floor(last / 9) + 1
     const c = (last % 9) + 1
-    expect(message(s, { type: 'hintApplied' })).toBe(`row ${r}, column ${c} cleared`)
+    expect(message(s, { type: 'hintApplied', date: '2026-10-07' })).toBe(`row ${r}, column ${c} cleared`)
     const stale = { ...s, ui: { ...s.ui, hint: null } }
-    expect(message(stale, { type: 'hintApplied' })).toBeNull()
+    expect(message(stale, { type: 'hintApplied', date: '2026-10-07' })).toBeNull()
   })
 })

@@ -4,11 +4,14 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { CITIES, cityById, type City, type Region, type Tier } from '../../src/content/cities.ts'
 import {
+  award,
   cityKey,
   cityOfKey,
   difficultyForTier,
+  isDateString,
   isReachable,
   openingRegion,
+  pendingPostcard,
   postcardCount,
   regionCities,
   slotPosition,
@@ -181,5 +184,60 @@ describe('slotState', () => {
     expect(slotState(s, city('lisbon'))).toBe('reachable')
     expect(slotState(s, city(EU_MID[1]))).toBe('reachable')
     expect(slotState(s, city(EU_FAR[0]))).toBe('locked')
+  })
+})
+
+describe('award', () => {
+  const D = '2026-10-07'
+  const withAlbum = (a: Album): AppState => ({ ...createInitialState(), album: a })
+
+  it('appends { cityId, collectedOn, revealed: false } for an uncollected City', () => {
+    const s = withAlbum(album('europe-near-1'))
+    const next = award(s, cityKey('lisbon'), D)
+    expect(next.album).toEqual([...s.album, { cityId: 'lisbon', collectedOn: D, revealed: false }])
+    expect(next.sessions).toBe(s.sessions)
+    expect(next.ui).toBe(s.ui)
+  })
+
+  it('keeps the order collected', () => {
+    let s = withAlbum([])
+    for (const id of ['asia-near-2', 'europe-near-1', 'americas-near-3']) s = award(s, cityKey(id), D)
+    expect(s.album.map((p) => p.cityId)).toEqual(['asia-near-2', 'europe-near-1', 'americas-near-3'])
+  })
+
+  it('adds nothing (the same state) for Free Play, a collected City, an unknown City or a malformed key', () => {
+    const s = withAlbum(album('europe-near-1'))
+    expect(award(s, 'free', D)).toBe(s)
+    expect(award(s, cityKey('europe-near-1'), D)).toBe(s)
+    expect(award(withAlbum([{ cityId: 'europe-near-1', collectedOn: D, revealed: false }]), cityKey('europe-near-1'), D).album).toHaveLength(1)
+    expect(award(s, cityKey('atlantis'), D)).toBe(s)
+    expect(award(s, 'europe-near-2', D)).toBe(s)
+  })
+
+  it('isDateString: only YYYY-MM-DD (the reducer checks it before an awarding step)', () => {
+    expect(isDateString('2026-10-07')).toBe(true)
+    for (const bad of ['', '2026-1-07', '07/10/2026', '2026-13-01', '2026-10-32', '2026-10-07T00:00', undefined]) {
+      expect(isDateString(bad), String(bad)).toBe(false)
+    }
+  })
+})
+
+describe('pendingPostcard', () => {
+  const unrevealed = (cityId: string): Postcard => ({ cityId, collectedOn: '2026-10-07', revealed: false })
+
+  it('is undefined for an empty Album or when every Postcard is revealed', () => {
+    expect(pendingPostcard([])).toBeUndefined()
+    expect(pendingPostcard(album('europe-near-1', 'lisbon'))).toBeUndefined()
+  })
+
+  it('is the first unrevealed Postcard, oldest first', () => {
+    const a = [card('europe-near-1'), unrevealed('asia-near-1'), unrevealed('europe-near-2')]
+    expect(pendingPostcard(a)).toBe(a[1])
+  })
+
+  it('skips unknown Cities', () => {
+    const a = [unrevealed('atlantis'), unrevealed('europe-near-3')]
+    expect(pendingPostcard(a)).toBe(a[1])
+    expect(pendingPostcard([unrevealed('atlantis')])).toBeUndefined()
   })
 })

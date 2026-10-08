@@ -65,6 +65,7 @@ export function createInitialState(puzzle?: Puzzle): AppState {
       announcement: null,
       freePlay: { picked: 'easy', requestId: 0, status: 'idle', confirmingReplace: false },
       hint: null,
+      justArrived: [],
     },
   }
 }

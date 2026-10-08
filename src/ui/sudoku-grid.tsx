@@ -17,6 +17,8 @@ type Props = {
   onFocusCell?: (cell: number) => void
   /** Drawn on the grid card, outside the grid (a City Puzzle's Postmark). */
   decoration?: ReactNode
+  /** The Postcard reveal: the card keeps its look but takes no input or focus. */
+  inert?: boolean
 }
 
 const ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -53,7 +55,7 @@ function NoteGrid({ mask }: { mask: number }) {
  * selected cell (or cell 0) is the one tab stop; selection moves focus there,
  * and focusing a cell selects it. Keys are handled by `ui/keyboard`, not here.
  */
-export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, onFocusCell, decoration }: Props) {
+export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, onFocusCell, decoration, inert = false }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
   const lastSelected = useRef(selectedCell)
   const tabStop = selectedCell ?? 0
@@ -67,7 +69,7 @@ export function SudokuGrid({ session, selectedCell, marks, hintCells, onClick, o
   }, [selectedCell])
 
   return (
-    <div className="grid-card">
+    <div className="grid-card" inert={inert}>
       {decoration}
       {marks?.units && (
         <>

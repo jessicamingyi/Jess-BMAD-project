@@ -178,10 +178,10 @@ describe('Free Play: in progress and replace', () => {
     return run(
       playing(),
       { type: 'cellSelected', cell: a },
-      { type: 'digitEntered', digit: Number(solution[a]) },
+      { type: 'digitEntered', digit: Number(solution[a]), date: '2026-10-07' },
       { type: 'cellSelected', cell: b },
       { type: 'entryModeChosen', mode: 'notes' },
-      { type: 'digitEntered', digit: 3 },
+      { type: 'digitEntered', digit: 3, date: '2026-10-07' },
       { type: 'restartRequested' },
     )
   }
@@ -248,7 +248,7 @@ describe('Free Play: solved', () => {
       s,
       ...emptyCells.flatMap((c): Action[] => [
         { type: 'cellSelected', cell: c },
-        { type: 'digitEntered', digit: Number(solution[c]) },
+        { type: 'digitEntered', digit: Number(solution[c]), date: '2026-10-07' },
       ]),
     )
     expect(solved.sessions.free.status).toBe('solved')

@@ -61,6 +61,10 @@ const PAIRS: readonly Pair[] = [
   { fg: 'card', bg: 'airmail-red', min: TEXT, what: 'text' },
   /** A locked slot's dashed border on the desk (no fill). */
   { fg: 'rule-thin', bg: 'desk', min: NON_TEXT, what: 'non-text' },
+  /** The Postcard's divider and ruled address lines, and a Collected slot's border, on card. */
+  { fg: 'rule-thin', bg: 'card', min: NON_TEXT, what: 'non-text' },
+  /** The "just arrived" 2px outline, drawn just outside the slot on the desk. */
+  { fg: 'airmail-red', bg: 'desk', min: NON_TEXT, what: 'non-text' },
 ]
 
 /** `--color-<name>: #RRGGBB;` from theme.css, or undefined. */
@@ -97,6 +101,15 @@ function contrastFailures(colours: Partial<Record<Role, string>>, t: ThemeName, 
 }
 
 describe('theme contrast (WCAG AA)', () => {
+  it('checks the "just arrived" caption (airmail-red text on card) in both themes', () => {
+    expect(PAIRS).toContainEqual({ fg: 'airmail-red', bg: 'card', min: TEXT, what: 'text' })
+    for (const t of ['Daylight', 'Lamplight'] as const) {
+      const p = palette(t)
+      expect(p['airmail-red'], t).toBeDefined()
+      expect(contrastRatio(p['airmail-red']!, p.card!), t).toBeGreaterThanOrEqual(TEXT)
+    }
+  })
+
   it.each(['Daylight', 'Lamplight'] as const)('%s: every DESIGN measured pair meets its threshold', (t) => {
     expect(contrastFailures(palette(t), t, PAIRS)).toEqual([])
   })

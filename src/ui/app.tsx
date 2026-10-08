@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { withAnnouncement } from '../game/announce.ts'
-import { cityOfKey } from '../game/journey.ts'
+import { cityKey, cityOfKey, pendingPostcard } from '../game/journey.ts'
+import { showPendingPostcard } from '../game/reducer.ts'
 import { activeSession, createInitialState, FREE_PLAY_KEY } from '../game/session.ts'
 import type { AppState, Screen } from '../game/types.ts'
 import { AlbumScreen } from './album-screen.tsx'
@@ -31,7 +32,8 @@ const emptyState = () => createInitialState()
  * yet (Epic 4).
  */
 export function App({ initialState, createWorker, today }: Props) {
-  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => s ?? emptyState())
+  // An unrevealed Postcard shows first, before anything else (Story 3.5's launch rule gives way to it).
+  const [state, dispatch] = useReducer(withAnnouncement, initialState, (s) => showPendingPostcard(s ?? emptyState()))
   const start = useGenerator(dispatch, createWorker)
   const { screen } = state.ui
   const { lamplight } = state.settings
@@ -42,6 +44,11 @@ export function App({ initialState, createWorker, today }: Props) {
   /** The screen focus was last moved for; focus moves once a changed screen has rendered. */
   const focusedScreen = useRef(screen)
   const date = today ?? localDate()
+  const showPuzzle = screen === 'puzzle' && active !== null
+  // The Postcard reveal: "Add to Album" (or Esc) is the only way forward, so the nav is inert.
+  // Only while the Postcard actually shows: its City is the current Puzzle (the PuzzleScreen rule).
+  const pending = pendingPostcard(state.album)
+  const revealing = showPuzzle && pending !== undefined && cityKey(pending.cityId) === active.key
 
   // Lamplight comes only from the toggle; the system colour scheme is ignored.
   useEffect(() => {
@@ -58,17 +65,17 @@ export function App({ initialState, createWorker, today }: Props) {
   useEffect(() => {
     if (focusedScreen.current === screen) return
     focusedScreen.current = screen
+    // During a reveal the Postcard focuses its own button.
+    if (revealing) return
     if (screen === 'puzzle') mainRef.current?.querySelector<HTMLElement>('[role="grid"] [tabindex="0"]')?.focus()
     else headingRef.current?.focus()
-  }, [screen])
+  }, [screen, revealing])
 
   const choose = (next: Screen) => {
     // Choosing the current screen does nothing (no re-render, no focus jump).
     if (next === screen) return
     dispatch({ type: 'screenChosen', screen: next })
   }
-
-  const showPuzzle = screen === 'puzzle' && active !== null
 
   let main
   if (screen === 'settings') {
@@ -110,7 +117,7 @@ export function App({ initialState, createWorker, today }: Props) {
       <header className="app-header">
         <p className="app-wordmark">Traveller Sudoku</p>
         <p className="app-tagline">correspondence by puzzle</p>
-        <AppNav current={screen} puzzleAvailable={active !== null} onChoose={choose} />
+        <AppNav current={screen} puzzleAvailable={active !== null} onChoose={choose} inert={revealing} />
         {/* Puzzle screen only: the title sits on its own line beneath the wordmark (other screens have their own h1). */}
         {showPuzzle && <PuzzleTitle difficulty={active.session.difficulty} city={cityOfKey(active.key)} />}
       </header>

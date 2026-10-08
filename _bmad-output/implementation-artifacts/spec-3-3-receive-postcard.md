@@ -2,7 +2,8 @@
 title: 'Story 3.3: Receive a Postcard'
 type: 'feature'
 created: '2026-10-07'
-status: 'draft'
+status: 'done'
+baseline_commit: 'caf7164f86e2f88e06ab65f6395c2c2bb78dbeca'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -65,17 +66,17 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/game/types.ts` -- add `date` to the four solving actions; add an `UndatedAction` helper type; add `postcardAdded { cityId }` and `UiState.justArrived`.
-- [ ] `src/game/journey.ts` -- `award`, `pendingPostcard` (first `revealed: false` entry with a known City).
-- [ ] `src/game/session.ts` -- initial `justArrived: []`.
-- [ ] `src/game/reducer.ts` -- thread `date` through `applyDigit`/`applyHint` into `settle`. On an `inProgress → solved` transition, call `award`, refusing the step on a bad date. Add the reveal gate and the blocked-action rule. Add `postcardAdded` (outside `record`). `chooseScreen('album')` clears `justArrived`.
-- [ ] `src/content/copy.ts` -- `postcardFrom(city)`, `addToAlbum`, `addressTo`, `addressAlbum(region)`, `addressCity(city, country)`, `justArrived`. Drop `slotCollected`.
-- [ ] `src/ui/postcard.tsx`, `postcard.css` -- the Postcard: a `section` labelled "Postcard from {City}"; the line `p` with an id; a 1px `rule-thin` divider; the right half has the Postmark (`collectedOn`) over a 52×62 Stamp and three ruled address lines; one primary button with `aria-describedby` → the line. It focuses that button on mount and registers `useEscape` on itself. Stripe, shadow and rotation per DESIGN, via new `--airmail-stripe` and `--shadow-postcard` tokens (with twins) in `theme.css`.
-- [ ] `src/ui/keyboard.ts` -- `keyToAction` returns `UndatedAction`.
-- [ ] `src/ui/puzzle-screen.tsx`, `sudoku-grid.tsx`, `puzzle.css` -- stamp `date` onto every action. When `pendingPostcard` is this City, make `.grid-card` and `.side-column` `inert`, hide the solve line, and render `<Postcard key={cityId}>` absolutely over the grid with the `postcard-arrive` animation.
-- [ ] `src/ui/app.tsx`, `app-nav.tsx` -- init through `showPendingPostcard`; apply OQ2 to the nav.
-- [ ] `src/ui/album-screen.tsx`, `album.css` -- the Collected slot per the AC (stripe top edge, line in `meta` italic). For `justArrived` ids, add a 2px `airmail-red` outline, the "just arrived" caption and the entrance animation.
-- [ ] Tests:
+- [x] `src/game/types.ts` -- add `date` to the four solving actions; add an `UndatedAction` helper type; add `postcardAdded { cityId }` and `UiState.justArrived`.
+- [x] `src/game/journey.ts` -- `award`, `pendingPostcard` (first `revealed: false` entry with a known City).
+- [x] `src/game/session.ts` -- initial `justArrived: []`.
+- [x] `src/game/reducer.ts` -- thread `date` through `applyDigit`/`applyHint` into `settle`. On an `inProgress → solved` transition, call `award`, refusing the step on a bad date. Add the reveal gate and the blocked-action rule. Add `postcardAdded` (outside `record`). `chooseScreen('album')` clears `justArrived`.
+- [x] `src/content/copy.ts` -- `postcardFrom(city)`, `addToAlbum`, `addressTo`, `addressAlbum(region)`, `addressCity(city, country)`, `justArrived`. Drop `slotCollected`.
+- [x] `src/ui/postcard.tsx`, `postcard.css` -- the Postcard: a `section` labelled "Postcard from {City}"; the line `p` with an id; a 1px `rule-thin` divider; the right half has the Postmark (`collectedOn`) over a 52×62 Stamp and three ruled address lines; one primary button with `aria-describedby` → the line. It focuses that button on mount and registers `useEscape` on itself. Stripe, shadow and rotation per DESIGN, via new `--airmail-stripe` and `--shadow-postcard` tokens (with twins) in `theme.css`.
+- [x] `src/ui/keyboard.ts` -- `keyToAction` returns `UndatedAction`.
+- [x] `src/ui/puzzle-screen.tsx`, `sudoku-grid.tsx`, `puzzle.css` -- stamp `date` onto every action. When `pendingPostcard` is this City, make `.grid-card` and `.side-column` `inert`, hide the solve line, and render `<Postcard key={cityId}>` absolutely over the grid with the `postcard-arrive` animation.
+- [x] `src/ui/app.tsx`, `app-nav.tsx` -- init through `showPendingPostcard`; apply OQ2 to the nav.
+- [x] `src/ui/album-screen.tsx`, `album.css` -- the Collected slot per the AC (stripe top edge, line in `meta` italic). For `justArrived` ids, add a 2px `airmail-red` outline, the "just arrived" caption and the entrance animation.
+- [x] Tests:
   - `tests/game/journey.test.ts` -- `award` (free, collected, unknown, append order) and `pendingPostcard`.
   - New `tests/game/postcard.test.ts` -- every matrix row, the date passed in with the action, and the gate letting a generator reply through.
   - New `tests/ui/postcard.test.ts` -- reveal DOM and ARIA, `inert`, focus, Esc, an outside click doing nothing, the Album after "Add to Album" (heading, Region, count +1, focus, "just arrived" gone on the next visit), the fixture reveal at launch (two, oldest first), the third Near Postcard opening Mid, the CSS (`prefers-reduced-motion`, stripe, −1°), and the UJ-1 Lisbon flow.
@@ -90,6 +91,30 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Finding | Verdict | Route | Evidence |
+|---|---|---|---|---|---|
+| 1 | blind, edge | Soft-lock: the gate can't reveal but the reducer blocks everything and the nav is inert | high | patch | `pendingPostcard` checks only `cityById`; the gate bails on a missing puzzle; App's `revealing` doesn't require the rendered Postcard. |
+| 2 | blind | `justArrived` accumulates across visits | medium | patch | Only `chooseScreen('album')` clears it; travelling and solving again marks both. |
+| 3 | blind | Two Postmark dates on screen during a launch reveal | low | patch | The grid Postmark uses today; the Postcard uses `collectedOn`. |
+| 4 | blind, VG | `refusedForDate` uses a second reducer pass, and its probe is untested | medium | patch (simplify) | It exists only because `settle` returns the post-select state; validate the date once instead and add the two `cellClicked` cases. |
+| 5 | blind, edge | `date` is stamped on every action through a cast and frozen at render | low | patch | `{ ...action, date } as Action`; `useCallback` captures the render-time date. |
+| 6 | blind, smoke, edge | Not a dialog; a click outside drops focus so Esc stops; held Esc adds several Postcards | medium | patch | Browser: after an inert click focus went to `<body>` and Esc no longer reached the Postcard. |
+| 7 | smoke | "Netherlands" is clipped on the small Postcard Stamp | medium | patch | It needs 61px of the 48px available; renders as "NETHERLAN". |
+| 8 | blind | No forced-colors treatment for the stripe, the Collected edge or the shadow | low | patch | Other sections have forced-colors blocks. |
+| 9 | blind | Contrast pairs missing for the just-arrived outline and caption | low | patch | `airmail-red` on `desk` (non-text). |
+| 10 | blind | A test name promises an input-refusal assertion it never makes | low | patch | It only checks `screen` and `activeKey`. |
+| 11 | blind | A redundant Lamplight stripe twin; hard-coded `8` | low | patch | The base gradient already uses the repointed tokens. |
+| 12 | blind | Slow whole-Puzzle UI tests hidden by 30s timeouts | medium | patch | The suite went from about 23s to about 75s. |
+| 13 | blind | A malformed date blocks the final move silently | low | reject | `localDate` always produces a valid date; refusing protects the award. Simplified in #4. |
+| 14 | blind, edge | The narrow-viewport left offset clips the Postcard | low | reject | Not seen at 900px (browser check); the app is desktop-first. |
+| 15 | edge | A date with the right shape but impossible (2026-02-31) | low | reject | The date comes from `localDate()`, never user input. |
+| 16 | edge | Existing tests changed beyond setup | low | reject | The changes follow 3.3's intended behaviour (awards now happen). |
+| 17 | blind | Spec status is stale | — | reject | The workflow manages it. |
+
+Real-browser check (Chrome 155, Edge 154; 1280 and 900px; both themes): the arrival animation (500ms, −1° tilt, stripe), Esc and "Add to Album" both adding, the Album showing "just arrived", Lisbon unlocking after 3 Near Postcards with its real line, and reduced motion all pass. No clipping, header overlap or horizontal scroll, and no console, CSP or network errors.
+
+Recheck after the fixes (Chrome 155, Edge 154; both widths and themes): all 5 pass. Small-Stamp countries fit (Netherlands 44/54px; United Kingdom wraps cleanly). The Postcard has `role=dialog` and `aria-modal`. Esc adds the Postcard after focus drops. The grid Postmark matches `collectedOn`, and only the newest City is marked "just arrived". The test suite is back to about 14s.
 
 ## Design Notes
 

@@ -130,6 +130,11 @@ export type UiState = {
   readonly freePlay: FreePlayUi
   /** The Hint panel; null when closed. Shown only for its own Session. */
   readonly hint: HintState | null
+  /**
+   * City ids whose Postcard was added since the Album was last opened from the nav:
+   * their slots carry "just arrived". UI only, never saved.
+   */
+  readonly justArrived: readonly string[]
 }
 
 export type Announcement = {
@@ -147,8 +152,14 @@ export type AppState = {
 
 export type Action =
   | { readonly type: 'cellSelected'; readonly cell: number }
-  | { readonly type: 'digitEntered'; readonly digit: number }
-  | { readonly type: 'cellClicked'; readonly cell: number }
+  /**
+   * The four solving actions (`digitEntered`, `cellClicked`, `currentDigitPlaced`,
+   * `hintApplied`) carry the shell's local date, 'YYYY-MM-DD': any of them can
+   * complete a City's solution, which awards its Postcard dated `date`. The core
+   * never reads the clock.
+   */
+  | { readonly type: 'digitEntered'; readonly digit: number; readonly date: string }
+  | { readonly type: 'cellClicked'; readonly cell: number; readonly date: string }
   | { readonly type: 'entryModeChosen'; readonly mode: EntryMode }
   | { readonly type: 'inputModeChosen'; readonly mode: InputMode }
   | { readonly type: 'inputModeToggled' }
@@ -156,7 +167,7 @@ export type Action =
   /** Backspace/Delete: clear the selected cell's player digit, or its Notes when empty. */
   | { readonly type: 'cellCleared' }
   /** Number-first Enter/Space: place the current digit in the selected cell. */
-  | { readonly type: 'currentDigitPlaced' }
+  | { readonly type: 'currentDigitPlaced'; readonly date: string }
   | { readonly type: 'undoRequested' }
   | { readonly type: 'restartRequested' }
   | { readonly type: 'restartCancelled' }
@@ -193,7 +204,7 @@ export type Action =
    * to `hintsUsed`, and send the Hint back to idle.
    * Acts only on the active Session's own Hint at step 'explain'; otherwise no change.
    */
-  | { readonly type: 'hintApplied' }
+  | { readonly type: 'hintApplied'; readonly date: string }
   /**
    * "What's a {technique}?": open the definition inside the panel. Acts only on the
    * active Session's own Hint at step 1 or 2 with a chain; otherwise no change.
@@ -202,3 +213,14 @@ export type Action =
   | { readonly type: 'techniqueDefinitionOpened' }
   /** Esc, "Close" or the link again: close the definition. Same rules as opening. */
   | { readonly type: 'techniqueDefinitionClosed' }
+  /**
+   * "Add to Album" or Esc on the Postcard reveal: the first unrevealed Postcard
+   * (it must be `cityId`) becomes revealed. The next unrevealed one shows, else
+   * the Album opens on its Region. Never recorded in Undo.
+   */
+  | { readonly type: 'postcardAdded'; readonly cityId: string }
+
+type Undated<A> = A extends { readonly date: string } ? Omit<A, 'date'> : A
+
+/** An Action before the shell stamps today's date onto it (`ui/keyboard`, `game/hint`). */
+export type UndatedAction = Undated<Action>

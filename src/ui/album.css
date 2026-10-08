@@ -112,13 +112,81 @@ button.album-slot {
   letter-spacing: var(--type-button-letter-spacing);
 }
 
-/* Interim Collected caption (Story 3.3 restyles the Collected slot). */
-.album-slot-collected {
+/*
+ * Collected: a Postcard face in miniature. card, 1px rule-thin border, a 4px
+ * airmail-stripe along the top edge, City in body ink, "{country} · {Tier}" in
+ * caption ink-muted, the line in meta italic ink.
+ */
+.album-slot--collected {
+  position: relative;
+  padding-top: calc(var(--space-3) + var(--size-airmail-stripe-edge));
+}
+
+.album-slot--collected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--size-airmail-stripe-edge);
+  background-image: var(--airmail-stripe);
+}
+
+.album-slot--collected .album-slot-name {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+}
+
+.album-slot--collected .album-slot-caption {
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+  line-height: var(--type-meta-line-height);
+}
+
+.album-slot-line {
+  color: var(--color-ink);
+  font-size: var(--type-meta-size);
+  font-style: italic;
+  line-height: var(--type-meta-line-height);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Just arrived: a 2px airmail-red outline and the caption, until the next Album
+ * visit. Both fade in gently once; static under reduced motion (theme.css).
+ */
+.album-slot--just-arrived {
+  outline: var(--rule-box) solid var(--color-airmail-red);
+  animation: album-just-arrived-outline var(--motion-just-arrived) var(--motion-ease-out) both;
+}
+
+.album-slot-arrived {
   margin-top: auto;
-  color: var(--color-ink-muted);
-  font-size: var(--type-label-size);
-  font-variant: var(--type-label-variant);
-  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-airmail-red);
+  font-size: var(--type-caption-size);
+  font-style: var(--type-caption-style);
+  line-height: var(--type-meta-line-height);
+  animation: album-just-arrived-caption var(--motion-just-arrived) var(--motion-ease-out) both;
+}
+
+@keyframes album-just-arrived-outline {
+  from {
+    outline-color: transparent;
+  }
+
+  to {
+    outline-color: var(--color-airmail-red);
+  }
+}
+
+@keyframes album-just-arrived-caption {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Locked: dashed border, no name, faded by fill and border only (the line keeps full ink-muted contrast). */
@@ -142,5 +210,17 @@ button.album-slot--locked {
 @media (max-width: 719.98px) {
   .album-slots {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Forced colours drop the stripe image: the Collected slot keeps a solid top edge. */
+@media (forced-colors: active) {
+  .album-slot--collected {
+    border-top: var(--size-airmail-stripe-edge) solid CanvasText;
+    padding-top: var(--space-3);
+  }
+
+  .album-slot--collected::before {
+    display: none;
   }
 }

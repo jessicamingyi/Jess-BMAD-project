@@ -2,7 +2,7 @@ import { cityById } from '../content/cities.ts'
 import { cityPuzzle } from '../content/city-puzzles.ts'
 import { hintFor } from '../engine/hints.ts'
 import { activeHint, hintMove, hintTechnique } from './hint.ts'
-import { cityKey, isReachable, isRegion, openingRegion } from './journey.ts'
+import { award, cityKey, cityOfKey, isCollected, isDateString, isReachable, isRegion, openingRegion, pendingPostcard } from './journey.ts'
 import { toggleNote } from './notes.ts'
 import { activeSession, createSession, FREE_PLAY_KEY } from './session.ts'
 import type { Action, AppState, Difficulty, Puzzle, Screen, Session, UndoEntry } from './types.ts'
@@ -27,11 +27,62 @@ function putSession(state: AppState, key: string, session: Session): AppState {
 /**
  * The one place a Session's solve status is decided, after a step that changed
  * its digits (a digit placed, or `hintApplied`): solved when the digits are the
- * solution. Story 3.3 hooks `journey.award` in here.
+ * solution. The step that solves a City not yet in the Album also awards its
+ * Postcard dated `date` (`journey.award`; Free Play and collected Cities award
+ * nothing). `reducer` has already refused such a step when `date` is malformed.
  */
-function settle(state: AppState, key: string, session: Session): AppState {
-  const status = session.digits === session.solution ? 'solved' : 'inProgress'
-  return putSession(state, key, { ...session, status })
+function settle(state: AppState, key: string, session: Session, date: string): AppState {
+  const solved = session.digits === session.solution
+  const next = putSession(state, key, { ...session, status: solved ? 'solved' : 'inProgress' })
+  if (!solved || state.sessions[key]?.status === 'solved') return next
+  return award(next, key, date)
+}
+
+/** The actions that can complete a solution; each carries the shell's date. */
+export const SOLVING_ACTIONS: ReadonlySet<Action['type']> = new Set([
+  'digitEntered',
+  'cellClicked',
+  'currentDigitPlaced',
+  'hintApplied',
+])
+
+/** The cell and digit a solving action would place in the current Puzzle, or null when it places none. */
+function placement(state: AppState, action: Action): { cell: number; digit: number } | null {
+  const { inputMode, entryMode, selectedCell, currentDigit } = state.ui
+  const digitMode = entryMode === 'digit'
+  switch (action.type) {
+    case 'digitEntered':
+      return digitMode && inputMode === 'cellFirst' && selectedCell !== null ? { cell: selectedCell, digit: action.digit } : null
+    case 'cellClicked':
+      return digitMode && inputMode === 'numberFirst' && currentDigit !== null ? { cell: action.cell, digit: currentDigit } : null
+    case 'currentDigitPlaced':
+      return digitMode && inputMode === 'numberFirst' && currentDigit !== null && selectedCell !== null
+        ? { cell: selectedCell, digit: currentDigit }
+        : null
+    case 'hintApplied': {
+      const key = state.ui.activeKey
+      return key === null ? null : hintMove(activeHint(state, key))
+    }
+    default:
+      return null
+  }
+}
+
+/**
+ * A solving action with a malformed date that would complete a City not yet in
+ * the Album (and so award its Postcard): refused whole. Any other move with a
+ * bad date goes ahead, as it awards nothing.
+ */
+function refusedForDate(state: AppState, action: Action): boolean {
+  if (!SOLVING_ACTIONS.has(action.type) || isDateString((action as { date?: unknown }).date)) return false
+  const active = activeSession(state)
+  const city = cityOfKey(active?.key ?? null)
+  if (!active || !city || active.session.status === 'solved' || isCollected(state.album, city)) return false
+  const target = placement(state, action)
+  if (!target || !isCell(target.cell) || !isDigit(target.digit)) return false
+  const { digits, givens, solution } = active.session
+  if (givens[target.cell] !== '0') return false
+  return digits.slice(0, target.cell) + String(target.digit) + digits.slice(target.cell + 1) === solution
 }
 
 /**
@@ -40,7 +91,7 @@ function settle(state: AppState, key: string, session: Session): AppState {
  * Notes: toggle Note `digit`, only in empty cells. Placing a digit hides Notes but keeps the mask.
  * Refused (same state) with no current Puzzle, when solved or on a Given.
  */
-export function applyDigit(state: AppState, cell: number, digit: number): AppState {
+export function applyDigit(state: AppState, cell: number, digit: number, date: string): AppState {
   const active = activeSession(state)
   if (!active || !isCell(cell) || !isDigit(digit)) return state
   const { key, session } = active
@@ -56,7 +107,7 @@ export function applyDigit(state: AppState, cell: number, digit: number): AppSta
   const ch = String(digit)
   const next = session.digits[cell] === ch ? '0' : ch
   const digits = session.digits.slice(0, cell) + next + session.digits.slice(cell + 1)
-  return settle(state, key, { ...session, digits })
+  return settle(state, key, { ...session, digits }, date)
 }
 
 /**
@@ -146,7 +197,57 @@ function setRestartConfirming(state: AppState, open: boolean): AppState {
  * the Session an open Hint belongs to sets that Hint back to idle in the same step.
  */
 export function reducer(state: AppState, action: Action): AppState {
-  return resetHintOnDigits(state, reduce(state, action))
+  // While a Postcard waits to be revealed, only "Add to Album" and generator replies get through.
+  if (pendingPostcard(state.album) && !UNBLOCKED.has(action.type)) return state
+  if (refusedForDate(state, action)) return state
+  return showPendingPostcard(resetHintOnDigits(state, reduce(state, action)))
+}
+
+const UNBLOCKED: ReadonlySet<Action['type']> = new Set(['postcardAdded', 'freePlayGenerated', 'freePlayFailed'])
+
+/**
+ * The reveal gate: while any revealable Postcard (`journey.isRevealable`) waits, the
+ * Puzzle screen shows the first one (oldest first) over its City's solved grid.
+ * Its Session becomes current (a changed current Puzzle clears Undo and the
+ * selection) and, if missing or not solved, is rebuilt solved from content.
+ * Returns `state` itself when the gate is already showing it or nothing is
+ * pending. Runs after every step and when the app starts; Story 3.5's launch
+ * rule gives way to it.
+ */
+export function showPendingPostcard(state: AppState): AppState {
+  const pending = pendingPostcard(state.album)
+  if (!pending) return state
+  const key = cityKey(pending.cityId)
+  let next = state
+  if (next.sessions[key]?.status !== 'solved') {
+    // A revealable Postcard's City always has a well-formed Puzzle.
+    const puzzle = cityPuzzle(pending.cityId)!
+    const session: Session = { ...createSession(key, puzzle), digits: puzzle.solution, status: 'solved' }
+    const hint = next.ui.hint?.sessionKey === key ? null : next.ui.hint
+    next = { ...next, sessions: { ...next.sessions, [key]: session }, ui: { ...next.ui, hint } }
+  }
+  next = openSession(next, key)
+  return next.ui.screen === 'puzzle' ? next : showPuzzle(next)
+}
+
+/**
+ * "Add to Album" (or Esc) on the Postcard showing: it becomes revealed and joins
+ * "just arrived". The next unrevealed Postcard shows (the gate), else the Album
+ * opens on this City's Region with every Postcard seen. Only the first pending
+ * Postcard can be added; any other id is the same state.
+ */
+function addPostcard(state: AppState, cityId: string): AppState {
+  const pending = pendingPostcard(state.album)
+  if (!pending || pending.cityId !== cityId) return state
+  const album = state.album.map((p) => (p === pending ? { ...p, revealed: true } : p))
+  const justArrived = state.ui.justArrived.includes(cityId) ? state.ui.justArrived : [...state.ui.justArrived, cityId]
+  const next: AppState = { ...state, album, ui: { ...state.ui, justArrived } }
+  if (pendingPostcard(album)) return next
+  const city = cityById(cityId)!
+  return {
+    ...next,
+    ui: { ...next.ui, screen: 'album', albumRegion: city.region, albumSeen: album.length, restartConfirming: false },
+  }
 }
 
 /** The post-step Hint rule: digits changed → the open Hint goes idle (Notes, selection and modes leave it alone). */
@@ -191,7 +292,7 @@ function requestHint(state: AppState): AppState {
  * when a Mistake's cell is a Given or no longer holds the reported digit.
  * `reduce` records it in Undo; `resetHintOnDigits` then sets the Hint idle.
  */
-function applyHint(state: AppState): AppState {
+function applyHint(state: AppState, date: string): AppState {
   const active = activeSession(state)
   if (!active || active.session.status === 'solved') return state
   const { key, session } = active
@@ -205,7 +306,7 @@ function applyHint(state: AppState): AppState {
     if (hint?.result?.kind !== 'mistake' || session.digits[cell] !== String(hint.result.digit)) return state
   } else if (!isDigit(digit) || session.digits[cell] !== '0') return state
   const digits = session.digits.slice(0, cell) + String(digit) + session.digits.slice(cell + 1)
-  return settle(state, key, { ...session, digits, hintsUsed: session.hintsUsed + 1 })
+  return settle(state, key, { ...session, digits, hintsUsed: session.hintsUsed + 1 }, date)
 }
 
 /**
@@ -226,7 +327,9 @@ function reduce(state: AppState, action: Action): AppState {
     case 'hintRequested':
       return requestHint(state)
     case 'hintApplied':
-      return record(state, applyHint(state))
+      return record(state, applyHint(state, action.date))
+    case 'postcardAdded':
+      return addPostcard(state, action.cityId)
     case 'hintClosed':
       return state.ui.hint === null ? state : { ...state, ui: { ...state.ui, hint: null } }
     case 'techniqueDefinitionOpened':
@@ -275,7 +378,7 @@ function openSession(state: AppState, key: string): AppState {
   }
 }
 
-/** Show the Puzzle screen, closing any open confirm (as any screen change does). */
+/** Show the Puzzle screen, closing any open confirm and ending the Album visit (as any screen change does). */
 function showPuzzle(state: AppState): AppState {
   const fp = state.ui.freePlay
   return {
@@ -284,6 +387,7 @@ function showPuzzle(state: AppState): AppState {
       ...state.ui,
       screen: 'puzzle',
       restartConfirming: false,
+      justArrived: state.ui.justArrived.length === 0 ? state.ui.justArrived : [],
       freePlay: fp.confirmingReplace ? { ...fp, confirmingReplace: false } : fp,
     },
   }
@@ -345,6 +449,8 @@ function chooseScreen(state: AppState, screen: Screen): AppState {
       screen,
       albumRegion,
       albumSeen,
+      // Any screen change ends the Album visit the marks belong to: "just arrived" goes.
+      justArrived: [],
       restartConfirming: false,
       freePlay: unchanged ? fp : { ...fp, picked, status, confirmingReplace: false },
     },
@@ -432,7 +538,7 @@ function step(state: AppState, action: Action): AppState {
       const selected = select(state, action.cell)
       const { inputMode, currentDigit } = selected.ui
       if (inputMode !== 'numberFirst' || currentDigit === null) return selected
-      return applyDigit(selected, action.cell, currentDigit)
+      return applyDigit(selected, action.cell, currentDigit, action.date)
     }
     case 'digitEntered': {
       if (!isDigit(action.digit)) return state
@@ -442,7 +548,7 @@ function step(state: AppState, action: Action): AppState {
       }
       const cell = state.ui.selectedCell
       if (cell === null) return state
-      return applyDigit(state, cell, action.digit)
+      return applyDigit(state, cell, action.digit, action.date)
     }
     case 'entryModeChosen': {
       if (action.mode !== 'digit' && action.mode !== 'notes') return state
@@ -475,7 +581,7 @@ function step(state: AppState, action: Action): AppState {
     case 'currentDigitPlaced': {
       const { inputMode, currentDigit, selectedCell } = state.ui
       if (inputMode !== 'numberFirst' || currentDigit === null || selectedCell === null) return state
-      return applyDigit(state, selectedCell, currentDigit)
+      return applyDigit(state, selectedCell, currentDigit, action.date)
     }
     default:
       return state

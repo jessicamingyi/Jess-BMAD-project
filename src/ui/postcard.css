@@ -1,0 +1,105 @@
+/* Postcard (DESIGN › Postcard, mockup key-postcard-reveal .pc). Tokens only. */
+
+.postcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/*
+ * card with the 8px airmail-stripe border (a border-image over a transparent
+ * border, so the card fill stops inside it), square corners, tilted -1deg, lifted.
+ */
+.postcard-face {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rule-thin) minmax(0, 1fr);
+  gap: var(--space-5);
+  min-height: var(--size-postcard-min-height);
+  padding: var(--space-5);
+  border: var(--size-airmail-stripe) solid transparent;
+  border-image: var(--airmail-stripe) var(--airmail-stripe-slice) / var(--size-airmail-stripe);
+  border-radius: var(--rounded-none);
+  background-color: var(--color-card);
+  background-clip: padding-box;
+  box-shadow: var(--shadow-postcard);
+  color: var(--color-ink);
+  transform: rotate(var(--postcard-tilt));
+}
+
+.postcard-line {
+  margin: 0;
+  padding-top: var(--size-postcard-line-top);
+  color: var(--color-ink);
+  font-size: var(--type-postcard-line-size);
+  font-style: var(--type-postcard-line-style);
+  line-height: var(--type-postcard-line-line-height);
+  overflow-wrap: anywhere;
+}
+
+/* The 1px rule-thin line splitting the halves. */
+.postcard-divider {
+  background-color: var(--color-rule-thin);
+}
+
+.postcard-address {
+  position: relative;
+  padding-top: var(--size-postcard-address-top);
+}
+
+/* The Postmark overlaps the Stamp at the top right. */
+.postcard-marks {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.postcard-marks .stamp {
+  margin-top: var(--size-stamp-perforation);
+  margin-right: calc(var(--size-stamp-perforation) * 2);
+}
+
+/* The small Stamp's country and Tier: every country fits, longer names wrap between words. */
+.postcard-marks .stamp-country,
+.postcard-marks .stamp-tier {
+  font-size: var(--type-stamp-small-size);
+  letter-spacing: var(--type-stamp-small-letter-spacing);
+  overflow-wrap: normal;
+}
+
+.postcard-marks .postmark {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-2);
+  margin-right: calc(-1 * var(--space-5));
+}
+
+/* Three ruled address lines in body ink on a 1px rule-thin baseline rule. */
+.postcard-address-line {
+  margin: 0;
+  padding: var(--space-1) 0;
+  border-bottom: var(--rule-thin) solid var(--color-rule-thin);
+  color: var(--color-ink);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  overflow-wrap: anywhere;
+}
+
+.postcard-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: var(--space-2);
+}
+
+.postcard-actions .button {
+  padding: var(--space-2) var(--space-4);
+}
+
+/* Forced colours drop the stripe image and the shadow: keep a solid edge. */
+@media (forced-colors: active) {
+  .postcard-face {
+    border-image: none;
+    border-color: CanvasText;
+  }
+}

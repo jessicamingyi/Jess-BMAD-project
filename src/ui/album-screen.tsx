@@ -16,9 +16,8 @@ type Props = {
 /**
  * The Album, also the destination chooser (no map). Heading, Region tabs with
  * counts, then the Region's 10 slots Near → Mid → Far in a 5-column grid.
- * Tabs and slots are native buttons (no key handlers). A Postcard line is never
- * rendered here before Story 3.3's Collected slot, so it can't leak for an
- * uncollected City.
+ * Tabs and slots are native buttons (no key handlers). Only a Collected slot
+ * renders its City's Postcard line, so a line can't leak for an uncollected City.
  */
 export function AlbumScreen({ state, headingRef, onRegion, onCity }: Props) {
   const { album } = state
@@ -61,15 +60,21 @@ function Slot({ state, city, onCity }: SlotProps) {
   const slot = slotState(state, city)
   const caption = copy.slotCaption(city.country, city.tier)
   switch (slot) {
-    case 'collected':
-      // Interim (until Story 3.3 restyles it): name, caption and "Collected"; no line, no action.
+    case 'collected': {
+      // A Postcard face in miniature: stripe top edge, City, caption and its line. "just arrived" until the next visit.
+      const arrived = state.ui.justArrived.includes(city.id)
       return (
-        <div className="album-slot album-slot--collected" data-city={city.id}>
+        <div
+          className={arrived ? 'album-slot album-slot--collected album-slot--just-arrived' : 'album-slot album-slot--collected'}
+          data-city={city.id}
+        >
           <span className="album-slot-name">{city.name}</span>
           <span className="album-slot-caption">{caption}</span>
-          <span className="album-slot-collected">{copy.slotCollected}</span>
+          <span className="album-slot-line">{city.line}</span>
+          {arrived && <span className="album-slot-arrived">{copy.justArrived}</span>}
         </div>
       )
+    }
     case 'locked': {
       // Focusable for its line; no City name and no fill. Locked Cities are always Mid or Far.
       const waitTier = city.tier === 'far' ? 'mid' : 'near'

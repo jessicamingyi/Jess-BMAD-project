@@ -3,9 +3,10 @@ import { copy } from '../content/copy.ts'
 import { cellMarks } from '../game/assists.ts'
 import { remainingByDigit } from '../game/digit-counts.ts'
 import { activeHint, hintAction, hintFocusCells, hintMistakeCell, hintTechnique, hintView } from '../game/hint.ts'
-import { cityOfKey } from '../game/journey.ts'
+import { cityOfKey, pendingPostcard } from '../game/journey.ts'
+import { SOLVING_ACTIONS } from '../game/reducer.ts'
 import { activeSession, isFullNotSolved } from '../game/session.ts'
-import type { Action, AppState } from '../game/types.ts'
+import type { Action, AppState, UndatedAction } from '../game/types.ts'
 import { ActionRow } from './action-row.tsx'
 import { DigitPad } from './digit-pad.tsx'
 import { FullGridLine } from './full-grid-line.tsx'
@@ -13,6 +14,7 @@ import { HintPanel } from './hint-panel.tsx'
 import { isMacPlatform, keyCaption } from './key-caption.ts'
 import { useKeyboard } from './keyboard.ts'
 import { ModeIndicator } from './mode-indicator.tsx'
+import { Postcard } from './postcard.tsx'
 import { Postmark } from './stamp.tsx'
 import { SudokuGrid } from './sudoku-grid.tsx'
 import { localDate } from './today.ts'
@@ -25,11 +27,21 @@ type Props = {
   /** AppState and dispatch are owned by `App`, so the Session outlives a visit to Settings. */
   state: AppState
   dispatch: (action: Action) => void
-  /** Today's local date, 'YYYY-MM-DD' (the Postmark date); defaults to the local clock. */
+  /**
+   * Today's local date, 'YYYY-MM-DD' (the Postmark date, and the date stamped
+   * onto the four solving actions, so a solve dates its Postcard); defaults to
+   * the local clock, read when the action is dispatched.
+   */
   today?: string
 }
 
-export function PuzzleScreen({ state, dispatch, today }: Props) {
+export function PuzzleScreen({ state, dispatch: dispatchDated, today }: Props) {
+  // The core never reads the clock: a solving action leaves here carrying the date it was made.
+  const dispatch = useCallback(
+    (action: UndatedAction) =>
+      dispatchDated((SOLVING_ACTIONS.has(action.type) ? { ...action, date: today ?? localDate() } : action) as Action),
+    [dispatchDated, today],
+  )
   const active = activeSession(state)
   const session = active?.session
   const city = cityOfKey(active?.key ?? null)
@@ -38,6 +50,12 @@ export function PuzzleScreen({ state, dispatch, today }: Props) {
   const hint = active ? activeHint(state, active.key) : null
   // At step 2 every Hint control (H, the panel button, the action-row Hint) places the move.
   const hintNext = hintAction(hint)
+  // This City's Postcard is waiting to be revealed: it lies over the finished grid.
+  const pending = pendingPostcard(state.album)
+  const revealing = city !== undefined && pending?.cityId === city.id ? pending : undefined
+  const addPostcard = () => {
+    if (city) dispatch({ type: 'postcardAdded', cityId: city.id })
+  }
   useKeyboard(screenRef, dispatch, {
     inputMode: ui.inputMode,
     selectedCell: ui.selectedCell,
@@ -64,9 +82,10 @@ export function PuzzleScreen({ state, dispatch, today }: Props) {
         hintCells={hintFocusCells(hint)}
         onClick={(cell) => dispatch({ type: 'cellClicked', cell })}
         onFocusCell={(cell) => dispatch({ type: 'cellSelected', cell })}
-        decoration={city && <Postmark name={city.name} date={today ?? localDate()} />}
+        decoration={city && <Postmark name={city.name} date={revealing?.collectedOn ?? today ?? localDate()} />}
+        inert={revealing !== undefined}
       />
-      <div className="side-column">
+      <div className="side-column" inert={revealing !== undefined}>
         <HintPanel
           step={hint?.step ?? null}
           view={hintView(hint, session.digits)}
@@ -101,6 +120,7 @@ export function PuzzleScreen({ state, dispatch, today }: Props) {
           onConfirm={() => dispatch({ type: 'restartConfirmed' })}
         />
         {solved &&
+          !revealing &&
           (city ? (
             <p className="puzzle-status">
               {copy.solvedCity}{' '}
@@ -118,6 +138,19 @@ export function PuzzleScreen({ state, dispatch, today }: Props) {
           ))}
         {!solved && isFullNotSolved(session) && <FullGridLine onHint={() => dispatch(hintNext)} focusGrid={focusGrid} />}
       </div>
+      {city && revealing && (
+        <div className="postcard-reveal" key={city.id}>
+          <Postcard
+            key={city.id}
+            city={city}
+            collectedOn={revealing.collectedOn}
+            actionLabel={copy.addToAlbum}
+            onAction={addPostcard}
+            onEscape={addPostcard}
+            modal
+          />
+        </div>
+      )}
     </div>
   )
 }

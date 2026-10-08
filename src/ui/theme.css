@@ -128,11 +128,49 @@
   --type-stamp-letter-spacing: 0.04em;
   --type-stamp-glyph-size: 30px;
   --type-stamp-small-glyph-size: 20px;
+  /* The Postcard Stamp's country and Tier: small enough that "Netherlands" fits its 48px face */
+  --type-stamp-small-size: 7px;
+  --type-stamp-small-letter-spacing: 0;
 
   /* Postmark: a double circle in postmark at 75% opacity, wholly outside the grid frame's top-right corner */
   --size-postmark: 64px;
   --postmark-opacity: 0.75;
   --type-postmark-size: 8px;
+
+  /*
+   * Airmail stripe (DESIGN › airmail-stripe): repeating -45deg airmail-red 12px,
+   * desk 8px, rule-box 12px, desk 8px. 8px round a Postcard, 4px along a
+   * Collected slot's top edge. Built from the colour roles, so Lamplight
+   * repoints it with them (no twin needed). The slice is the stripe width as a
+   * unitless border-image-slice (it cannot take a length).
+   */
+  --airmail-stripe: repeating-linear-gradient(
+    -45deg,
+    var(--color-airmail-red) 0 12px,
+    var(--color-desk) 12px 20px,
+    var(--color-rule-box) 20px 32px,
+    var(--color-desk) 32px 40px
+  );
+  --size-airmail-stripe: 8px;
+  --airmail-stripe-slice: 8;
+  --size-airmail-stripe-edge: 4px;
+
+  /* Postcard (DESIGN › Postcard): card, stripe border, -1deg, ink shadow at 30%; slid onto the grid */
+  --shadow-postcard: 0 10px 26px color-mix(in srgb, var(--color-ink) 30%, transparent);
+  --shadow-postcard-lamplight: 0 10px 26px color-mix(in srgb, black 30%, transparent);
+  --postcard-tilt: -1deg;
+  --size-postcard-width: 612px;
+  --size-postcard-min-height: 290px;
+  --size-postcard-offset-x: -28px;
+  --size-postcard-offset-y: 120px;
+  --size-postcard-address-top: 112px;
+  --size-postcard-line-top: 30px;
+
+  /* Motion: only the Postcard arrival and the "just arrived" mark, after the solve (reduced motion: none) */
+  --motion-postcard-arrive: 500ms;
+  --motion-postcard-rise: 24px;
+  --motion-just-arrived: 400ms;
+  --motion-ease-out: ease-out;
 
   /* Shape (UX-DR5) */
   --rounded-none: 0;
@@ -169,6 +207,7 @@
   --color-focus: var(--color-focus-lamplight);
 
   --shadow-grid-frame: 0 6px 18px color-mix(in srgb, black 18%, transparent);
+  --shadow-postcard: var(--shadow-postcard-lamplight);
 }
 
 *,

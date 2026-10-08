@@ -18,7 +18,7 @@ function deepFreeze<T>(value: T): T {
 const run = (state: AppState, ...actions: Action[]) => actions.reduce(reducer, state)
 const choose = (cityId: string): Action => ({ type: 'cityChosen', cityId })
 const select = (cell: number): Action => ({ type: 'cellSelected', cell })
-const enter = (digit: number): Action => ({ type: 'digitEntered', digit })
+const enter = (digit: number): Action => ({ type: 'digitEntered', digit, date: '2026-10-07' })
 const screen = (s: AppState['ui']['screen']): Action => ({ type: 'screenChosen', screen: s })
 const undo: Action = { type: 'undoRequested' }
 
@@ -116,12 +116,13 @@ describe('cityChosen: carry on', () => {
   })
 })
 
-describe('cityChosen: re-travel a solved City (no Postcard yet)', () => {
+describe('cityChosen: re-travel a solved City', () => {
   it('replaces the solved Session with a fresh one', () => {
     const solved = solve(reducer(empty(), choose(NEAR)))
     expect(solved.sessions[`city:${NEAR}`].status).toBe('solved')
-    expect(solved.album).toEqual([])
-    const again = run(solved, screen('album'), choose(NEAR))
+    const added = reducer(solved, { type: 'postcardAdded', cityId: NEAR })
+    expect(added.album).toEqual([{ cityId: NEAR, collectedOn: '2026-10-07', revealed: true }])
+    const again = run(added, screen('album'), choose(NEAR))
     expect(again.sessions[`city:${NEAR}`]).toEqual(createSession(`city:${NEAR}`, near))
     expect(again.ui.undo).toEqual([])
     expect(again.ui.selectedCell).toBeNull()
@@ -338,10 +339,10 @@ describe('Album screen and Region', () => {
 })
 
 describe('City solve', () => {
-  it('marks the City Session solved and awards nothing yet (Story 3.3)', () => {
+  it('marks the City Session solved and awards its Postcard in the same step (Story 3.3)', () => {
     const solved = solve(reducer(empty(), choose(NEAR)))
     expect(solved.sessions[`city:${NEAR}`].status).toBe('solved')
-    expect(solved.album).toEqual([])
+    expect(solved.album).toEqual([{ cityId: NEAR, collectedOn: '2026-10-07', revealed: false }])
   })
 
   it('announces "Solved" for a City', () => {
@@ -369,7 +370,7 @@ describe('Puzzle actions act on the current City only', () => {
     expect(explain.ui.hint?.step).toBe('explain')
     const opened = reducer(explain, { type: 'techniqueDefinitionOpened' })
     expect(opened.ui.hint?.definitionOpen).toBe(true)
-    const applied = reducer(opened, { type: 'hintApplied' })
+    const applied = reducer(opened, { type: 'hintApplied', date: '2026-10-07' })
     expect(applied.sessions[key].digits).not.toBe(s0.sessions[key].digits)
     expect(applied.sessions[key].hintsUsed).toBe(1)
     expect(applied.ui.undo).toHaveLength(1)

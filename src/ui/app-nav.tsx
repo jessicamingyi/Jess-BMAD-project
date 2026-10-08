@@ -7,6 +7,8 @@ type Props = {
   /** False without a current Puzzle: "Puzzle" stays in place but is disabled. */
   puzzleAvailable: boolean
   onChoose: (screen: Screen) => void
+  /** The Postcard reveal: the nav keeps its look but takes no input or focus. */
+  inert?: boolean
 }
 
 const ITEMS = [
@@ -22,9 +24,9 @@ const ITEMS = [
  * Without a current Puzzle, "Puzzle" is aria-disabled (still focusable, ink-muted)
  * so the nav keeps its shape. No key shortcuts here.
  */
-export function AppNav({ current, puzzleAvailable, onChoose }: Props) {
+export function AppNav({ current, puzzleAvailable, onChoose, inert = false }: Props) {
   return (
-    <nav className="app-nav" aria-label={copy.navLabel}>
+    <nav className="app-nav" aria-label={copy.navLabel} inert={inert}>
       <ul className="app-nav-list">
         {ITEMS.map((item, i) => {
           const disabled = item.screen === 'puzzle' && !puzzleAvailable

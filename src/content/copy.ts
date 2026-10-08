@@ -39,7 +39,7 @@ export const copy = {
     return `${where}, ${value}, your digit${mistake ? ', mistake' : ''}${suffix}`
   },
 
-  /** Calm solve line in a City Puzzle until the Postcard reveal (Story 3.3); followed by an "Album" link-styled button. */
+  /** Calm solve line on a solved City Puzzle once its Postcard is in the Album; followed by an "Album" link-styled button. */
   solvedCity: 'Solved. Where to next?',
 
   /** Header nav ("Puzzle · Album · Free Play · Settings"). */
@@ -61,8 +61,8 @@ export const copy = {
   slotCaption: (country: string, tier: keyof typeof TIER_NAMES): string => `${country} · ${TIER_NAMES[tier]}`,
   slotTravel: 'Travel here',
   slotCarryOn: 'Carry on',
-  /** A Collected slot's caption (interim until Story 3.3). */
-  slotCollected: 'Collected',
+  /** The caption on a Collected slot whose Postcard was just added. */
+  justArrived: 'just arrived',
   /** A Reachable / In progress slot's accessible name, e.g. "Paris, France, Near — Travel here". */
   slotLabel: (name: string, country: string, tier: keyof typeof TIER_NAMES, action: string): string =>
     `${name}, ${country}, ${TIER_NAMES[tier]} — ${action}`,
@@ -87,6 +87,15 @@ export const copy = {
     return `${day} ${name} ${year.slice(2)}`
   },
   navSettings: 'Settings',
+
+  /** The Postcard: its region name, address lines and the reveal's one button. */
+  postcardFrom: (city: string): string => `Postcard from ${city}`,
+  addToAlbum: 'Add to Album',
+  addressTo: 'To: the Traveller',
+  /** e.g. "Album · Europe". */
+  addressAlbum: (region: keyof typeof REGION_NAMES): string => `Album · ${REGION_NAMES[region]}`,
+  /** e.g. "Lisbon, Portugal". */
+  addressCity: (city: string, country: string): string => `${city}, ${country}`,
 
   /** Free Play entry. */
   freePlayHeading: 'Free Play',

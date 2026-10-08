@@ -21,9 +21,9 @@ const run = (state: AppState, ...actions: Action[]) => actions.reduce(reducer, s
 const say = (state: AppState, ...actions: Action[]) => actions.reduce(withAnnouncement, state)
 const H: Action = { type: 'hintRequested' }
 const ESC: Action = { type: 'hintClosed' }
-const APPLY: Action = { type: 'hintApplied' }
+const APPLY: Action = { type: 'hintApplied', date: '2026-10-07' }
 const select = (cell: number): Action => ({ type: 'cellSelected', cell })
-const enter = (digit: number): Action => ({ type: 'digitEntered', digit })
+const enter = (digit: number): Action => ({ type: 'digitEntered', digit, date: '2026-10-07' })
 
 const { givens, solution } = samplePuzzle
 const emptyCells = [...givens].flatMap((ch, i) => (ch === '0' ? [i] : []))
@@ -151,8 +151,8 @@ describe('reset rule', () => {
 
   it('number-first placement (click and Enter) resets it', () => {
     const s = run(fresh(), { type: 'inputModeToggled' }, enter(1), H)
-    expect(run(s, { type: 'cellClicked', cell: OTHER }).ui.hint).toEqual(idle)
-    expect(run(s, select(OTHER), { type: 'currentDigitPlaced' }).ui.hint).toEqual(idle)
+    expect(run(s, { type: 'cellClicked', cell: OTHER, date: '2026-10-07' }).ui.hint).toEqual(idle)
+    expect(run(s, select(OTHER), { type: 'currentDigitPlaced', date: '2026-10-07' }).ui.hint).toEqual(idle)
   })
 
   it('Notes, selection and mode changes keep the same ui.hint reference', () => {
@@ -403,14 +403,14 @@ describe('announcements', () => {
 
 describe('acceptance: H twice from step 1', () => {
   /** What one H press does (the UI maps it with `hintAction`). */
-  const press = (s: AppState) => reducer(s, hintAction(activeHint(s, FREE_PLAY_KEY)))
+  const press = (s: AppState) => reducer(s, { ...hintAction(activeHint(s, FREE_PLAY_KEY)), date: '2026-10-07' } as Action)
 
   it('the first press shows step 2, the second places the move, a third opens a new nudge', () => {
     const s1 = run(fresh(), H)
     expect(hintAction(s1.ui.hint)).toEqual(H)
     const s2 = press(s1)
     expect(s2.ui.hint?.step).toBe('explain')
-    expect(hintAction(s2.ui.hint)).toEqual(APPLY)
+    expect(hintAction(s2.ui.hint)).toEqual({ type: 'hintApplied' })
     const s3 = press(s2)
     expect(s3.sessions.free.digits[40]).toBe('5')
     expect(s3.ui.hint).toEqual({ sessionKey: FREE_PLAY_KEY, step: 'idle', result: null })
@@ -587,7 +587,7 @@ describe('Mistake Hints', () => {
     expect([...hintFocusCells(s2.ui.hint)]).toEqual([M])
     expect(hintTechnique(s2.ui.hint)).toBeNull()
     expect(hintMove(s2.ui.hint)).toEqual({ cell: M, digit: 0 })
-    expect(hintAction(s2.ui.hint)).toEqual(APPLY)
+    expect(hintAction(s2.ui.hint)).toEqual({ type: 'hintApplied' })
     expect(s2.ui.announcement).toEqual({ text: EXPLAIN, seq: s1.ui.announcement!.seq + 1 })
     // The definition can't open for a Mistake.
     expect(reducer(s2, { type: 'techniqueDefinitionOpened' })).toBe(s2)
@@ -639,7 +639,7 @@ describe('Mistake Hints', () => {
   })
 
   it('H three times (hintAction) clears it, in Notes entry mode too, Notes untouched', () => {
-    const press = (st: AppState) => reducer(st, hintAction(activeHint(st, FREE_PLAY_KEY)))
+    const press = (st: AppState) => reducer(st, { ...hintAction(activeHint(st, FREE_PLAY_KEY)), date: '2026-10-07' } as Action)
     const s = run(wrong(), notesMode)
     const cleared = press(press(press(s)))
     expect(cleared.sessions.free.digits[M]).toBe('0')

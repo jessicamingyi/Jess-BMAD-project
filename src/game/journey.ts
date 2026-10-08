@@ -1,6 +1,7 @@
 import { CITIES, cityById, type City, type Region, type Tier } from '../content/cities.ts'
+import { cityPuzzle } from '../content/city-puzzles.ts'
 import type { Difficulty } from '../engine/index.ts'
-import type { Album, AppState } from './types.ts'
+import type { Album, AppState, Postcard } from './types.ts'
 
 /*
  * The journey rules. Imports carry `.ts` extensions because scripts/build-cities
@@ -98,4 +99,39 @@ export function slotState(state: AppState, city: City): SlotState {
   if (isCollected(state.album, city)) return 'collected'
   if (state.sessions[cityKey(city.id)]?.status === 'inProgress') return 'inProgress'
   return isReachable(state.album, city) ? 'reachable' : 'locked'
+}
+
+/** A 'YYYY-MM-DD' calendar date (month 01–12, day 01–31). Only shape is checked; the shell supplies it. */
+export function isDateString(date: unknown): date is string {
+  return typeof date === 'string' && /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(date)
+}
+
+/**
+ * The first solve of a City: append its Postcard `{ cityId, collectedOn, revealed: false }`
+ * to the Album. Free Play keys, unknown Cities and Cities already in the Album
+ * add nothing and return `state` itself, so nothing ever duplicates. The reducer
+ * checks `collectedOn` (`isDateString`) before the step.
+ */
+export function award(state: AppState, key: string, collectedOn: string): AppState {
+  const city = cityOfKey(key)
+  if (!city || isCollected(state.album, city)) return state
+  return { ...state, album: [...state.album, { cityId: city.id, collectedOn, revealed: false }] }
+}
+
+const isGrid = (s: unknown) => typeof s === 'string' && /^[0-9]{81}$/.test(s)
+
+/**
+ * A Postcard the reveal can show: unrevealed, for a known City whose pre-built
+ * Puzzle is well formed (the reveal lies over its solved grid). The one rule for
+ * the reveal gate, the reducer's block and the UI; anything else never blocks.
+ */
+export function isRevealable(postcard: Postcard): boolean {
+  if (postcard.revealed || cityById(postcard.cityId) === undefined) return false
+  const puzzle = cityPuzzle(postcard.cityId)
+  return !!puzzle && isGrid(puzzle.givens) && isGrid(puzzle.solution)
+}
+
+/** The Postcard to reveal next: the first revealable one (oldest first), or undefined. */
+export function pendingPostcard(album: Album): Postcard | undefined {
+  return album.find(isRevealable)
 }
