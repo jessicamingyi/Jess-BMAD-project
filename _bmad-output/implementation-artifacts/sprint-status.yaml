@@ -1,0 +1,219 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 10-08-2026 14:00
+last_updated: 10-08-2026 14:10
+project: Jess-BMAD-project
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+development_status:
+  epic-1: done
+  1-1-publish-the-traveller-sudoku-shell: done
+  1-2-solve-a-puzzle-with-the-mouse: done
+  1-3-notes-and-number-first-entry: done
+  1-4-undo-and-restart: done
+  1-5-play-with-the-keyboard-and-a-screen-reader: done
+  1-6-assists-and-lamplight: done
+  1-7-fair-puzzles-technique-solver-and-grader: done
+  1-8-start-a-free-play-puzzle: done
+  epic-1-retrospective: done
+
+  epic-2: done
+  2-1-get-a-nudge-and-an-explanation-for-the-next-move: done
+  2-2-show-me-the-move: done
+  2-3-what-s-a-technique: done
+  2-4-hints-that-find-mistakes-and-something-doesn-t-fit-yet: done
+  epic-2-retrospective: done
+
+  epic-3: done
+  3-1-city-catalogue-and-pre-built-city-puzzles: done
+  3-2-choose-a-destination-from-the-album: done
+  3-3-receive-a-postcard: done
+  3-4-revisit-postcards-and-replay-cities: done
+  3-5-pick-up-where-you-left-off: done
+  epic-3-retrospective: done
+
+  epic-4: backlog
+  4-1-autosave-and-restore: backlog
+  4-2-safe-across-versions-and-tabs: backlog
+  4-3-play-offline-and-update-gently: backlog
+  4-4-storage-notice-and-keeping-your-data: backlog
+  epic-4-retrospective: optional
+
+# Sprint grouping (mirrors backlog.md / board.html; one-day sprints).
+# Story keys refer to development_status above; tickets are backlog.md TS ids.
+# Sprint status: done | in-progress | planned. Ticket status: done | todo.
+sprints:
+  sprint-1:
+    date: "2026-10-05"
+    goal: "Discover and plan: idea, player research, brief, PRD, architecture"
+    status: done
+    stories: []
+    tickets: {TS-1: done, TS-2: done, TS-3: done, TS-4: done, TS-5: done, TS-6: 
+        done, TS-7: done}
+  sprint-2:
+    date: "2026-10-06"
+    goal: "Design and backlog: UX, document alignment, epics and stories, board"
+    status: done
+    stories: []
+    tickets: {TS-8: done, TS-9: done, TS-10: done, TS-11: done, TS-12: done, 
+        TS-13: done, TS-14: done}
+  sprint-3:
+    date: "2026-10-07"
+    goal: "Play a calm Sudoku: readiness check, Epic 1, City content"
+    status: in-progress
+    stories:
+      - 1-1-publish-the-traveller-sudoku-shell
+      - 1-2-solve-a-puzzle-with-the-mouse
+      - 1-3-notes-and-number-first-entry
+      - 1-4-undo-and-restart
+      - 1-5-play-with-the-keyboard-and-a-screen-reader
+      - 1-6-assists-and-lamplight
+      - 1-7-fair-puzzles-technique-solver-and-grader
+      - 1-8-start-a-free-play-puzzle
+    tickets: {TS-15: todo, TS-16: done, TS-17: done, TS-18: done, TS-19: done, 
+        TS-20: done, TS-21: done, TS-22: done, TS-23: done, TS-24: done}
+  sprint-4:
+    date: "2026-10-08"
+    goal: "Hints and Postcards: Epic 2 and Epic 3"
+    status: done
+    stories:
+      - 2-1-get-a-nudge-and-an-explanation-for-the-next-move
+      - 2-2-show-me-the-move
+      - 2-3-what-s-a-technique
+      - 2-4-hints-that-find-mistakes-and-something-doesn-t-fit-yet
+      - 3-1-city-catalogue-and-pre-built-city-puzzles
+      - 3-2-choose-a-destination-from-the-album
+      - 3-3-receive-a-postcard
+      - 3-4-revisit-postcards-and-replay-cities
+      - 3-5-pick-up-where-you-left-off
+    tickets: {TS-25: done, TS-26: done, TS-27: done, TS-28: done, TS-29: done, 
+        TS-30: done, TS-31: done, TS-32: done, TS-33: done}
+  sprint-5:
+    date: "2026-10-09"
+    goal: "Never lose your journey: Epic 4, release v1, retrospective"
+    status: planned
+    stories:
+      - 4-1-autosave-and-restore
+      - 4-2-safe-across-versions-and-tabs
+      - 4-3-play-offline-and-update-gently
+      - 4-4-storage-notice-and-keeping-your-data
+    tickets: {TS-34: todo, TS-35: todo, TS-36: todo, TS-37: todo, TS-38: todo, 
+        TS-39: todo}
+  unscheduled:
+    tickets: {TS-40: todo}
+action_items:
+  - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
+    epic: 3
+    action: "Hold a Free Play reply when the old Free Play is current on the Puzzle
+      screen (as for Cities); clear only a Free Play-owned Hint in the foreground
+      branch; add the replace-generate-play-reply test (D1, D5)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-2-give-the-primary-button-key-caption-4-5"
+    epic: 3
+    action: "Give the primary-button key caption 4.5:1 contrast in both themes and
+      add the caption-on-ink pairs to contrast.test.ts (D2)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-3-read-the-solve-date-at-dispatch-not-at-a"
+    epic: 3
+    action: "Read the solve date at dispatch, not at App render; fix the PuzzleScreen
+      doc comment; test across a date change (D3)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-4-split-reducer-ts-by-area-and-extract-sha"
+    epic: 3
+    action: "Split reducer.ts by area and extract shared make-Session-current and
+      untouched-grid helpers; fix keyboard.ts comment, Escape filter and assists.ts
+      geometry (A3, A4, A5, A10)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-5-story-4-1-acs-cover-launch-resume-unreve"
+    epic: 3
+    action: "Story 4.1 ACs cover launch/resume, unrevealed-Postcard restore, ui normalisation
+      and solved-City Postmark through a real reload (V1, V9, D4)"
+    owner: "Jessica + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-6-reconcile-epics-md-experience-md-spec-2"
+    epic: 3
+    action: "Reconcile epics.md, EXPERIENCE.md, spec-2-3 and the hint-panel test title
+      with as-built (S1-S12); fix README deploy claim"
+    owner: "Jessica (approve) + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-7-process-when-a-story-decision-overrides"
+    epic: 3
+    action: "Process: when a story decision overrides an epic AC or earlier story,
+      update epics.md in the same story docs commit (P4)"
+    owner: "Jessica + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-8-process-close-out-of-each-review-loop-co"
+    epic: 3
+    action: "Process: close-out of each review loop confirms every patch-routed triage
+      item landed (file:line) before done (P3)"
+    owner: "Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-9-decide-whether-undo-restart-refused-note"
+    epic: 3
+    action: "Decide whether Undo, Restart, refused Notes and number-first deselect
+      are announced (spec-1-5 triage #9)"
+    owner: "Jessica"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-10-add-the-resolved-line-for-the-1-7-header"
+    epic: 3
+    action: "Add the resolved line for the 1.7 header-Difficulty item in deferred-work.md
+      (V5)"
+    owner: "Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-11-ts-38-release-smoke-test-includes-firefo"
+    epic: 3
+    action: "TS-38 release smoke test includes Firefox (1.5 Space in number-first)
+      and Safari (V3)"
+    owner: "Jessica + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-3-retro-item-12-write-the-29-postcard-lines-ts-40-then-e"
+    epic: 3
+    action: "Write the 29 Postcard lines (TS-40), then enable PAGES_ENABLED and make
+      the repo public in TS-38 (V8, S1)"
+    owner: "Jessica"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
