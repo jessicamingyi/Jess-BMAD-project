@@ -1,3 +1,4 @@
+import { boxOf, colOf, rowOf } from '../engine/grid.ts'
 import { mistakeCells } from '../engine/mistakes.ts'
 import type { Session, Settings } from './types.ts'
 
@@ -38,11 +39,7 @@ export function cellMarks(
   const selected = isCell(selectedCell) ? selectedCell : null
   const units =
     selected !== null && settings.unitHighlighting
-      ? {
-          row: Math.floor(selected / 9),
-          col: selected % 9,
-          box: Math.floor(selected / 27) * 3 + Math.floor((selected % 9) / 3),
-        }
+      ? { row: rowOf(selected), col: colOf(selected), box: boxOf(selected) }
       : null
   const selectedDigit = selected !== null ? session.digits[selected] : '0'
   const sameDigitOn = settings.sameDigitHighlighting && selectedDigit !== undefined && selectedDigit !== '0'
@@ -52,11 +49,8 @@ export function cellMarks(
 
   const cells: CellMark[] = []
   for (let cell = 0; cell < 81; cell++) {
-    const row = Math.floor(cell / 9)
-    const col = cell % 9
-    const box = Math.floor(row / 3) * 3 + Math.floor(col / 3)
     cells.push({
-      highlight: units !== null && (row === units.row || col === units.col || box === units.box),
+      highlight: units !== null && (rowOf(cell) === units.row || colOf(cell) === units.col || boxOf(cell) === units.box),
       sameDigit: sameDigitOn && session.digits[cell] === selectedDigit,
       mistake: (mistakes !== null && mistakes[cell]) || cell === hintMistake,
     })

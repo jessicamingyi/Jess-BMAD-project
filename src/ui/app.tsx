@@ -18,7 +18,6 @@ import { NoticeBanner } from './notice-banner.tsx'
 import { PuzzleScreen } from './puzzle-screen.tsx'
 import { PuzzleTitle } from './puzzle-title.tsx'
 import { SettingsScreen } from './settings-screen.tsx'
-import { localDate } from './today.ts'
 import { useGenerator, type GeneratorWorkerFactory } from './use-generator.ts'
 
 type Props = {
@@ -26,7 +25,7 @@ type Props = {
   initialState?: AppState
   /** Tests only: a fake generator worker. */
   createWorker?: GeneratorWorkerFactory
-  /** Tests only: today's date, 'YYYY-MM-DD'. By default the shell reads the local date. */
+  /** Tests only: today's date, 'YYYY-MM-DD'. By default the shell reads the local clock at each solving move. */
   today?: string
   /** The saved slices loaded before the first render (`persistence/store.loadSaved`); none on a first visit. */
   loaded?: Slices
@@ -93,7 +92,6 @@ export function App({
   const headingRef = useRef<HTMLHeadingElement>(null)
   /** The screen focus was last moved for (null before mount); focus moves once a changed screen has rendered. */
   const focusedScreen = useRef<Screen | null>(null)
-  const date = today ?? localDate()
   const showPuzzle = screen === 'puzzle' && active !== null
   // The Postcard reveal: "Add to Album" (or Esc) is the only way forward, so the nav is inert.
   // Only while the Postcard actually shows: its City is the current Puzzle (the PuzzleScreen rule).
@@ -243,7 +241,7 @@ export function App({
       />
     )
   } else if (showPuzzle) {
-    main = <PuzzleScreen state={state} dispatch={dispatch} today={date} banner={bannerEl} />
+    main = <PuzzleScreen state={state} dispatch={dispatch} today={today} banner={bannerEl} />
   } else if (screen === 'album') {
     main = (
       <AlbumScreen

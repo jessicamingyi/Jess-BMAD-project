@@ -78,6 +78,11 @@
   outline: var(--rule-box) solid var(--color-ink);
 }
 
+/* The key caption on a primary fill (enabled ink, aria-disabled ink-muted): card, as ink-muted on ink fails 4.5:1. */
+.button--primary .button-caption {
+  color: var(--color-card);
+}
+
 /* Link-styled button: the solve line's way back, the Postcard viewer's "Close". */
 .link-button {
   min-width: var(--size-min-target);

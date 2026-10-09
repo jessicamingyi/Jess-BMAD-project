@@ -13,6 +13,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-7-technique-solver-and-grader.md`
   summary: Test that the header "Free Play · {Difficulty}" follows the session's Difficulty for Medium and Hard, not just Easy.
   evidence: Hardcoding `difficulty={'easy'}` in `src/ui/app.tsx` passed all UI tests (verification-gap review); only the Easy sample reaches App until Story 1.8 adds generated Medium/Hard Puzzles.
+  resolved: Story 1.8 (e556c6f) tests the header for Medium and Hard in `tests/ui/free-play.test.ts:175-182`.
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-city-catalogue.md`
   summary: Pin the `build-cities` retry-seed derivation (`${id}#1`…`#4`) with a test, for example a stubbed `generate` that fails on the plain id.

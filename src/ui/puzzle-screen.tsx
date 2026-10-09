@@ -31,8 +31,10 @@ type Props = {
   /**
    * Today's local date, 'YYYY-MM-DD' (the Postmark date of a City in progress,
    * and the date stamped onto the four solving actions, so a solve dates its
-   * Postcard); defaults to the local clock, read when the action is dispatched.
-   * A solved City's Postmark shows its Postcard's `collectedOn` instead.
+   * Postcard). Tests only: the shipped App passes none, so the solving actions
+   * read the local clock when dispatched, and a City in progress reads it at
+   * render for its Postmark. A solved City's Postmark shows its Postcard's
+   * `collectedOn` instead.
    */
   today?: string
   /** The notice banner, if one shows: first in the side column, so the grid never moves. */

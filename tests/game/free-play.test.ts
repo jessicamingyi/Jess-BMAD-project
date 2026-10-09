@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
 import { withAnnouncement } from '../../src/game/announce.ts'
+import { activeHint } from '../../src/game/hint.ts'
 import { reducer } from '../../src/game/reducer.ts'
 import { createInitialState } from '../../src/game/session.ts'
 import type { Action, AppState, Difficulty, Puzzle } from '../../src/game/types.ts'
@@ -256,5 +257,84 @@ describe('Free Play: solved', () => {
     // A solved Puzzle has nothing to replace: the entry offers a plain start.
     const entry = reducer(solved, screen('freePlay'))
     expect(reducer(entry, { type: 'freePlayReplaceRequested' })).toBe(entry)
+  })
+})
+
+describe('Free Play: a reply after going back to the old Puzzle', () => {
+  const select = (cell: number): Action => ({ type: 'cellSelected', cell })
+  const enter = (cell: number): Action => ({ type: 'digitEntered', digit: Number(solution[cell]), date: '2026-10-07' })
+  const [a, b] = emptyCells
+  /** Replace confirmed and generating, then "Puzzle" back to the old Free Play and a digit placed there. */
+  const backOnOld = (to: AppState['ui']['screen'] = 'puzzle') =>
+    run(playing(), select(a), enter(a), screen('freePlay'), { type: 'freePlayReplaceRequested' }, requested(5, 'hard'), screen(to), select(b), enter(b))
+
+  it('holds: the old Session, digits, Undo, selection and screen stay; only the entry goes idle', () => {
+    const before = run(backOnOld(), { type: 'hintRequested' })
+    expect(before.ui.hint?.sessionKey).toBe('free')
+    expect(before.ui.screen).toBe('puzzle')
+    expect(before.ui.activeKey).toBe('free')
+    expect(before.ui.freePlay.status).toBe('generating')
+    expect(before.ui.undo).toHaveLength(2)
+    const after = reducer(before, generated(5, HARD))
+    expect(after.sessions).toBe(before.sessions)
+    expect(after.sessions.free.digits[b]).toBe(solution[b])
+    expect(after.ui.undo).toBe(before.ui.undo)
+    expect(after.ui.selectedCell).toBe(b)
+    expect(after.ui.screen).toBe('puzzle')
+    expect(after.ui.activeKey).toBe('free')
+    expect(after.ui.freePlay).toEqual({ ...before.ui.freePlay, status: 'idle', confirmingReplace: false })
+    expect(after.settings).toBe(before.settings)
+    expect(after.meta).toBe(before.meta)
+    expect(after.ui.hint).toBe(before.ui.hint)
+    // "Start a new one" asks again.
+    expect(run(after, screen('freePlay'), { type: 'freePlayReplaceRequested' }).ui.freePlay.confirmingReplace).toBe(true)
+  })
+
+  it('back on the entry when the reply arrives: the new Puzzle opens as before', () => {
+    const before = run(backOnOld(), screen('freePlay'))
+    const after = reducer(before, generated(5, HARD))
+    expect(after.sessions.free.givens).toBe(HARD.givens)
+    expect(after.ui.screen).toBe('puzzle')
+    expect(after.ui.undo).toEqual([])
+    expect(after.settings.freePlayDifficulty).toBe('hard')
+  })
+
+  it('the old Free Play solved and current: the new Puzzle replaces it (nothing to lose)', () => {
+    const solved = run(
+      empty(),
+      requested(1, 'easy'),
+      generated(1, samplePuzzle),
+      ...emptyCells.flatMap((c): Action[] => [select(c), enter(c)]),
+    )
+    expect(solved.sessions.free.status).toBe('solved')
+    const before = run(solved, screen('freePlay'), requested(2, 'hard'), screen('puzzle'))
+    expect(before.ui.screen).toBe('puzzle')
+    const after = reducer(before, generated(2, HARD))
+    expect(after.sessions.free.givens).toBe(HARD.givens)
+    expect(after.sessions.free.status).toBe('inProgress')
+    expect(after.ui.activeKey).toBe('free')
+    expect(after.ui.screen).toBe('puzzle')
+    expect(after.ui.freePlay.status).toBe('idle')
+  })
+})
+
+describe('Free Play: a foreground reply and an open Hint', () => {
+  it("keeps another Session's Hint (a City's) when the new Puzzle opens", () => {
+    const city = run(playing(), { type: 'cityChosen', cityId: 'europe-near-1' }, { type: 'hintRequested' })
+    const cityHint = city.ui.hint
+    expect(cityHint?.sessionKey).toBe('city:europe-near-1')
+    const s = run(city, screen('freePlay'), requested(1), generated(1))
+    expect(s.ui.activeKey).toBe('free')
+    expect(s.ui.screen).toBe('puzzle')
+    expect(s.ui.hint).toBe(cityHint)
+    expect(activeHint(s, 'free')).toBeNull()
+  })
+
+  it('clears a Free Play Hint (its Session is replaced)', () => {
+    const hinted = run(playing(), { type: 'hintRequested' })
+    expect(hinted.ui.hint?.sessionKey).toBe('free')
+    const s = run(hinted, screen('freePlay'), { type: 'freePlayReplaceRequested' }, requested(1), generated(1))
+    expect(s.sessions.free.difficulty).toBe('medium')
+    expect(s.ui.hint).toBeNull()
   })
 })

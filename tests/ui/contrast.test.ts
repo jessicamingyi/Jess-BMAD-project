@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
  */
 
 const theme = readFileSync(fileURLToPath(new URL('../../src/ui/theme.css', import.meta.url)), 'utf8')
+const controls = readFileSync(fileURLToPath(new URL('../../src/ui/controls.css', import.meta.url)), 'utf8')
 
 const ROLES = [
   'desk',
@@ -52,7 +53,7 @@ const PAIRS: readonly Pair[] = [
   { fg: 'rule-box', bg: 'fill-same-digit', min: NON_TEXT, what: 'non-text' },
   { fg: 'airmail-red', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
   { fg: 'focus', bg: 'fill-selected', min: NON_TEXT, what: 'non-text' },
-  /** An aria-disabled primary button (Hint when solved): card text on an ink-muted fill. */
+  /** An aria-disabled primary button (Hint when solved): card text, and its key caption, on an ink-muted fill. */
   { fg: 'card', bg: 'ink-muted', min: TEXT, what: 'text' },
   /** Album slots: City name and caption on a card slot; the Postcard viewer's card button row ("Close", the confirm text and buttons). */
   { fg: 'ink', bg: 'card', min: TEXT, what: 'text' },
@@ -65,7 +66,10 @@ const PAIRS: readonly Pair[] = [
   { fg: 'rule-thin', bg: 'card', min: NON_TEXT, what: 'non-text' },
   /** The "just arrived" 2px outline, drawn just outside the slot on the desk. */
   { fg: 'airmail-red', bg: 'desk', min: NON_TEXT, what: 'non-text' },
-  /** The Postcard viewer's card button row: "Play again" (card on an ink fill), the confirm's button rules and the focus ring. */
+  /**
+   * The Postcard viewer's card button row: "Play again" (card on an ink fill), the confirm's button rules and the focus ring.
+   * Also a primary button's key caption (the Hint button's "H") on its ink fill.
+   */
   { fg: 'card', bg: 'ink', min: TEXT, what: 'text' },
   { fg: 'rule-box', bg: 'card', min: NON_TEXT, what: 'non-text' },
   { fg: 'focus', bg: 'card', min: NON_TEXT, what: 'non-text' },
@@ -131,6 +135,17 @@ describe('theme contrast (WCAG AA)', () => {
       const p = palette(t)
       expect(p['airmail-red'], t).toBeDefined()
       expect(contrastRatio(p['airmail-red']!, p.card!), t).toBeGreaterThanOrEqual(TEXT)
+    }
+  })
+
+  it.each(['Daylight', 'Lamplight'] as const)('%s: a primary button key caption meets 4.5:1 on ink and on ink-muted (disabled)', (t) => {
+    const rule = controls.match(/\.button--primary \.button-caption\s*\{([^}]*)\}/)?.[1] ?? ''
+    const role = rule.match(/(?:^|[\s;])color:\s*var\(--color-([a-z-]+)\)/)?.[1] as Role | undefined
+    expect(role, 'caption colour in controls.css').toBeDefined()
+    expect(ROLES).toContain(role)
+    const p = palette(t)
+    for (const fill of ['ink', 'ink-muted'] as const) {
+      expect(contrastRatio(p[role!]!, p[fill]!), `${role} on ${fill}`).toBeGreaterThanOrEqual(TEXT)
     }
   })
 

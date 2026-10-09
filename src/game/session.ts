@@ -23,6 +23,11 @@ export function createSession(key: string, puzzle: Puzzle): Session {
   }
 }
 
+/** Nothing to lose: only the Givens, and no Notes anywhere. */
+export function isUntouched(session: Session): boolean {
+  return session.digits === session.givens && session.notes.every((m) => m === 0)
+}
+
 /**
  * Every cell holds a digit but the grid isn't the solution ("Something doesn't
  * fit yet"). The Session stays `inProgress` with input live.

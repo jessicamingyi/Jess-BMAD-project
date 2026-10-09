@@ -191,10 +191,19 @@ describe('reset rule', () => {
   })
 
   it('New Puzzle (freePlayGenerated): ui.hint = null', () => {
-    const s = run(open(), { type: 'freePlayRequested', requestId: 1, difficulty: 'easy' })
+    // Requested from the entry (a reply that lands on the old Free Play grid is set aside instead).
+    const s = run(open(), { type: 'screenChosen', screen: 'freePlay' }, { type: 'freePlayRequested', requestId: 1, difficulty: 'easy' })
     expect(s.ui.hint).not.toBeNull()
     const next = run(s, { type: 'freePlayGenerated', requestId: 1, puzzle: { givens: PUZZLES.easy.givens, solution: PUZZLES.easy.solution, difficulty: 'easy' } })
     expect(next.ui.hint).toBeNull()
+  })
+
+  it('a reply on the Puzzle screen over the old Free Play in progress is held: its Hint stays', () => {
+    const s = run(open(), { type: 'freePlayRequested', requestId: 1, difficulty: 'easy' })
+    expect(s.ui.hint).not.toBeNull()
+    const next = run(s, { type: 'freePlayGenerated', requestId: 1, puzzle: { givens: PUZZLES.easy.givens, solution: PUZZLES.easy.solution, difficulty: 'easy' } })
+    expect(next.sessions).toBe(s.sessions)
+    expect(next.ui.hint).toBe(s.ui.hint)
   })
 })
 

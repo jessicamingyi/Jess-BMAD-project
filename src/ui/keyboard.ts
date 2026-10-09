@@ -95,9 +95,10 @@ function isGridCell(target: EventTarget | null): boolean {
 }
 
 /**
- * Register the only `keydown` listener, on the Puzzle screen container, so
+ * Register the Puzzle screen's `keydown` listener, on its container, so
  * shortcuts work only while focus is inside the screen. Handled keys are
- * `preventDefault`ed.
+ * `preventDefault`ed. (`useEscape` and `useDocumentEscape` add the only other
+ * listeners, for a bare Escape.)
  */
 export function useKeyboard(
   ref: RefObject<HTMLElement | null>,
@@ -131,6 +132,12 @@ export function useKeyboard(
   }, [ref, dispatch, inputMode, selectedCell, restartConfirming, hintOpen, definitionOpen, hintAtMove, isMac])
 }
 
+/** A bare, non-repeated Escape (no modifiers, not composing) not already handled. */
+function isBareEscape(e: KeyboardEvent): boolean {
+  if (e.defaultPrevented || e.isComposing || e.repeat) return false
+  return e.key === 'Escape' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
+}
+
 /**
  * Esc for a screen without play shortcuts (the Free Play entry's replace
  * confirm). Only a bare Escape is handled, and only while `onEscape` is set;
@@ -141,8 +148,7 @@ export function useEscape(ref: RefObject<HTMLElement | null>, onEscape: (() => v
     const el = ref.current
     if (!el || !onEscape) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.isComposing || e.repeat) return
-      if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
+      if (!isBareEscape(e)) return
       e.preventDefault()
       onEscape()
     }
@@ -160,8 +166,7 @@ export function useDocumentEscape(onEscape: (() => void) | null): void {
   useEffect(() => {
     if (!onEscape) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.isComposing || e.repeat) return
-      if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
+      if (!isBareEscape(e)) return
       e.preventDefault()
       onEscape()
     }

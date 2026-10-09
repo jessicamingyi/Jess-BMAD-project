@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cityById } from '../../src/content/cities.ts'
 import { cityPuzzle } from '../../src/content/city-puzzles.ts'
 import { cityKey } from '../../src/game/journey.ts'
@@ -239,6 +239,36 @@ describe('keys on "Add to Album" (PuzzleScreen with a spy dispatch)', () => {
       { type: 'digitEntered', digit: 5, date: TODAY },
       { type: 'entryModeToggled' },
     ])
+  })
+})
+
+describe('the solve date (shipped App, no today prop)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('is read when the solving move is dispatched, not when App last rendered', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 7, 23, 59))
+    render(createElement(App, { initialState: LISBON_READY() }))
+    act(() => navLink('Album').click())
+    act(() => slot('lisbon').click())
+    const { solution } = cityPuzzle('lisbon')!
+    const open = [...Array(81).keys()].filter(
+      (i) => cell(i).classList.contains('sudoku-cell--empty') || cell(i).classList.contains('sudoku-cell--notes'),
+    )
+    expect(open.length).toBeGreaterThan(0)
+    const last = open.pop()!
+    for (const i of open) {
+      act(() => cell(i).focus())
+      press(solution[i])
+    }
+    act(() => cell(last).focus())
+    expect(postcard()).toBeNull()
+    // Midnight passes with no re-render of App before the solving key.
+    vi.setSystemTime(new Date(2026, 9, 8, 0, 1))
+    press(solution[last])
+    expect(postcard()!.querySelector('.postmark')!.textContent).toBe('Lisbon08 OCT 26')
   })
 })
 
