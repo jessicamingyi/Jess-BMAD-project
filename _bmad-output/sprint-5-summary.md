@@ -2,7 +2,7 @@
 title: 'Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)'
 sprint: 5
 status: in-progress
-updated: '2026-10-08'
+updated: '2026-10-09'
 ---
 
 # Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
@@ -42,6 +42,21 @@ updated: '2026-10-08'
   - **Safari:** on desktop macOS Safari 17+, a refusal shows "Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it."; other browsers show nothing.
   - **Saved data v2:** the two new fields arrive through the first real migration; existing saves load and are rewritten as v2 with every Postcard and Puzzle intact. The banner order is now complete.
   - **Built with `bmad-build-auto`:** 4 review layers, 27 findings, 9 fixes (Add to Dock limited to desktop macOS Safari 17+ that isn't already installed, rejected storage calls handled, a dropped grant corrected); headless Chrome first-launch and v1-save checks.
+
+- **Fri 9 Oct (Jessica away; Claude took recommended defaults):**
+  - **Epic 4 merged:** fast-forwarded into `main` and pushed (e8f001c), CI green.
+  - **Epics 1–3 retro fixes** (branch `fix/epics-1-3-retro-actions`, 3f561c8), built with `bmad-build-auto`:
+    - A Free Play reply no longer swaps the grid under a player who went back to the old Free Play.
+    - The Hint key caption now has readable contrast.
+    - The solve date is read at the moment of the solve.
+    - `reducer.ts` is split into areas (762 → 131 lines).
+    - 4 review layers, 23 findings, 4 small fixes.
+  - **Epic 4 retrospective** (`implementation-artifacts/epic-4-retro-2026-10-09.md`, 5910fd3), verdict **accepted with open items**:
+    - All 6 player journeys passed in headless Chrome.
+    - Open items: a rare start-up timeout race (E1), and storage-unavailable leaving the game read-only (E2).
+    - The Epic 4 specs lost their triage logs.
+    - 9 new action items.
+  - **TS-40 Postcard lines drafted** (branch `content/ts-40-postcard-lines`, 9975643): 29 lines in Lisbon's voice. The deploy gate now passes on that branch. **For Jessica to approve or reword** before TS-38.
 
 ## Tickets done (4 / 6)
 
