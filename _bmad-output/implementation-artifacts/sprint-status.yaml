@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-09-2026 12:00
+last_updated: 10-09-2026 13:30
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -66,7 +66,7 @@ development_status:
   4-2-safe-across-versions-and-tabs: done
   4-3-play-offline-and-update-gently: done
   4-4-storage-notice-and-keeping-your-data: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 sprints:
   sprint-1:
     date: "2026-10-05"
@@ -213,3 +213,65 @@ action_items:
     owner: "Jessica"
     status: open
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
+  - id: "epic-4-retro-item-13-make-the-start-up-timeout-abort-settlelo"
+    epic: 4
+    action: "Make the start-up timeout abort settleLoad defaults write; add boot tests
+      for a late load and a late backup (E1, E4)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-14-test-that-a-read-only-tab-adding-its-fir"
+    epic: 4
+    action: "Test that a read-only tab adding its first Postcard never calls persist()
+      (E5)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-15-decide-storageunavailable-behaviour-in-m"
+    epic: 4
+    action: "Decide storageUnavailable behaviour: in-memory play with saving off and
+      accurate copy, or stay read-only (E2)"
+    owner: "Jessica"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-16-mirror-epic-4-deferrals-into-deferred-wo"
+    epic: 4
+    action: "Mirror Epic 4 deferrals into deferred-work.md, refreshing the old-worker
+      x v2 schema entry (P2, E3, E6, R8)"
+    owner: "Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-17-process-bmad-build-auto-close-out-keeps"
+    epic: 4
+    action: "Process: bmad-build-auto close-out keeps Review Triage Log and Spec Change
+      Log in the spec; done-gate checks a cited triage log exists (P1)"
+    owner: "Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-18-reconcile-epics-md-epic-4-acs-ad-7-and-t"
+    epic: 4
+    action: "Reconcile epics.md Epic 4 ACs, AD-7 and the unreadable copy, spec-4-4
+      Safari boundary and spine module names (R1-R7, R11, A4)"
+    owner: "Jessica (approve) + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-19-tidy-one-isobject-one-lock-failure-fallb"
+    epic: 4
+    action: "Tidy: one isObject, one lock-failure fallback (A7)"
+    owner: "Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-20-extract-persistence-and-banner-effects-f"
+    epic: 4
+    action: "Extract persistence and banner effects from app.tsx into hooks; split
+      autosave.test.ts by concern (A5, A6)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "epic-4-retro-item-21-ts-38-smoke-test-adds-visibility-update"
+    epic: 4
+    action: "TS-38 smoke test adds visibility update check, slow IndexedDB start,
+      newer-version banner, Safari Add to Dock"
+    owner: "Jessica + Claude"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
