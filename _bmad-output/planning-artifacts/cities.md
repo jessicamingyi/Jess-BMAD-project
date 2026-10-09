@@ -9,7 +9,7 @@ ticket: TS-24
 
 Approved by Jessica on 2026-10-07. There are 10 Cities per Region, split 4 Near / 3 Mid / 3 Far. Tier sets Difficulty: Near is Easy, Mid is Medium, Far is Hard. Tier is read as how far off the usual route a place is: Near Cities are well-known first trips, and Far Cities are remote edges. No country appears twice. Lisbon keeps the id `lisbon` and its line from the epics. Every other City keeps a neutral slot id (for example `europe-near-1`), so names can change later without changing ids.
 
-Postcard lines are not written yet. They are tracked as TS-40 in the unscheduled backlog. Until each City has a real line it stays `placeholder: true`, and deploys stay blocked.
+Postcard lines (TS-40): on 2026-10-09 Claude drafted the 29 missing lines in Lisbon's voice (one observed detail, a gentle wry beat, no exclamation marks, at most 90 characters) while Jessica was away. They live in `src/content/cities.json` on branch `content/ts-40-postcard-lines`, with no City left `placeholder: true`, so the deploy gate passes on that branch. **They are drafts for Jessica to approve or reword before release (TS-38).**
 
 | Region | Tier | Slot id | City | Country |
 |---|---|---|---|---|

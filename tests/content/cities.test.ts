@@ -66,7 +66,7 @@ describe('City catalogue', () => {
     }
   })
 
-  it('keeps Lisbon exactly, as the one real Postcard', () => {
+  it('keeps Lisbon exactly, its line from the epics', () => {
     expect(cityById('lisbon')).toEqual({
       id: 'lisbon',
       name: 'Lisbon',
@@ -78,10 +78,15 @@ describe('City catalogue', () => {
     })
   })
 
-  it('flags the 29 other Cities as placeholders', () => {
-    const placeholders = CITIES.filter((c) => c.placeholder === true)
-    expect(placeholders).toHaveLength(29)
-    expect(placeholders.map((c) => c.id)).not.toContain('lisbon')
+  it('has no placeholder Cities: every Postcard line is written (TS-40)', () => {
+    expect(CITIES.filter((c) => c.placeholder === true).map((c) => c.id)).toEqual([])
+  })
+
+  it('every Postcard line is one calm sentence or two: no exclamation marks, at most 90 characters', () => {
+    for (const { id, line } of CITIES) {
+      expect(line, id).not.toMatch(/!/)
+      expect(line.length, id).toBeLessThanOrEqual(90)
+    }
   })
 
   it('cityById returns undefined for an unknown id', () => {

@@ -17,9 +17,17 @@ function run(script: string, ...args: string[]) {
   return spawnSync(process.execPath, ['--no-warnings', script, ...args], { encoding: 'utf8', cwd: ROOT })
 }
 
-const blocked = `Deploy blocked: 29 placeholder Cities: ${CITIES.filter((c) => c.id !== 'lisbon')
-  .map((c) => c.id)
-  .join(', ')}`
+/** A catalogue with two placeholder Cities, so the entry-point tests still see the gate block. */
+const FIXTURE = join(dir, 'placeholders.json')
+writeFileSync(
+  FIXTURE,
+  JSON.stringify([
+    { id: 'europe-near-1', placeholder: true },
+    cityById('lisbon'),
+    { id: 'asia-far-3', placeholder: true },
+  ]),
+)
+const blocked = 'Deploy blocked: 2 placeholder Cities: europe-near-1, asia-far-3'
 
 describe('check-placeholders', () => {
   it('placeholderIds lists placeholder ids in order', () => {
@@ -27,15 +35,22 @@ describe('check-placeholders', () => {
     expect(placeholderIds([{ id: 'b' }])).toEqual([])
   })
 
-  it('exits 1 on the committed catalogue, listing the 29 non-Lisbon ids', () => {
+  it('exits 0 on the committed catalogue: every Postcard line is written (TS-40)', () => {
+    expect(CITIES.some((c) => c.placeholder === true)).toBe(false)
     const r = run(SCRIPT)
+    expect(r.status).toBe(0)
+    expect(r.stdout.trim()).toBe('No placeholder Cities.')
+  })
+
+  it('exits 1 on a catalogue with placeholders, listing their ids in order', () => {
+    const r = run(SCRIPT, FIXTURE)
     expect(r.status).toBe(1)
     expect(r.stderr.trim()).toBe(blocked)
   })
 
   it('still blocks when started through a different but equivalent path', () => {
     // Relative path with a redundant segment (resolved against cwd = repo root).
-    const r = run(relative(ROOT, SCRIPT).replace('scripts', join('scripts', '..', 'scripts')))
+    const r = run(relative(ROOT, SCRIPT).replace('scripts', join('scripts', '..', 'scripts')), FIXTURE)
     expect(r.status).toBe(1)
     expect(r.stderr.trim()).toBe(blocked)
   })
@@ -49,7 +64,7 @@ describe('check-placeholders', () => {
     }
     let r
     try {
-      r = run(join(link, 'check-placeholders.ts'))
+      r = run(join(link, 'check-placeholders.ts'), FIXTURE)
     } finally {
       unlinkSync(link) // remove the link itself before the temp dir is deleted recursively
     }

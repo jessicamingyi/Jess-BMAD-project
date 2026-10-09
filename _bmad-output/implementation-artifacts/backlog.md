@@ -94,7 +94,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-40 | Write the 30 Postcard lines and settle their tone | Content | M | Jessica | To do | TS-24 (City list); Epic 3 can run on placeholder lines, but deploys stay blocked until every line is real |
+| TS-40 | Write the 30 Postcard lines and settle their tone | Content | M | Jessica | In review (Claude draft, 9 Oct, branch `content/ts-40-postcard-lines`) | TS-24 (City list); Epic 3 can run on placeholder lines, but deploys stay blocked until every line is real |
 
 ## Notes
 

@@ -362,9 +362,9 @@ describe('a pending Postcard at launch (state fixture)', () => {
     expect(heading().textContent).toBe('Settings')
   })
 
-  it('a placeholder City’s Postcard shows its line exactly as written', () => {
+  it('a City’s Postcard shows its line exactly as written', () => {
     mount(withAlbum([unrevealed('europe-near-1')]))
-    expect(postcard()!.querySelector('.postcard-line')!.textContent).toBe('PLACEHOLDER: Postcard line for Paris (TS-40).')
+    expect(postcard()!.querySelector('.postcard-line')!.textContent).toBe(cityById('europe-near-1')!.line)
   })
 })
 

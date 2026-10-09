@@ -125,7 +125,7 @@ sprints:
     tickets: {TS-34: done, TS-35: done, TS-36: done, TS-37: done, TS-38: todo, 
         TS-39: todo}
   unscheduled:
-    tickets: {TS-40: todo}
+    tickets: {TS-40: in-progress}
 action_items:
   - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
     epic: 3
