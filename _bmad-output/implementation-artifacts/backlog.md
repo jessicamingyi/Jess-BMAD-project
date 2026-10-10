@@ -92,13 +92,13 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.  
-**Progress:** 3 / 10 done
+**Progress:** 4 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
 | TS-41 | Merge the 9 Oct branches (retro fixes, Epic 4 retro, Postcard lines, this plan) into `main`; CI green | Chore | S | Claude | Done | - |
 | TS-42 | [Fix the start-up timeout race; test the boot timeout branches (E1, E4)](epic-4-retro-2026-10-09.md) | Bug | S | Claude (bmad-build) | Done | TS-41 |
-| TS-43 | [Storage unavailable: play without saving, with accurate wording (E2)](epic-4-retro-2026-10-09.md) | Story | M | Claude (bmad-build) | To do | TS-42; Jessica's decision |
+| TS-43 | [Storage unavailable: play without saving, with accurate wording (E2)](epic-4-retro-2026-10-09.md) | Story | M | Claude (bmad-build) | Done | TS-42; Jessica's decision |
 | TS-44 | [Close test gaps: read-only first Postcard never asks to persist (E5); restore resets Hint, viewer and "Solved again" (R23); one `isObject`, one lock fallback (A7)](epic-4-retro-2026-10-09.md) | Test | S | Claude | Done | TS-41 |
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | To do | TS-41 |
 | TS-46 | Cross-browser smoke test: Edge, Firefox (number-first Space), Safari on a Mac (Add to Dock tip) | Test | S | Jessica + Claude | To do | TS-45 |

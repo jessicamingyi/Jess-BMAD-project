@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { act } from 'react'
-import type { Root } from 'react-dom/client'
+import { act, createElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createInitialState } from '../../src/game/session.ts'
 import type { AppState, Meta } from '../../src/game/types.ts'
-import { toDocument, type SaveDocument } from '../../src/persistence/document.ts'
+import { fromDocument, toDocument, type SaveDocument } from '../../src/persistence/document.ts'
 import type { SaveStore } from '../../src/persistence/store.ts'
+import { App } from '../../src/ui/app.tsx'
 import { boot as bootApp, type BootOptions } from '../../src/ui/boot.tsx'
 
 declare global {
@@ -396,5 +397,27 @@ describe('a read-only tab', () => {
     expect(browser.persisted).not.toHaveBeenCalled()
     expect(fake.save).not.toHaveBeenCalled()
     expect(fake.box.value).toEqual(stored)
+  })
+})
+
+describe('a saving-off tab', () => {
+  it('its first Postcard: "Add to Album" never asks persist() or persisted() and writes nothing', async () => {
+    const browser = fakeBrowser()
+    const fake = fakeStore()
+    host = document.createElement('div')
+    document.body.appendChild(host)
+    await act(async () => {
+      root = createRoot(host!)
+      root.render(
+        createElement(App, { loaded: fromDocument(firstPostcardDoc())!, store: fake.store, notices: { savingOff: true }, today: TODAY, ...browser }),
+      )
+    })
+    await flush()
+    expect(q('section.postcard')).not.toBeNull()
+    await addToAlbum()
+    expect(heading().textContent).toBe('Where to next?')
+    expect(browser.persist).not.toHaveBeenCalled()
+    expect(browser.persisted).not.toHaveBeenCalled()
+    expect(fake.save).not.toHaveBeenCalled()
   })
 })

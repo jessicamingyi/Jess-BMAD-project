@@ -147,11 +147,17 @@ export type UiState = {
    */
   readonly solvedAgain: readonly string[]
   /**
-   * Set when this tab must never write: another tab holds the save lock, a newer
-   * version saved the data, or storage could not be read or backed up. The reducer
-   * then refuses any change to `album`, `sessions`, `settings` or `meta`. Never saved.
+   * Set when this tab must never write: another tab holds the save lock, or a newer
+   * version saved the data. The reducer then refuses any change to `album`,
+   * `sessions`, `settings` or `meta`. Never saved.
    */
   readonly readOnly: ReadOnlyReason | null
+  /**
+   * Storage could not be reached at start-up (the load failed or hung, or unreadable
+   * data could not be backed up): the tab plays normally in memory but never writes,
+   * never asks for persistent storage, and shows the saving-off banner. UI only, never saved.
+   */
+  readonly savingOff: boolean
   /** The last write failed; cleared by the next write that lands. Never saved. */
   readonly saveFailed: boolean
   /** Unreadable saved data was backed up and the app started from defaults. Never saved. */
@@ -168,10 +174,10 @@ export type UiState = {
 }
 
 /** Why a tab is read-only. */
-export type ReadOnlyReason = 'newerVersion' | 'otherTab' | 'storageUnavailable'
+export type ReadOnlyReason = 'newerVersion' | 'otherTab'
 
 /** The inline notice banners, one shown at a time by priority (`game/banners`). */
-export type BannerKind = 'readOnly' | 'saveFailed' | 'unreadable' | 'storageNotice' | 'addToDock' | 'updateReady'
+export type BannerKind = 'readOnly' | 'savingOff' | 'saveFailed' | 'unreadable' | 'storageNotice' | 'addToDock' | 'updateReady'
 
 /** The open Postcard viewer: a revealed Postcard of a known City. */
 export type PostcardViewer = {

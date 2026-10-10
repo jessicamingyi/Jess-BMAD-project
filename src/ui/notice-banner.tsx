@@ -3,16 +3,16 @@ import type { BannerKind, ReadOnlyReason } from '../game/types.ts'
 import './controls.css'
 import './banner.css'
 
-/** The banner's line: read-only says why; storage that couldn't be read or backed up reuses the unreadable line. */
+/** The banner's line: read-only says why (another tab, else newer data). */
 function bannerText(kind: BannerKind, readOnly: ReadOnlyReason | null): string {
+  if (kind === 'savingOff') return copy.bannerSavingOff
   if (kind === 'saveFailed') return copy.bannerSaveFailed
   if (kind === 'unreadable') return copy.bannerUnreadable
   if (kind === 'storageNotice') return copy.bannerStorageNotice
   if (kind === 'addToDock') return copy.bannerAddToDock
   if (kind === 'updateReady') return copy.bannerUpdateReady
   if (readOnly === 'otherTab') return copy.bannerOtherTab
-  if (readOnly === 'newerVersion') return copy.bannerNewerVersion
-  return copy.bannerUnreadable
+  return copy.bannerNewerVersion
 }
 
 type Props = {

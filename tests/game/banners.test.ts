@@ -20,6 +20,7 @@ const dismissed = (s: Pick<AppState, 'ui' | 'meta'>, kinds: BannerKind[]) => ({ 
 
 const PENDING: Record<BannerKind, Patch> = {
   readOnly: { ui: { readOnly: 'otherTab' } },
+  savingOff: { ui: { savingOff: true } },
   saveFailed: { ui: { saveFailed: true } },
   unreadable: { ui: { unreadableNotice: true } },
   storageNotice: { meta: { seenStorageNotice: false } },
@@ -36,17 +37,21 @@ describe('visibleBanner', () => {
     expect(visibleBanner(createInitialState())).toBe('storageNotice')
   })
 
-  it('priority (final): read-only > save failed > unreadable > storage notice > Add to Dock > update ready', () => {
-    expect(BANNER_PRIORITY).toEqual(['readOnly', 'saveFailed', 'unreadable', 'storageNotice', 'addToDock', 'updateReady'])
+  it('priority (final): read-only > saving off > save failed > unreadable > storage notice > Add to Dock > update ready', () => {
+    expect(BANNER_PRIORITY).toEqual(['readOnly', 'savingOff', 'saveFailed', 'unreadable', 'storageNotice', 'addToDock', 'updateReady'])
   })
 
   it.each(BANNER_PRIORITY)('shows %s alone when it is the only one pending', (kind) => {
     expect(visibleBanner(at(PENDING[kind]))).toBe(kind)
   })
 
-  const pairs = BANNER_PRIORITY.flatMap((a, i) => BANNER_PRIORITY.slice(i + 1).map((b) => [a, b] as const))
-  it('covers every pair of the six kinds', () => {
-    expect(pairs).toHaveLength(15)
+  // Read-only suppresses saving off, and saving off suppresses the storage notice and Add to Dock,
+  // so those three pairs can't both be pending (tested below).
+  const suppressed = (a: BannerKind, b: BannerKind) =>
+    (a === 'readOnly' && b === 'savingOff') || (a === 'savingOff' && (b === 'storageNotice' || b === 'addToDock'))
+  const pairs = BANNER_PRIORITY.flatMap((a, i) => BANNER_PRIORITY.slice(i + 1).map((b) => [a, b] as const)).filter(([a, b]) => !suppressed(a, b))
+  it('covers every pair of the seven kinds but the three suppressed', () => {
+    expect(pairs).toHaveLength(21 - 3)
   })
   it.each(pairs)('%s outranks %s; dismissing it shows the other', (high, low) => {
     const both = at(PENDING[high], PENDING[low])
@@ -56,9 +61,25 @@ describe('visibleBanner', () => {
   })
 
   it('read-only reasons all show the read-only banner', () => {
-    for (const readOnly of ['otherTab', 'newerVersion', 'storageUnavailable'] as const) {
+    for (const readOnly of ['otherTab', 'newerVersion'] as const) {
       expect(visibleBanner(at({ ui: { readOnly, saveFailed: true } }))).toBe('readOnly')
     }
+  })
+
+  it('saving off: the storage notice and Add to Dock never show, even after its "Got it"', () => {
+    const off = at(PENDING.savingOff, PENDING.storageNotice, PENDING.addToDock)
+    expect(visibleBanner(off)).toBe('savingOff')
+    expect(visibleBanner(dismissed(off, ['savingOff']))).toBeNull()
+    // With saving on, both show again.
+    const on = at(PENDING.storageNotice, PENDING.addToDock)
+    expect(visibleBanner(on)).toBe('storageNotice')
+    expect(visibleBanner(dismissed(on, ['storageNotice']))).toBe('addToDock')
+  })
+
+  it('saving off on a read-only tab: only the read-only banner; nothing after its "Got it"', () => {
+    const both = at(PENDING.readOnly, PENDING.savingOff)
+    expect(visibleBanner(both)).toBe('readOnly')
+    expect(visibleBanner(dismissed(both, ['readOnly']))).toBeNull()
   })
 
   it('takes a priority list', () => {

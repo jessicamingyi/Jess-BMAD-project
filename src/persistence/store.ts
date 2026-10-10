@@ -75,6 +75,8 @@ export type Start = {
   readonly slices?: Slices
   /** Set: this tab never writes (and the reducer refuses saved-slice changes). */
   readonly readOnly: ReadOnlyReason | null
+  /** Storage could not be reached: the tab plays in memory, never writes, and shows the saving-off banner. */
+  readonly savingOff: boolean
   /** Unreadable data was backed up; the Album shows the unreadable notice. */
   readonly unreadableNotice: boolean
   /** The migrated document's write-back failed. */
@@ -86,10 +88,10 @@ export type Start = {
  * a holder owes. Only the lock holder (`holder`) ever writes. A newer document
  * is never written. Unreadable data is first copied to a fresh backup key, then
  * the main key gets the default document; if the copy fails, nothing else is
- * written and the tab is read-only. A migrated
+ * written and saving is off. A failed load also turns saving off. A migrated
  * document is written back once. Once `aborted()` is true (start-up gave up), the
  * main key is never written: no migrated write-back, no defaults after a backup (a
- * backup already started may finish; it only copies the data aside). A main-key write
+ * backup already started may finish; it only copies the data aside), and saving is off. A main-key write
  * already in flight when start-up gives up cannot be cancelled and may still land.
  * Never throws.
  */
@@ -100,7 +102,7 @@ export async function settleLoad(
   now: Date,
   aborted: () => boolean = () => false,
 ): Promise<Start> {
-  const base = { readOnly: holder ? null : ('otherTab' as const), unreadableNotice: false, saveFailed: false }
+  const base = { readOnly: holder ? null : ('otherTab' as const), savingOff: false, unreadableNotice: false, saveFailed: false }
   switch (result.kind) {
     case 'empty':
       return base
@@ -109,11 +111,11 @@ export async function settleLoad(
     case 'newer':
       return result.slices ? { ...base, readOnly: 'newerVersion', slices: result.slices } : { ...base, readOnly: 'newerVersion' }
     case 'failed':
-      return { ...base, readOnly: 'storageUnavailable' }
+      return { ...base, savingOff: true }
     case 'migrated': {
       if (!holder) return { ...base, slices: result.slices }
       // Boot has already given up and ignores this result: the older document stays as stored (migrated again next load).
-      if (aborted()) return { ...base, readOnly: 'storageUnavailable', slices: result.slices }
+      if (aborted()) return { ...base, savingOff: true, slices: result.slices }
       try {
         await store.save(result.doc)
         return { ...base, slices: result.slices }
@@ -127,10 +129,10 @@ export async function settleLoad(
       try {
         await store.saveBackup(backupKey(now), result.raw)
       } catch {
-        return { ...base, readOnly: 'storageUnavailable' }
+        return { ...base, savingOff: true }
       }
       // Boot gave up while the backup ran and ignores this result: the main key keeps the unreadable data.
-      if (aborted()) return { ...base, readOnly: 'storageUnavailable' }
+      if (aborted()) return { ...base, savingOff: true }
       // Kept safe in the backup: the main key now gets the defaults, so the next load is clean (no second backup).
       try {
         await store.save(toDocument(createInitialState()))

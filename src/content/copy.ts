@@ -210,7 +210,8 @@ export const copy = {
   bannerSaveFailed: "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here.",
   bannerOtherTab: 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.',
   bannerNewerVersion: 'A newer version saved your progress. Reload to carry on.',
-  /** Also the read-only text when storage can't be read or backed up (nothing was touched). */
+  /** Storage can't be reached: the game plays on in memory, nothing is saved. */
+  bannerSavingOff: "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again.",
   bannerUnreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten.",
   bannerStorageNotice: 'Your Album lives in this browser only. Clearing browser data erases it.',
   bannerAddToDock: 'Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it.',

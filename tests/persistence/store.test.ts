@@ -178,7 +178,7 @@ describe('createSaver outcomes', () => {
 describe('settleLoad', () => {
   const NOW = new Date('2026-10-08T09:30:00.000Z')
   const KEY = 'traveller-save-backup-2026-10-08T09:30:00.000Z'
-  const ok = { readOnly: null, unreadableNotice: false, saveFailed: false }
+  const ok = { readOnly: null, savingOff: false, unreadableNotice: false, saveFailed: false }
   const slices = () => {
     const { album, sessions, settings, meta } = createInitialState(samplePuzzle)
     return { album, sessions, settings, meta }
@@ -207,9 +207,10 @@ describe('settleLoad', () => {
     expect(b.log).toEqual([])
   })
 
-  it('failed: read-only (storageUnavailable), nothing written', async () => {
+  it('failed: saving off (not read-only); another tab is still read-only; nothing written', async () => {
     const b = fakeBackend()
-    expect(await settleLoad(b.store, { kind: 'failed' }, true, NOW)).toEqual({ ...ok, readOnly: 'storageUnavailable' })
+    expect(await settleLoad(b.store, { kind: 'failed' }, true, NOW)).toEqual({ ...ok, savingOff: true })
+    expect(await settleLoad(b.store, { kind: 'failed' }, false, NOW)).toEqual({ ...ok, readOnly: 'otherTab', savingOff: true })
     expect(b.log).toEqual([])
   })
 
@@ -242,29 +243,29 @@ describe('settleLoad', () => {
     expect(await loadSaved(b.store)).toMatchObject({ kind: 'loaded' })
   })
 
-  it('unreadable: an existing backup key is never overwritten (the tab goes read-only instead)', async () => {
+  it('unreadable: an existing backup key is never overwritten (saving turns off instead)', async () => {
     const b = fakeBackend()
     b.data.set(KEY, 'older backup')
-    expect(await settleLoad(b.store, { kind: 'unreadable', raw: 'garbled' }, true, NOW)).toEqual({ ...ok, readOnly: 'storageUnavailable' })
+    expect(await settleLoad(b.store, { kind: 'unreadable', raw: 'garbled' }, true, NOW)).toEqual({ ...ok, savingOff: true })
     expect(b.data.get(KEY)).toBe('older backup')
   })
 
-  it('unreadable, backup rejected: read-only (storageUnavailable), no throw, nothing written', async () => {
+  it('unreadable, backup rejected: saving off, no throw, nothing written', async () => {
     const b = fakeBackend()
     b.failWrites(1)
     await expect(settleLoad(b.store, { kind: 'unreadable', raw: 'garbled' }, true, NOW)).resolves.toEqual({
       ...ok,
-      readOnly: 'storageUnavailable',
+      savingOff: true,
     })
     expect(b.log).toEqual([`backup ${KEY}`])
     expect(b.data.size).toBe(0)
   })
 
-  it('migrated, start-up already given up (aborted): no write-back, read-only (storageUnavailable)', async () => {
+  it('migrated, start-up already given up (aborted): no write-back, saving off', async () => {
     const b = fakeBackend()
     const s = slices()
     const migrated = { kind: 'migrated', slices: s, doc: doc('m') } as const
-    expect(await settleLoad(b.store, migrated, true, NOW, () => true)).toEqual({ ...ok, readOnly: 'storageUnavailable', slices: s })
+    expect(await settleLoad(b.store, migrated, true, NOW, () => true)).toEqual({ ...ok, savingOff: true, slices: s })
     expect(b.log).toEqual([])
     expect(b.data.has(SAVE_KEY)).toBe(false)
   })
@@ -277,7 +278,7 @@ describe('settleLoad', () => {
       await b.store.saveBackup(key, raw)
       gaveUp = true
     } }
-    expect(await settleLoad(store, { kind: 'unreadable', raw: 'garbled' }, true, NOW, () => gaveUp)).toEqual({ ...ok, readOnly: 'storageUnavailable' })
+    expect(await settleLoad(store, { kind: 'unreadable', raw: 'garbled' }, true, NOW, () => gaveUp)).toEqual({ ...ok, savingOff: true })
     expect(b.log).toEqual([`backup ${KEY}`])
     expect(b.data.get(KEY)).toBe('garbled')
     expect(b.data.get(SAVE_KEY)).toBe('garbled')

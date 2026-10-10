@@ -33,9 +33,10 @@ type Props = {
   store?: SaveStore
   /**
    * The protective `ui` flags the load settled on (`persistence/store.settleLoad`):
-   * a read-only tab never writes; the unreadable notice; a failed migration write-back.
+   * a read-only tab never writes; a saving-off tab plays but never writes; the
+   * unreadable notice; a failed migration write-back.
    */
-  notices?: Partial<Pick<UiState, 'readOnly' | 'unreadableNotice' | 'saveFailed'>>
+  notices?: Partial<Pick<UiState, 'readOnly' | 'savingOff' | 'unreadableNotice' | 'saveFailed'>>
   /**
    * Subscribe to "a new version is waiting" (`ui/service-worker`); returns an unsubscribe.
    * Read once, at mount. The update banner only informs: nothing reloads.
@@ -61,8 +62,9 @@ const defaultIsSafari = () => isSafariBrowser()
  * never write). At start the launch rule (`game/launch`) opens the last-played
  * Puzzle if in progress, else the first City in progress in catalogue order,
  * else Free Play in progress, else the Album.
- * A read-only tab (`notices.readOnly`) never writes. One notice banner at a time
- * shows the read-only, save-failed, unreadable, storage, Add to Dock or update-ready notice (`game/banners`).
+ * A read-only tab (`notices.readOnly`) never writes. A saving-off tab (`notices.savingOff`)
+ * plays normally in memory but never writes or asks for persistent storage.
+ * One notice banner at a time shows the read-only, saving-off, save-failed, unreadable, storage, Add to Dock or update-ready notice (`game/banners`).
  * Persistent storage is requested after the storage notice's "Got it" and again after the
  * first Postcard if not yet granted; at start an already-persisted origin is recorded.
  */
@@ -102,9 +104,9 @@ export function App({
   // reducer shares unchanged slices). The first state is the baseline, so starting
   // (first visit or restore) never writes. Writes are queued in order.
   // One write queue for the component's life (useMemo may be rebuilt, which would start a second queue).
-  // A read-only tab never gets one. Each write reports back: a failure shows the banner, a success clears it.
+  // A read-only or saving-off tab never gets one. Each write reports back: a failure shows the banner, a success clears it.
   const [saver] = useState(() =>
-    store && !notices?.readOnly ? createSaver(store, (ok) => dispatch({ type: ok ? 'saveSucceeded' : 'saveFailed' })) : null,
+    store && !notices?.readOnly && !notices?.savingOff ? createSaver(store, (ok) => dispatch({ type: ok ? 'saveSucceeded' : 'saveFailed' })) : null,
   )
   /** The slices last loaded or saved; a change to any of their references means a write. */
   const saved = useRef<Slices | null>(null)
@@ -121,9 +123,9 @@ export function App({
   const [subscribeUpdate] = useState(() => onUpdateReady)
   useEffect(() => subscribeUpdate?.(() => dispatch({ type: 'updateAvailable' })), [subscribeUpdate])
 
-  // Persistent storage (writable tab only; a read-only tab never asks or records anything).
+  // Persistent storage (writable tab only; a read-only or saving-off tab never asks or records anything).
   const [storageApi] = useState(() => ({ persist, persisted, isSafari }))
-  const writable = state.ui.readOnly === null
+  const writable = state.ui.readOnly === null && !state.ui.savingOff
   /** Ask the browser to keep the data and record its answer. A rejection is a refusal; a throwing Safari check is false. */
   const askPersist = useRef(() => {
     void storageApi

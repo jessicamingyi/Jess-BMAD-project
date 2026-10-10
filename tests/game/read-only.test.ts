@@ -26,7 +26,7 @@ function readOnly(reason: ReadOnlyReason = 'otherTab'): AppState {
 }
 
 describe('read-only reducer guard', () => {
-  it.each(['otherTab', 'newerVersion', 'storageUnavailable'] as const)('%s: a typed digit, a Note, Undo and Restart change nothing', (reason) => {
+  it.each(['otherTab', 'newerVersion'] as const)('%s: a typed digit, a Note, Undo and Restart change nothing', (reason) => {
     const start = run(readOnly(reason), { type: 'cellSelected', cell: emptyCells[0] })
     expect(start.ui.selectedCell).toBe(emptyCells[0])
     expect(run(start, { type: 'digitEntered', digit: Number(samplePuzzle.solution[emptyCells[0]]), date: DATE })).toBe(start)

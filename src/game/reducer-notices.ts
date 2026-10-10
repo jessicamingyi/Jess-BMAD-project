@@ -40,8 +40,8 @@ export function noticeAction(state: AppState, action: Action): AppState | null {
     case 'updateAvailable':
       return ui.updateReady ? state : { ...state, ui: { ...ui, updateReady: true } }
     case 'storageNoticeAcknowledged':
-      // A read-only tab can't save the flag: "Got it" only hides the notice for this page.
-      if (ui.readOnly !== null) {
+      // A read-only or saving-off tab can't save the flag: "Got it" only hides the notice for this page.
+      if (ui.readOnly !== null || ui.savingOff) {
         return ui.dismissed.includes('storageNotice') ? state : { ...state, ui: { ...ui, dismissed: [...ui.dismissed, 'storageNotice'] } }
       }
       return state.meta.seenStorageNotice ? state : { ...state, meta: { ...state.meta, seenStorageNotice: true } }
@@ -58,11 +58,11 @@ export function noticeAction(state: AppState, action: Action): AppState | null {
 /**
  * A persistent-storage answer: saved in `meta.persistGranted`. A grant clears the
  * Add to Dock tip; a Safari refusal shows it (again, if it was dismissed earlier).
- * A read-only tab never asks, and changes nothing.
+ * A read-only or saving-off tab never asks, and changes nothing.
  */
 function resolvePersist(state: AppState, granted: boolean, safari: boolean): AppState {
   const { ui } = state
-  if (ui.readOnly !== null) return state
+  if (ui.readOnly !== null || ui.savingOff) return state
   const meta = state.meta.persistGranted === granted ? state.meta : { ...state.meta, persistGranted: granted }
   let nextUi = ui
   if (granted && ui.addToDockPending) nextUi = { ...ui, addToDockPending: false }

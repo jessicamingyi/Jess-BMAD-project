@@ -6,6 +6,7 @@ import type { AppState } from '../../src/game/types.ts'
 
 const fresh = (): AppState => createInitialState()
 const readOnly = (s: AppState): AppState => ({ ...s, ui: { ...s.ui, readOnly: 'otherTab' } })
+const savingOff = (s: AppState): AppState => ({ ...s, ui: { ...s.ui, savingOff: true } })
 const seen = (s: AppState): AppState => ({ ...s, meta: { ...s.meta, seenStorageNotice: true } })
 
 describe('storage notice', () => {
@@ -35,6 +36,13 @@ describe('storage notice', () => {
     expect(next.ui.dismissed).toEqual(['storageNotice'])
     expect(reducer(next, { type: 'storageNoticeAcknowledged' })).toBe(next)
     expect(visibleBanner({ ...next, ui: { ...next.ui, dismissed: ['readOnly', 'storageNotice'] } })).toBeNull()
+  })
+
+  it('a saving-off tab only dismisses it (meta unchanged)', () => {
+    const s = savingOff(fresh())
+    const next = reducer(s, { type: 'storageNoticeAcknowledged' })
+    expect(next.meta).toBe(s.meta)
+    expect(next.ui.dismissed).toEqual(['storageNotice'])
   })
 
   it('applies while a Postcard waits to be revealed', () => {
@@ -85,6 +93,12 @@ describe('persistResolved', () => {
 
   it('a read-only tab records nothing', () => {
     const s = readOnly(seen(fresh()))
+    expect(reducer(s, { type: 'persistResolved', granted: false, safari: true })).toBe(s)
+    expect(reducer(s, { type: 'persistResolved', granted: true, safari: false })).toBe(s)
+  })
+
+  it('a saving-off tab records nothing', () => {
+    const s = savingOff(seen(fresh()))
     expect(reducer(s, { type: 'persistResolved', granted: false, safari: true })).toBe(s)
     expect(reducer(s, { type: 'persistResolved', granted: true, safari: false })).toBe(s)
   })

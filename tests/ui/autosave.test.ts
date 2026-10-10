@@ -89,6 +89,7 @@ const live = () => host!.querySelector('[aria-live="polite"]')!.textContent
 /** Another tab holds the save lock. */
 const otherTab = async () => ({ held: false, release: () => {} })
 const UNREADABLE = "We couldn't read your saved progress. It's been kept safe, not overwritten."
+const SAVING_OFF = "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again."
 
 const title = () => q('header .puzzle-title')?.textContent
 const toggle = (prefix: string) =>
@@ -102,6 +103,38 @@ function press(key: string, init: KeyboardEventInit = {}, target: Element | null
 }
 
 const emptyCells = (givens: string) => [...givens].flatMap((d, i) => (d === '0' ? [i] : []))
+
+/** Fake `navigator.storage` answers: records whether a tab ever asks. */
+const fakeBrowser = () => ({ persist: vi.fn(async () => true), persisted: vi.fn(async () => true), isSafari: vi.fn(() => true) })
+
+/**
+ * Saving is off: the info banner with the saving-off line (never the unreadable one),
+ * defaults, and play allowed (Paris opens from its slot, a digit places), with `save`
+ * never called. `browser`, when given, was never asked about persistent storage.
+ */
+async function expectPlaysWithoutSaving(fake: ReturnType<typeof fakeStore>, browser?: ReturnType<typeof fakeBrowser>) {
+  expect(heading().textContent).toBe('Where to first?')
+  expect(banner()!.dataset.banner).toBe('savingOff')
+  expect(bannerText()).toBe(SAVING_OFF)
+  expect(banner()!.classList.contains('notice-banner--info')).toBe(true)
+  act(() => slot(PARIS).click())
+  await flush()
+  expect(title()).toBe('Paris · Near · Easy')
+  const puzzle = cityPuzzle(PARIS)!
+  const [a] = emptyCells(puzzle.givens)
+  act(() => cell(a).focus())
+  press(puzzle.solution[a])
+  await flush()
+  expect(cell(a).textContent).toBe(puzzle.solution[a])
+  expect(banner()!.dataset.banner).toBe('savingOff')
+  // Banners stay silent, except save-failed.
+  expect(live()).not.toContain(SAVING_OFF)
+  expect(fake.save).not.toHaveBeenCalled()
+  if (browser) {
+    expect(browser.persist).not.toHaveBeenCalled()
+    expect(browser.persisted).not.toHaveBeenCalled()
+  }
+}
 
 /** A City Session part-played: the first `n` empty cells filled correctly, Notes 1 and 3 on the next. */
 function partPlayed(cityId: string, n = 1): Session {
@@ -478,29 +511,24 @@ describe('unreadable saved data', () => {
     expect(fake.box.value).toEqual(toDocument(createInitialState()))
   })
 
-  it('the backup write fails: read-only with the unreadable text, nothing written, no throw', async () => {
+  it('the backup write fails: saving off, play allowed, nothing written, the main key untouched, no throw', async () => {
     const stored = { schemaVersion: 1, album: 'nope' }
     const fake = fakeStore(stored)
     fake.saveBackup.mockRejectedValueOnce(new Error('QuotaExceededError'))
-    await boot(fake)
-    expect(bannerText()).toBe(UNREADABLE)
-    expect(banner()!.dataset.banner).toBe('readOnly')
-    act(() => slot(PARIS).click())
-    await flush()
-    expect(heading().textContent).toBe('Where to first?')
-    expect(fake.save).not.toHaveBeenCalled()
+    const browser = fakeBrowser()
+    await boot(fake, browser)
+    await expectPlaysWithoutSaving(fake, browser)
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
     expect(fake.box.value).toBe(stored)
   })
 
-  it('a load that rejects: defaults, read-only with the unreadable text, never writes', async () => {
+  it('a load that rejects: defaults, saving off, play allowed, never writes', async () => {
     const fake = fakeStore()
     fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
-    await boot(fake)
-    expect(heading().textContent).toBe('Where to first?')
-    expect(bannerText()).toBe(UNREADABLE)
-    act(() => slot(PARIS).click())
-    await flush()
-    expect(fake.save).not.toHaveBeenCalled()
+    const browser = fakeBrowser()
+    await boot(fake, browser)
+    await expectPlaysWithoutSaving(fake, browser)
+    expect(fake.saveBackup).not.toHaveBeenCalled()
   })
 })
 
@@ -704,14 +732,15 @@ describe('boot', () => {
     expect(fake.save).toHaveBeenCalledTimes(1)
   })
 
-  it('a lock request that never settles gives up after the timeout: page ready, defaults, read-only', async () => {
+  it('a lock request that never settles gives up after the timeout: page ready, defaults, saving off', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))
+    const browser = fakeBrowser()
     host = document.createElement('div')
     document.body.appendChild(host)
     const html = document.createElement('html')
     await act(async () => {
-      const started = bootApp(fake.store, host!, html, { today: TODAY, acquireLock: () => new Promise(() => {}) })
+      const started = bootApp(fake.store, host!, html, { today: TODAY, acquireLock: () => new Promise(() => {}), ...browser })
       await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS - 1)
       expect(html.hasAttribute('data-ready')).toBe(false)
       await vi.advanceTimersByTimeAsync(1)
@@ -719,11 +748,8 @@ describe('boot', () => {
     })
     vi.useRealTimers()
     expect(html.hasAttribute('data-ready')).toBe(true)
-    expect(heading().textContent).toBe('Where to first?')
-    expect(bannerText()).toBe(UNREADABLE)
-    act(() => slot(PARIS).click())
-    await flush()
-    expect(fake.save).not.toHaveBeenCalled()
+    await expectPlaysWithoutSaving(fake, browser)
+    expect(fake.saveBackup).not.toHaveBeenCalled()
   })
 
   it('a lock request that throws counts as the holder', async () => {
@@ -735,15 +761,25 @@ describe('boot', () => {
     expect(fake.save).toHaveBeenCalledTimes(1)
   })
 
-  it.each([
-    ['newerVersion', { ...docFor({}), schemaVersion: 3 }, undefined],
-    ['storageUnavailable', undefined, () => Promise.reject(new Error('IndexedDB unavailable'))],
-  ] as const)('a holder that ends read-only (%s) releases the lock', async (_name, stored, load) => {
-    const fake = fakeStore(stored)
-    if (load) fake.store.load = load
+  it('a holder that ends read-only (newerVersion) releases the lock', async () => {
+    const fake = fakeStore({ ...docFor({}), schemaVersion: 3 })
     const release = vi.fn()
     await boot(fake, { acquireLock: async () => ({ held: true, release }) })
     expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['the load rejects', undefined, false],
+    ['the backup fails', 'garbled', true],
+  ] as const)('a holder that ends with saving off (%s) releases the lock and plays on', async (_name, stored, failBackup) => {
+    const fake = fakeStore(stored)
+    if (stored === undefined) fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
+    if (failBackup) fake.saveBackup.mockRejectedValueOnce(new Error('QuotaExceededError'))
+    const release = vi.fn()
+    await boot(fake, { acquireLock: async () => ({ held: true, release }) })
+    expect(release).toHaveBeenCalledTimes(1)
+    await expectPlaysWithoutSaving(fake)
     expect(release).toHaveBeenCalledTimes(1)
   })
 
@@ -773,15 +809,17 @@ describe('boot', () => {
     expect(release).not.toHaveBeenCalled()
   })
 
-  it('a load that never settles gives up after the timeout: page ready, defaults, read-only', async () => {
+  it('a load that never settles gives up after the timeout: page ready, defaults, saving off', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const fake = fakeStore()
     fake.store.load = () => new Promise(() => {})
+    const browser = fakeBrowser()
+    const release = vi.fn()
     host = document.createElement('div')
     document.body.appendChild(host)
     const html = document.createElement('html')
     await act(async () => {
-      const started = bootApp(fake.store, host!, html, { today: TODAY })
+      const started = bootApp(fake.store, host!, html, { today: TODAY, acquireLock: async () => ({ held: true, release }), ...browser })
       await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS - 1)
       expect(html.hasAttribute('data-ready')).toBe(false)
       await vi.advanceTimersByTimeAsync(1)
@@ -789,11 +827,42 @@ describe('boot', () => {
     })
     vi.useRealTimers()
     expect(html.hasAttribute('data-ready')).toBe(true)
-    expect(heading().textContent).toBe('Where to first?')
-    expect(bannerText()).toBe(UNREADABLE)
+    // The load never settles, but the lock is given back at the give-up so another tab can write.
+    expect(release).toHaveBeenCalledTimes(1)
+    await expectPlaysWithoutSaving(fake, browser)
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('another tab holds the lock and the load hangs past the timeout: read-only (other tab), inert grid, nothing written', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))
+    fake.store.load = () => new Promise(() => {})
+    const browser = fakeBrowser()
+    host = document.createElement('div')
+    document.body.appendChild(host)
+    const html = document.createElement('html')
+    await act(async () => {
+      const started = bootApp(fake.store, host!, html, { today: TODAY, acquireLock: otherTab, ...browser })
+      await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS)
+      root = await started
+    })
+    vi.useRealTimers()
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(bannerText()).toBe('Traveller Sudoku is open in another tab. Play there, or close it and reload this one.')
+    // Defaults hold no Puzzle, so there is no grid to show; read-only refuses to open one.
     act(() => slot(PARIS).click())
     await flush()
+    expect(heading().textContent).toBe('Where to first?')
+    expect(q('[role="grid"]')).toBeNull()
+    // Its "Got it" leaves no saving-off banner behind.
+    act(() => gotIt().click())
+    await flush()
+    expect(banner()).toBeNull()
     expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(browser.persist).not.toHaveBeenCalled()
+    expect(browser.persisted).not.toHaveBeenCalled()
   })
 })
 
@@ -818,7 +887,7 @@ describe('boot, late after the timeout', () => {
     ['a loaded', () => docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } })],
     ['a v1 (migrated)', () => toV1(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))],
     ['an unreadable', () => 'garbled'],
-  ])('%s load that resolves after the give-up: nothing written, the lock released once, defaults read-only', async (_name, data) => {
+  ])('%s load that resolves after the give-up: nothing written, the lock released once, defaults with saving off', async (_name, data) => {
     const stored = data()
     const fake = fakeStore(stored)
     let loaded = false
@@ -835,9 +904,9 @@ describe('boot, late after the timeout', () => {
     expect(fake.save).not.toHaveBeenCalled()
     expect(fake.saveBackup).not.toHaveBeenCalled()
     expect(release).toHaveBeenCalledTimes(1)
-    expect(heading().textContent).toBe('Where to first?')
-    expect(banner()!.dataset.banner).toBe('readOnly')
-    expect(bannerText()).toBe(UNREADABLE)
+    await expectPlaysWithoutSaving(fake)
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(fake.box.value).toBe(stored)
   })
 
   it('unreadable data whose backup finishes after the give-up: backed up, the main key never written, lock released', async () => {
@@ -858,11 +927,8 @@ describe('boot, late after the timeout', () => {
     expect(fake.save).not.toHaveBeenCalled()
     expect(fake.box.value).toBe('garbled')
     expect(release).toHaveBeenCalledTimes(1)
-    expect(banner()!.dataset.banner).toBe('readOnly')
-    expect(bannerText()).toBe(UNREADABLE)
-    act(() => slot(PARIS).click())
-    await flush()
-    expect(fake.save).not.toHaveBeenCalled()
+    await expectPlaysWithoutSaving(fake)
+    expect(fake.box.value).toBe('garbled')
 
     // The next launch (normal timing) still finds the unreadable data: backed up again, and the notice shows.
     fake.saveBackup.mockClear()
@@ -874,7 +940,7 @@ describe('boot, late after the timeout', () => {
     expect(fake.saveBackup).toHaveBeenCalledTimes(1)
     expect(fake.save).toHaveBeenCalledTimes(1)
     expect(bannerText()).toBe(UNREADABLE)
-    expect(banner()!.dataset.banner).not.toBe('readOnly')
+    expect(banner()!.dataset.banner).toBe('unreadable')
   })
 
   it('a lock granted after the give-up is released once; nothing written', async () => {
@@ -886,7 +952,78 @@ describe('boot, late after the timeout', () => {
     expect(fake.save).not.toHaveBeenCalled()
     expect(fake.saveBackup).not.toHaveBeenCalled()
     expect(release).toHaveBeenCalledTimes(1)
-    expect(bannerText()).toBe(UNREADABLE)
+    await expectPlaysWithoutSaving(fake)
+  })
+})
+
+describe('saving off (storage unavailable)', () => {
+  it('a first visit with broken storage: the saving-off line, never the unreadable one; no storage notice; nothing asked', async () => {
+    const fake = fakeStore()
+    fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
+    const browser = fakeBrowser()
+    const release = vi.fn()
+    await boot(fake, { acquireLock: async () => ({ held: true, release }), ...browser })
+    await flush()
+    expect(bannerText()).not.toBe(UNREADABLE)
+    await expectPlaysWithoutSaving(fake, browser)
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('"Got it" hides the banner for the page; the storage notice never shows; still nothing saved or asked', async () => {
+    const fake = fakeStore()
+    fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
+    const browser = fakeBrowser()
+    await boot(fake, browser)
+    await flush()
+    expect(banner()!.dataset.banner).toBe('savingOff')
+    act(() => gotIt().click())
+    await flush()
+    expect(banner()).toBeNull()
+    expect(document.activeElement).toBe(heading())
+    // Play everywhere: a City, Settings, back to the Album. No banner comes back.
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(title()).toBe('Paris · Near · Easy')
+    const puzzle = cityPuzzle(PARIS)!
+    const [a] = emptyCells(puzzle.givens)
+    act(() => cell(a).focus())
+    press(puzzle.solution[a])
+    await flush()
+    expect(cell(a).textContent).toBe(puzzle.solution[a])
+    expect(banner()).toBeNull()
+    act(() => navLink('Settings').click())
+    await flush()
+    act(() => toggle('Mistake').click())
+    await flush()
+    expect(toggle('Mistake').getAttribute('aria-checked')).toBe('true')
+    act(() => navLink('Album').click())
+    await flush()
+    expect(banner()).toBeNull()
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(browser.persist).not.toHaveBeenCalled()
+    expect(browser.persisted).not.toHaveBeenCalled()
+  })
+
+  it('another tab holding the lock is unchanged: read-only banner, inert grid', async () => {
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) }, meta: { lastPlayedKey: cityKey(PARIS), seenStorageNotice: true, persistGranted: null } }))
+    await boot(fake, { acquireLock: otherTab })
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(bannerText()).toBe('Traveller Sudoku is open in another tab. Play there, or close it and reload this one.')
+    expect(q('.grid-card')!.hasAttribute('inert')).toBe(true)
+  })
+
+  it('another tab holds the lock and the load fails: read-only only; its "Got it" leaves no saving-off banner', async () => {
+    const fake = fakeStore()
+    fake.store.load = () => Promise.reject(new Error('IndexedDB unavailable'))
+    await boot(fake, { acquireLock: otherTab })
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    act(() => gotIt().click())
+    await flush()
+    expect(banner()).toBeNull()
+    expect(q('[data-banner="savingOff"]')).toBeNull()
+    expect(fake.save).not.toHaveBeenCalled()
   })
 })
 

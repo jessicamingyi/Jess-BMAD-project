@@ -74,6 +74,7 @@ export function createInitialState(puzzle?: Puzzle): AppState {
       viewer: null,
       solvedAgain: [],
       readOnly: null,
+      savingOff: false,
       saveFailed: false,
       unreadableNotice: false,
       updateReady: false,

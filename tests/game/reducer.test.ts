@@ -87,6 +87,7 @@ describe('game reducer', () => {
       viewer: null,
       solvedAgain: [],
       readOnly: null,
+      savingOff: false,
       saveFailed: false,
       unreadableNotice: false,
       updateReady: false,
