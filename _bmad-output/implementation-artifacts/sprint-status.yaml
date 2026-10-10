@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-09-2026 19:51
+last_updated: 10-09-2026 21:02
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -131,7 +131,9 @@ sprints:
     tickets: {TS-41: done, TS-42: done, TS-43: done, TS-44: done, TS-45: done, 
         TS-46: done, TS-47: todo, TS-48: done, TS-38: todo, TS-39: todo}
   unscheduled:
-    tickets: {TS-49: todo, TS-50: todo, TS-51: todo, TS-52: todo, TS-53: todo}
+    tickets: {TS-54: todo, TS-55: todo, TS-51: todo, TS-59: todo, TS-56: todo,
+        TS-57: todo, TS-58: todo, TS-50: todo, TS-52: todo, TS-53: todo, TS-49: todo,
+        TS-60: todo, TS-61: todo}
 action_items:
   - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
     epic: 3
@@ -168,14 +170,14 @@ action_items:
     action: "Story 4.1 ACs cover launch/resume, unrevealed-Postcard restore, ui normalisation
       and solved-City Postmark through a real reload (V1, V9, D4)"
     owner: "Jessica + Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
   - id: "epic-3-retro-item-6-reconcile-epics-md-experience-md-spec-2"
     epic: 3
     action: "Reconcile epics.md, EXPERIENCE.md, spec-2-3 and the hint-panel test title
       with as-built (S1-S12); fix README deploy claim"
     owner: "Jessica (approve) + Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
   - id: "epic-3-retro-item-7-process-when-a-story-decision-overrides"
     epic: 3
@@ -210,14 +212,14 @@ action_items:
     action: "TS-38 release smoke test includes Firefox (1.5 Space in number-first)
       and Safari (V3)"
     owner: "Jessica + Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
   - id: "epic-3-retro-item-12-write-the-29-postcard-lines-ts-40-then-e"
     epic: 3
     action: "Write the 29 Postcard lines (TS-40), then enable PAGES_ENABLED and make
       the repo public in TS-38 (V8, S1)"
     owner: "Jessica"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
   - id: "epic-4-retro-item-13-make-the-start-up-timeout-abort-settlelo"
     epic: 4
@@ -245,7 +247,7 @@ action_items:
     action: "Mirror Epic 4 deferrals into deferred-work.md, refreshing the old-worker
       x v2 schema entry (P2, E3, E6, R8)"
     owner: "Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-17-process-bmad-build-auto-close-out-keeps"
     epic: 4
@@ -259,7 +261,7 @@ action_items:
     action: "Reconcile epics.md Epic 4 ACs, AD-7 and the unreadable copy, spec-4-4
       Safari boundary and spine module names (R1-R7, R11, A4)"
     owner: "Jessica (approve) + Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-19-tidy-one-isobject-one-lock-failure-fallb"
     epic: 4

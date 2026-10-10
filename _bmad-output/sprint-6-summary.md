@@ -53,6 +53,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 - **TS-46 Done:** Chrome 155 and Edge 154 pass `npm run smoke` 10/10. Firefox (TS-52) and Safari (TS-53) are out of MVP scope.
 - **TS-47 To do:** the keyboard and NVDA checklist is ready, plus the decision on silent actions (recommended: announce Undo and Restart).
 - **TS-48 Done:** 91 doc changes (1e0aa5e), listed in `implementation-artifacts/ts-48-reconciliation-log.md`, approved by Jessica. README deploy section corrected. S7 leftovers fixed.
+- **Product backlog (after MVP):** one prioritised list in `backlog.md` (TS-49 to TS-61, 13 tickets). Every open deferral and retro action now has a ticket. Six retro action items that were already done are closed (Postcard lines, the Story 4.1 coverage, both doc reconciliations, deferrals mirrored, Firefox smoke superseded by TS-52).
 - **Open for Jessica:**
   - **Unreadable wording (decided):** Jessica chose "We couldn't read your saved progress, so we've kept a copy safe and started fresh." It replaces the inaccurate "kept safe, not overwritten".
   - **Firefox and Safari:** out of MVP scope, moved to TS-52 and TS-53 (after MVP). The Safari Add to Dock tip stays in the code but is unverified on a real Mac.

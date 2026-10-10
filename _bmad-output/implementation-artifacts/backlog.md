@@ -107,18 +107,29 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-38 | Release v1: deploy gate green, smoke tests pass, repo public, Pages on (`PAGES_ENABLED=true`), live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
 | TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
 
-## Backlog (after MVP)
+## Product backlog (after MVP)
+
+Everything planned after v1, in one list, **ordered by priority** (top first): player-facing risks, then support, then quality and process. Sources: `deferred-work.md`, the retrospectives' action items and Jessica's scope decisions. Built on 9 Oct; nothing else open lives elsewhere.
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-49 | Move the saving and banner effects out of `app.tsx` into hooks; split `autosave.test.ts` by concern (retro A5, A6) | Chore | M | Claude (bmad-build) | To do | Release v1 |
-| TS-50 | Install metadata for Add to Dock: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | Release v1 |
+| TS-54 | Check for a blank white frame before Lamplight on a light-themed OS (frame capture), and fix it if real (deferred 4.1, unverified medium) | Bug | S | Claude | To do | Release v1 |
+| TS-55 | An old cached version of the game meeting a newer save: "Reload to carry on" loops under the old service worker; say "close every tab and reopen", or take over on a schema change (deferred 4.3) | Bug | S | Claude (bmad-build) | To do | Release v1 |
 | TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | Release v1 |
+| TS-59 | Announce Undo and Restart to screen readers, if Jessica decides so in TS-47 (retro 1–3 item 9) | Story | S | Claude (bmad-build) | To do | TS-47 |
+| TS-56 | A second tab that finds unreadable data starts empty with no notice; show the unreadable line there too (Epic 4 retro R8) | Bug | S | Claude | To do | Release v1 |
+| TS-57 | Repeated backup copies when the defaults write keeps failing: back up once per unreadable value (Epic 4 retro E6) | Bug | S | Claude | To do | Release v1 |
+| TS-58 | Smoke suite: add the visibility-change update check and the newer-version banner; run `npm run smoke` in CI with the runner's Chrome (Epic 4 retro item 9) | Test | M | Claude | To do | Release v1 |
+| TS-50 | Install metadata for Add to Dock and home screens: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | Release v1 |
 | TS-52 | Firefox support: run the manual checklist (number-first Space places once, saving, two tabs, offline); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
 | TS-53 | Safari support on a Mac: run the manual checklist (Add to Dock tip on a refusal, File › Add to Dock keeps the Album, saving, two tabs, offline, fonts); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
+| TS-49 | Move the saving and banner effects out of `app.tsx` into hooks; split `autosave.test.ts` by concern (retro A5, A6) | Chore | M | Claude (bmad-build) | To do | Release v1 |
+| TS-60 | Pin the `build-cities` retry seeds (`${id}#1`…`#4`) with a test (deferred 3.1) | Test | S | Claude | To do | - |
+| TS-61 | Process: `bmad-build-auto` keeps the Review Triage Log and Spec Change Log in each spec, and a story that overrides an epic AC updates `epics.md` in the same commit (retro 1–3 item 7, Epic 4 item 5) | Process | S | Claude | To do | - |
 
 ## Notes
 
+- **Product backlog (9 Oct):** one prioritised list after MVP (TS-49 to TS-61); every open deferral and retro action item now has a ticket.
 - **Sprint 6 (added 9 Oct):** Epic 4 finished early, so a testing and hardening sprint goes before release. TS-42 to TS-45 are Claude's; TS-46 needs a Mac for Safari; TS-38's last step (repo public, Pages on) is Jessica's.
 
 - **Sprint 3 to 5 load is heavy** (8, 9 and 4 stories). If a sprint overruns, unfinished stories move to the next sprint in order; Story 4.2 is the first candidate to split.
