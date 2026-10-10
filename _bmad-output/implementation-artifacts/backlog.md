@@ -92,7 +92,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.  
-**Progress:** 6 / 10 done
+**Progress:** 7 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -101,7 +101,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-43 | [Storage unavailable: play without saving, with accurate wording (E2)](epic-4-retro-2026-10-09.md) | Story | M | Claude (bmad-build) | Done | TS-42; Jessica's decision |
 | TS-44 | [Close test gaps: read-only first Postcard never asks to persist (E5); restore resets Hint, viewer and "Solved again" (R23); one `isObject`, one lock fallback (A7)](epic-4-retro-2026-10-09.md) | Test | S | Claude | Done | TS-41 |
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | Done | TS-41 |
-| TS-46 | Cross-browser smoke test: Chrome and Edge (automated), Safari on a Mac (Add to Dock tip); Firefox moved to TS-52 (after MVP) | Test | S | Jessica + Claude | In progress (Chrome and Edge pass npm run smoke; Safari by hand) | TS-45 |
+| TS-46 | Cross-browser smoke test: Chrome and Edge (automated, `npm run smoke`); Firefox (TS-52) and Safari (TS-53) moved after MVP | Test | S | Claude | Done | TS-45 |
 | TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do (checklist ready in sprint-6-manual-test-checklist.md) | TS-41 |
 | TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | Done (approved by Jessica) | TS-43 |
 | TS-38 | Release v1: deploy gate green, smoke tests pass, repo public, Pages on (`PAGES_ENABLED=true`), live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
@@ -115,6 +115,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-50 | Install metadata for Add to Dock: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | Release v1 |
 | TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | Release v1 |
 | TS-52 | Firefox support: run the manual checklist (number-first Space places once, saving, two tabs, offline); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
+| TS-53 | Safari support on a Mac: run the manual checklist (Add to Dock tip on a refusal, File › Add to Dock keeps the Album, saving, two tabs, offline, fonts); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
 
 ## Notes
 

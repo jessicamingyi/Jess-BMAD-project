@@ -8,18 +8,18 @@ updated: '2026-10-09'
 # Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.
-**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 6 / 10 done (started early, Fri 9 Oct).
+**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 7 / 10 done (started early, Fri 9 Oct).
 
 Added on Fri 9 Oct. All four epics finished early and the Postcard lines are approved, so this sprint is for testing and hardening before v1 goes live.
 
 **Done when:**
 - The site is live on GitHub Pages.
 - The automated smoke suite passes.
-- Chrome and Edge pass the smoke suite, and Safari has been checked by hand (Firefox is after MVP, TS-52).
+- Chrome and Edge pass the smoke suite (Firefox and Safari are after MVP: TS-52, TS-53).
 - The Epic 4 retro's two medium defects are fixed.
 
 **Risks:**
-- Safari needs a Mac (TS-46).
+- Safari needed a Mac (TS-46); moved after MVP as TS-53 on 9 Oct.
 - TS-43 needs Jessica's decision first.
 - Going live (TS-38) needs Jessica to make the repo public.
 
@@ -32,7 +32,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
    - **TS-44:** close the small test gaps the retro found.
 3. **Test (TS-45, TS-46, TS-47):**
    - **TS-45:** an automated smoke suite, `npm run smoke`, drives installed Chrome through the core and Epic 4 journeys. It uses no new dependencies and reuses the approach from the retro behavior checks.
-   - **TS-46:** Chrome and Edge through the smoke suite; Safari by hand (Firefox moved to TS-52).
+   - **TS-46:** Chrome and Edge through the smoke suite (Firefox and Safari moved after MVP: TS-52, TS-53).
    - **TS-47:** a keyboard-only and screen-reader pass.
 4. **Docs (TS-48):** `epics.md`, EXPERIENCE.md, AD-7 and the README match what was built.
 5. **Release (TS-38):** the deploy gate is green and the smoke tests pass. Jessica makes the repo public, sets Pages to GitHub Actions and sets `PAGES_ENABLED=true`. Then a live check, including offline play.
@@ -50,12 +50,12 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
   - **Second tabs:** a second tab stays read-only, even when its storage is also slow.
   - **Review:** 28 findings, 9 fixes.
 - **TS-45 Done** (4609c98): `npm run smoke` drives Chrome or Edge through 10 journeys in about 40 s. It passes 10/10 in Chrome 155 and Edge 154.
-- **TS-46 In progress:** Chrome and Edge are covered by the smoke suite. Safari is by hand, using `implementation-artifacts/sprint-6-manual-test-checklist.md`. Firefox moved to TS-52.
+- **TS-46 Done:** Chrome 155 and Edge 154 pass `npm run smoke` 10/10. Firefox (TS-52) and Safari (TS-53) are out of MVP scope.
 - **TS-47 To do:** the keyboard and NVDA checklist is ready, plus the decision on silent actions (recommended: announce Undo and Restart).
 - **TS-48 Done:** 91 doc changes (1e0aa5e), listed in `implementation-artifacts/ts-48-reconciliation-log.md`, approved by Jessica. README deploy section corrected. S7 leftovers fixed.
 - **Open for Jessica:**
   - **Unreadable wording (decided):** Jessica chose "We couldn't read your saved progress, so we've kept a copy safe and started fresh." It replaces the inaccurate "kept safe, not overwritten".
-  - **Firefox:** out of MVP scope, moved to TS-52 (after MVP). TS-46 is now Safari only.
+  - **Firefox and Safari:** out of MVP scope, moved to TS-52 and TS-53 (after MVP). The Safari Add to Dock tip stays in the code but is unverified on a real Mac.
   - **Release:** TS-38 (make the repo public, Pages on).
 
 ## Tickets

@@ -22,7 +22,7 @@ Run these against a local production build (`npm run build`, then `npm run previ
 - storage unavailable
 - update banner
 
-So TS-46 only needs Safari, done by hand.
+That completes TS-46: Firefox (TS-52) and Safari (TS-53) are out of MVP scope (Jessica, 9 Oct). Their lists below are kept for after MVP.
 
 ## Firefox: out of MVP scope (TS-52, after MVP)
 
@@ -39,7 +39,7 @@ Jessica moved Firefox out of the MVP on 9 Oct. Keep this list for TS-52.
 - [ ] **Offline:** after one visit, go offline (DevTools → Network → Offline) and reload. The game loads, and a City and Free Play both work.
 - [ ] **No errors:** the console shows no red errors.
 
-## TS-46 Safari (a Mac with Safari 17 or newer)
+## Safari: out of MVP scope (TS-53, after MVP; a Mac with Safari 17 or newer)
 
 - [ ] **First launch, play a City and reload, two tabs, offline, no console errors:** the same checks as in the Firefox list, except the Space step, which only Firefox needs.
 - [ ] **Add to Dock tip:**
