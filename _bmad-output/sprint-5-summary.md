@@ -1,14 +1,14 @@
 ---
 title: 'Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)'
 sprint: 5
-status: in-progress
+status: done
 updated: '2026-10-09'
 ---
 
 # Traveller Sudoku: Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
 
 **Goal:** a durable, offline v1 on the web.
-**Tickets:** 6 (TS-34 to TS-39). **Progress:** 4 / 6 done. Epic 4 complete: Stories 4.1 to 4.4 were built early, on Thu 8 Oct. Release v1 (TS-38) waits on the Postcard lines (TS-40).
+**Tickets:** 5 (TS-34 to TS-37, and TS-40). **Progress:** 5 / 5 done. Epic 4 complete: Stories 4.1 to 4.4 were built early, on Thu 8 Oct. The Postcard lines (TS-40) are written and approved. Release v1 (TS-38) and the retrospective (TS-39) moved to Sprint 6 (test, harden and release).
 
 - **Epic 4, Stories 4.1 to 4.4:** autosave and restore; safe across versions and tabs; offline play and gentle updates; storage notice and keeping your data.
 - **Release v1:** no placeholders, deploy gate green, smoke test offline and on Safari.
@@ -58,7 +58,7 @@ updated: '2026-10-09'
     - 9 new action items.
   - **TS-40 Postcard lines drafted** (branch `content/ts-40-postcard-lines`, 9975643): 29 lines in Lisbon's voice. The deploy gate now passes on that branch. **Approved by Jessica** the same day; TS-40 is done.
 
-## Tickets done (4 / 6)
+## Tickets done (5 / 5)
 
 | ID | Ticket | Type | Size | Owner | Status | Done on |
 |---|---|---|---|---|---|---|
@@ -66,13 +66,11 @@ updated: '2026-10-09'
 | TS-35 | [Story 4.2: Safe across versions and tabs](planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 | TS-36 | [Story 4.3: Play offline and update gently](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
 | TS-37 | [Story 4.4: Storage notice and keeping your data](planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Thu 8 Oct (early) |
+| TS-40 | [Write the 30 Postcard lines](planning-artifacts/cities.md) | Content | M | Jessica + Claude | Done | Fri 9 Oct |
 
-## Tickets not done yet (2)
+## Moved to Sprint 6
 
-| ID | Ticket | Type | Size | Owner | Status | Depends on |
-|---|---|---|---|---|---|---|
-| TS-38 | Release v1: no placeholders, deploy gate green, offline + Safari smoke test | Chore | S | Jessica + Claude | To do | All stories |
-| TS-39 | Retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
-
----
-Tickets and status: [backlog.md](implementation-artifacts/backlog.md) · visual board: [board.html](implementation-artifacts/board.html)
+| ID | Ticket | Why |
+|---|---|---|
+| TS-38 | Release v1 | A testing and hardening sprint goes first (see [Sprint 6](sprint-6-summary.md)). |
+| TS-39 | Retrospective | The Epic 4 retrospective ran on 9 Oct; the final MVP retrospective follows the release. |

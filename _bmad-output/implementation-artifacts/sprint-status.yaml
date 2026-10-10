@@ -115,17 +115,23 @@ sprints:
         TS-30: done, TS-31: done, TS-32: done, TS-33: done}
   sprint-5:
     date: "2026-10-09"
-    goal: "Never lose your journey: Epic 4, release v1, retrospective"
-    status: in-progress
+    goal: "Never lose your journey: Epic 4, Epic 4 retrospective, City content"
+    status: done
     stories:
       - 4-1-autosave-and-restore
       - 4-2-safe-across-versions-and-tabs
       - 4-3-play-offline-and-update-gently
       - 4-4-storage-notice-and-keeping-your-data
-    tickets: {TS-34: done, TS-35: done, TS-36: done, TS-37: done, TS-38: todo, 
-        TS-39: todo}
+    tickets: {TS-34: done, TS-35: done, TS-36: done, TS-37: done, TS-40: done}
+  sprint-6:
+    date: "2026-10-12"
+    goal: "Test, harden and release v1"
+    status: planned
+    stories: []
+    tickets: {TS-41: todo, TS-42: todo, TS-43: todo, TS-44: todo, TS-45: todo,
+        TS-46: todo, TS-47: todo, TS-48: todo, TS-38: todo, TS-39: todo}
   unscheduled:
-    tickets: {TS-40: done}
+    tickets: {TS-49: todo, TS-50: todo, TS-51: todo}
 action_items:
   - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
     epic: 3

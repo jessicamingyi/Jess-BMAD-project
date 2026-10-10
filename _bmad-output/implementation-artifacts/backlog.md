@@ -1,13 +1,13 @@
 ---
 title: 'Traveller Sudoku: backlog and sprint board'
-updated: '2026-10-08'
+updated: '2026-10-09'
 sprint_length: 1 day
-sprints: 5
+sprints: 6
 ---
 
 # Traveller Sudoku: backlog and sprint board
 
-Five one-day sprints. Visual board: [board.html](board.html). Stories link to their acceptance criteria in `epics.md`.
+Six one-day sprints (Sprint 6 added on 9 Oct to test and harden before release). Visual board: [board.html](board.html). Stories link to their acceptance criteria in `epics.md`.
 
 Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; story work is done with `bmad-build`.
 
@@ -76,10 +76,10 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-32 | [Story 3.4: Revisit Postcards and replay Cities](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 3.3 |
 | TS-33 | [Story 3.5: Pick up where you left off](../planning-artifacts/epics.md) | Story | S | Claude (bmad-build) | Done | Story 3.2 |
 
-## Sprint 5: Never lose your journey, release v1 (Fri 9 Oct 2026)
+## Sprint 5: Never lose your journey (Fri 9 Oct 2026)
 
-**Goal:** Epic 4 (saving, offline, updates), release v1 and a retrospective.  
-**Progress:** 4 / 6 done (Epic 4 stories built early, on Thu 8 Oct)
+**Goal:** Epic 4 (saving, offline, updates), Epic 4 retrospective, City content.  
+**Progress:** 5 / 5 done (Epic 4 stories built early, on Thu 8 Oct). Release v1 (TS-38) and the final retrospective (TS-39) moved to Sprint 6.
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -87,16 +87,37 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-35 | [Story 4.2: Safe across versions and tabs](../planning-artifacts/epics.md) | Story | L | Claude (bmad-build) | Done | Story 4.1 |
 | TS-36 | [Story 4.3: Play offline and update gently](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 4.1 |
 | TS-37 | [Story 4.4: Storage notice and keeping your data](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 4.2 |
-| TS-38 | Release v1: no placeholders, deploy gate green, offline + Safari smoke test | Chore | S | Jessica + Claude | To do | All stories |
-| TS-39 | Retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
+| TS-40 | [Write the 30 Postcard lines and settle their tone](../planning-artifacts/cities.md) | Content | M | Jessica + Claude | Done (Claude draft approved by Jessica) | TS-24 |
 
-## Backlog (unscheduled)
+## Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
+
+**Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.  
+**Progress:** 0 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-40 | Write the 30 Postcard lines and settle their tone | Content | M | Jessica | Done (Claude draft approved by Jessica, 9 Oct) | TS-24 (City list); Epic 3 can run on placeholder lines, but deploys stay blocked until every line is real |
+| TS-41 | Merge the 9 Oct branches (retro fixes, Epic 4 retro, Postcard lines, this plan) into `main`; CI green | Chore | S | Claude | To do | - |
+| TS-42 | [Fix the start-up timeout race; test the boot timeout branches (E1, E4)](epic-4-retro-2026-10-09.md) | Bug | S | Claude (bmad-build) | To do | TS-41 |
+| TS-43 | [Storage unavailable: play without saving, with accurate wording (E2)](epic-4-retro-2026-10-09.md) | Story | M | Claude (bmad-build) | To do | TS-42; Jessica's decision |
+| TS-44 | [Close test gaps: read-only first Postcard never asks to persist (E5); restore resets Hint, viewer and "Solved again" (R23); one `isObject`, one lock fallback (A7)](epic-4-retro-2026-10-09.md) | Test | S | Claude | To do | TS-41 |
+| TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | To do | TS-41 |
+| TS-46 | Cross-browser smoke test: Edge, Firefox (number-first Space), Safari on a Mac (Add to Dock tip) | Test | S | Jessica + Claude | To do | TS-45 |
+| TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do | TS-41 |
+| TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | To do | TS-43 |
+| TS-38 | Release v1: deploy gate green, smoke tests pass, repo public, Pages on (`PAGES_ENABLED=true`), live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
+| TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
+
+## Backlog (after MVP)
+
+| ID | Ticket | Type | Size | Owner | Status | Depends on |
+|---|---|---|---|---|---|---|
+| TS-49 | Move the saving and banner effects out of `app.tsx` into hooks; split `autosave.test.ts` by concern (retro A5, A6) | Chore | M | Claude (bmad-build) | To do | Release v1 |
+| TS-50 | Install metadata for Add to Dock: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | Release v1 |
+| TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | Release v1 |
 
 ## Notes
+
+- **Sprint 6 (added 9 Oct):** Epic 4 finished early, so a testing and hardening sprint goes before release. TS-42 to TS-45 are Claude's; TS-46 needs a Mac for Safari; TS-38's last step (repo public, Pages on) is Jessica's.
 
 - **Sprint 3 to 5 load is heavy** (8, 9 and 4 stories). If a sprint overruns, unfinished stories move to the next sprint in order; Story 4.2 is the first candidate to split.
 - **City content (Jessica) blocks deploys from Sprint 4**: Story 3.1 makes CI refuse to deploy while any City is a placeholder.
