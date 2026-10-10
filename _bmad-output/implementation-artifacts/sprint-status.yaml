@@ -128,7 +128,7 @@ sprints:
     goal: "Test, harden and release v1"
     status: in-progress
     stories: []
-    tickets: {TS-41: done, TS-42: done, TS-43: done, TS-44: done, TS-45: todo, 
+    tickets: {TS-41: done, TS-42: done, TS-43: done, TS-44: done, TS-45: done, 
         TS-46: todo, TS-47: todo, TS-48: in-progress, TS-38: todo, TS-39: todo}
   unscheduled:
     tickets: {TS-49: todo, TS-50: todo, TS-51: todo}

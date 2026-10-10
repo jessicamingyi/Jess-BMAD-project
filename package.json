@@ -13,7 +13,8 @@
     "test": "vitest run",
     "lint": "oxlint",
     "build:cities": "node scripts/build-cities.ts",
-    "check:placeholders": "node scripts/check-placeholders.ts"
+    "check:placeholders": "node scripts/check-placeholders.ts",
+    "smoke": "npm run build && node scripts/smoke/run.ts"
   },
   "dependencies": {
     "idb-keyval": "6.3.0",

@@ -92,7 +92,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.  
-**Progress:** 4 / 10 done
+**Progress:** 5 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -100,7 +100,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-42 | [Fix the start-up timeout race; test the boot timeout branches (E1, E4)](epic-4-retro-2026-10-09.md) | Bug | S | Claude (bmad-build) | Done | TS-41 |
 | TS-43 | [Storage unavailable: play without saving, with accurate wording (E2)](epic-4-retro-2026-10-09.md) | Story | M | Claude (bmad-build) | Done | TS-42; Jessica's decision |
 | TS-44 | [Close test gaps: read-only first Postcard never asks to persist (E5); restore resets Hint, viewer and "Solved again" (R23); one `isObject`, one lock fallback (A7)](epic-4-retro-2026-10-09.md) | Test | S | Claude | Done | TS-41 |
-| TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | To do | TS-41 |
+| TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | Done | TS-41 |
 | TS-46 | Cross-browser smoke test: Edge, Firefox (number-first Space), Safari on a Mac (Add to Dock tip) | Test | S | Jessica + Claude | To do | TS-45 |
 | TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do | TS-41 |
 | TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | In review (awaiting Jessica's approval; see ts-48-reconciliation-log.md) | TS-43 |

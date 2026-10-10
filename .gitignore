@@ -11,3 +11,6 @@ __pycache__/
 node_modules/
 dist/
 .DS_Store
+
+# Smoke test screenshots (npm run smoke)
+smoke-results/
