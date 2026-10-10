@@ -129,9 +129,9 @@ sprints:
     status: in-progress
     stories: []
     tickets: {TS-41: done, TS-42: done, TS-43: done, TS-44: done, TS-45: done, 
-        TS-46: in-progress, TS-47: todo, TS-48: in-progress, TS-38: todo, TS-39: todo}
+        TS-46: in-progress, TS-47: todo, TS-48: done, TS-38: todo, TS-39: todo}
   unscheduled:
-    tickets: {TS-49: todo, TS-50: todo, TS-51: todo}
+    tickets: {TS-49: todo, TS-50: todo, TS-51: todo, TS-52: todo}
 action_items:
   - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
     epic: 3

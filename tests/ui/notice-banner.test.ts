@@ -39,7 +39,7 @@ describe('NoticeBanner', () => {
     ['readOnly', 'otherTab', 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.', 'info'],
     ['readOnly', 'newerVersion', 'A newer version saved your progress. Reload to carry on.', 'info'],
     ['savingOff', null, "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again.", 'info'],
-    ['unreadable', null, "We couldn't read your saved progress. It's been kept safe, not overwritten.", 'info'],
+    ['unreadable', null, "We couldn't read your saved progress, so we've kept a copy safe and started fresh.", 'info'],
     ['saveFailed', null, "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here.", 'alert'],
   ] as const)('%s (%s): its line, its edge, and exactly one text button "Got it"', (kind, readOnly, text, tone) => {
     render(kind, readOnly)

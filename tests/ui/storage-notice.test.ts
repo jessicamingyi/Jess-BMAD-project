@@ -19,7 +19,7 @@ const PARIS = 'europe-near-1'
 const STORAGE = 'Your Album lives in this browser only. Clearing browser data erases it.'
 const ADD_TO_DOCK = 'Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it.'
 const OTHER_TAB = 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.'
-const UNREADABLE = "We couldn't read your saved progress. It's been kept safe, not overwritten."
+const UNREADABLE = "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
 
 /** An in-memory stand-in for IndexedDB: the value survives remounts, like a reload. */
 function fakeStore(initial?: unknown) {

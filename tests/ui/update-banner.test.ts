@@ -19,7 +19,7 @@ const TODAY = '2026-10-08'
 const UPDATE = 'A new version is ready. It arrives next time you open the game.'
 const OTHER_TAB = 'Traveller Sudoku is open in another tab. Play there, or close it and reload this one.'
 const SAVE_FAILED = "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here."
-const UNREADABLE = "We couldn't read your saved progress. It's been kept safe, not overwritten."
+const UNREADABLE = "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
 
 function fakeStore(initial?: unknown) {
   const box = { value: initial }

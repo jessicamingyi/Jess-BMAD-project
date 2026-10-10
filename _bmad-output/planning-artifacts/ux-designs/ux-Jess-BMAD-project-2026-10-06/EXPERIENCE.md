@@ -67,7 +67,7 @@ Warm, brief, like a friend writing. No exclamation-mark celebrations, never "Wro
 | Read-only, other tab † | "Traveller Sudoku is open in another tab. Play there, or close it and reload this one." · "Got it" |
 | Read-only, newer version † | "A newer version saved your progress. Reload to carry on." · "Got it" |
 | Saving off † | "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again." · "Got it" (as built, 2026-10-09: TS-43) |
-| Unreadable save † | "We couldn't read your saved progress. It's been kept safe, not overwritten." · "Got it" |
+| Unreadable save † | "We couldn't read your saved progress, so we've kept a copy safe and started fresh." · "Got it" |
 | Update ready † | "A new version is ready. It arrives next time you open the game." · "Got it" |
 
 User-facing strings may use natural sentence case; spec prose uses the glossary terms exactly (Puzzle, Postcard, Album, Near / Mid / Far).

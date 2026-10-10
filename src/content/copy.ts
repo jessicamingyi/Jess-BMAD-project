@@ -212,7 +212,7 @@ export const copy = {
   bannerNewerVersion: 'A newer version saved your progress. Reload to carry on.',
   /** Storage can't be reached: the game plays on in memory, nothing is saved. */
   bannerSavingOff: "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again.",
-  bannerUnreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten.",
+  bannerUnreadable: "We couldn't read your saved progress, so we've kept a copy safe and started fresh.",
   bannerStorageNotice: 'Your Album lives in this browser only. Clearing browser data erases it.',
   bannerAddToDock: 'Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it.',
   bannerUpdateReady: 'A new version is ready. It arrives next time you open the game.',

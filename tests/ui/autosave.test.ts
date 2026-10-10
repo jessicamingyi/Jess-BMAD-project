@@ -88,7 +88,7 @@ const gotIt = () => banner()!.querySelector('button')!
 const live = () => host!.querySelector('[aria-live="polite"]')!.textContent
 /** Another tab holds the save lock. */
 const otherTab = async () => ({ held: false, release: () => {} })
-const UNREADABLE = "We couldn't read your saved progress. It's been kept safe, not overwritten."
+const UNREADABLE = "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
 const SAVING_OFF = "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again."
 
 const title = () => q('header .puzzle-title')?.textContent

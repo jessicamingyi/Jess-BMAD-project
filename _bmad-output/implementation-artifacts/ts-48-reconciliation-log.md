@@ -181,3 +181,5 @@ The other banner lines in Voice and Tone (storage notice, Safari, save failed, o
 8. **`DESIGN.md`** has no banner priority or storage-state statements, so it needed no change.
 9. **The old spec-frontmatter `deferred` entries** in spec-4-1 and spec-4-3 were kept as history. `deferred-work.md` now mirrors them; the 4.3 old-worker entry carries the refreshed evidence.
 10. **Epic 4 retro open question 4** (should update-ready outrank the first-visit storage notice?) is a product decision, not a divergence. The order is documented as built.
+
+**Approved by Jessica on 2026-10-09.** Item 1 above (unreadable wording) is resolved: Jessica chose "We couldn't read your saved progress, so we've kept a copy safe and started fresh.", now in `src/content/copy.ts`, EXPERIENCE.md, epics.md and epic-4-context.md.

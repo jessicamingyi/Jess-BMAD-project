@@ -48,7 +48,7 @@ Make the journey built in Epics 1–3 durable. The Album, every half-finished Ci
   - Save failed: "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here."
   - Other tab: "Traveller Sudoku is open in another tab. Play there, or close it and reload this one."
   - Newer version: "A newer version saved your progress. Reload to carry on."
-  - Unreadable: "We couldn't read your saved progress. It's been kept safe, not overwritten."
+  - Unreadable: "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
   - Saving off (as built, 2026-10-09, TS-43): "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again."
   - Update: "A new version is ready. It arrives next time you open the game."
 - **First launch:** Album on Europe, "Where to first?", storage notice above the slots. "Travel here" works while it shows, and if a Puzzle opens first the notice moves to the side column. "Got it" requests persistence, and the Add to Dock banner shows only on a Safari refusal.

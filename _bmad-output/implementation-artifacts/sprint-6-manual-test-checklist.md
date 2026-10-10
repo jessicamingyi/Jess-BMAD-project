@@ -22,11 +22,11 @@ Run these against a local production build (`npm run build`, then `npm run previ
 - storage unavailable
 - update banner
 
-So TS-46 only needs Firefox and Safari, done by hand.
+So TS-46 only needs Safari, done by hand.
 
-## TS-46 Firefox (Windows or Mac)
+## Firefox: out of MVP scope (TS-52, after MVP)
 
-Firefox is not installed on the work laptop. Install it, or use a personal machine.
+Jessica moved Firefox out of the MVP on 9 Oct. Keep this list for TS-52.
 
 - [ ] **Number-first Space** (deferred since Story 1.5):
   1. Press M to switch to number-first, then pick a digit (press 4).
@@ -41,7 +41,7 @@ Firefox is not installed on the work laptop. Install it, or use a personal machi
 
 ## TS-46 Safari (a Mac with Safari 17 or newer)
 
-- [ ] **Everything in the Firefox list**, except the Space step, which only Firefox needs.
+- [ ] **First launch, play a City and reload, two tabs, offline, no console errors:** the same checks as in the Firefox list, except the Space step, which only Firefox needs.
 - [ ] **Add to Dock tip:**
   1. Open the game in a normal Safari window (not one already added to the Dock).
   2. On the storage notice, click "Got it".

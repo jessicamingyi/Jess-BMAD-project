@@ -8,7 +8,7 @@ updated: '2026-10-09'
 # Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.
-**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 5 / 10 done (started early, Fri 9 Oct).
+**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 6 / 10 done (started early, Fri 9 Oct).
 
 Added on Fri 9 Oct. All four epics finished early and the Postcard lines are approved, so this sprint is for testing and hardening before v1 goes live.
 
@@ -50,11 +50,12 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
   - **Second tabs:** a second tab stays read-only, even when its storage is also slow.
   - **Review:** 28 findings, 9 fixes.
 - **TS-45 Done** (4609c98): `npm run smoke` drives Chrome or Edge through 10 journeys in about 40 s. It passes 10/10 in Chrome 155 and Edge 154.
-- **TS-46 In progress:** Chrome and Edge are covered by the smoke suite. Firefox (not installed on the work laptop) and Safari are by hand, using `implementation-artifacts/sprint-6-manual-test-checklist.md`.
+- **TS-46 In progress:** Chrome and Edge are covered by the smoke suite. Safari is by hand, using `implementation-artifacts/sprint-6-manual-test-checklist.md`. Firefox moved to TS-52.
 - **TS-47 To do:** the keyboard and NVDA checklist is ready, plus the decision on silent actions (recommended: announce Undo and Restart).
-- **TS-48 In review** (1e0aa5e): 91 doc changes listed in `implementation-artifacts/ts-48-reconciliation-log.md` for Jessica to approve. README deploy section corrected. S7 leftovers fixed.
+- **TS-48 Done:** 91 doc changes (1e0aa5e), listed in `implementation-artifacts/ts-48-reconciliation-log.md`, approved by Jessica. README deploy section corrected. S7 leftovers fixed.
 - **Open for Jessica:**
-  - **Unreadable wording:** the unreadable banner says "kept safe, not overwritten", but the main save *is* reset after the backup. Recommended new line: "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
+  - **Unreadable wording (decided):** Jessica chose "We couldn't read your saved progress, so we've kept a copy safe and started fresh." It replaces the inaccurate "kept safe, not overwritten".
+  - **Firefox:** out of MVP scope, moved to TS-52 (after MVP). TS-46 is now Safari only.
   - **Release:** TS-38 (make the repo public, Pages on).
 
 ## Tickets
