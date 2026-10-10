@@ -126,9 +126,9 @@ sprints:
   sprint-6:
     date: "2026-10-12"
     goal: "Test, harden and release v1"
-    status: planned
+    status: in-progress
     stories: []
-    tickets: {TS-41: todo, TS-42: todo, TS-43: todo, TS-44: todo, TS-45: todo,
+    tickets: {TS-41: done, TS-42: todo, TS-43: todo, TS-44: todo, TS-45: todo,
         TS-46: todo, TS-47: todo, TS-48: todo, TS-38: todo, TS-39: todo}
   unscheduled:
     tickets: {TS-49: todo, TS-50: todo, TS-51: todo}
