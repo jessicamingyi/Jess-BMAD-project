@@ -28,7 +28,7 @@ deferred: []
 - Boot order: request the lock (`ifAvailable: true`, never waits), load, migrate, then decide: holder → may write; non-holder → read-only (`otherTab`), never writes, still shows the saved state.
 - Migrations: an ordered list, one version step at a time, run before `fromDocument`; a migrated document is written back once (only by the lock holder).
 - `schemaVersion` newer than the code → read-only (`newerVersion`); the stored value is never written (byte-for-byte unchanged).
-- Unreadable (invalid shape, failed validation, or a migration that throws): the raw value is copied first to a new backup key (`traveller-save-backup-<ISO timestamp>`, never reused or overwritten), then the app starts from defaults with the unreadable banner on the Album and normal saving. If the backup write fails, or the load fails or hangs (4.1's timeout), the tab is read-only (`storageUnavailable`) and shows the unreadable banner text.
+- Unreadable (invalid shape, failed validation, or a migration that throws): the raw value is copied first to a new backup key (`traveller-save-backup-<ISO timestamp>`, never reused or overwritten), then the app starts from defaults with the unreadable banner on the Album and normal saving. If the backup write fails, or the load fails or hangs (4.1's timeout), the tab is read-only (`storageUnavailable`) and shows the unreadable banner text. *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): this case now plays on in memory with saving off and its own banner, not read-only; annotated 2026-10-09, TS-48.)*
 - Read-only (any cause): the reducer returns the previous state for any action whose result changes `album`, `sessions`, `settings` or `meta` (UI-only changes still apply, so opening an existing Puzzle or the viewer works); grid, side column (pad, action row, Hint) and Settings toggles are `inert`; Hint is unavailable; nothing is ever written.
 - Save failed: a rejected write dispatches `saveFailed` → `ui.saveFailed` true, the banner shows and the live region announces it once per false→true transition; a later successful write dispatches `saveSucceeded` → clears it and the banner. The next saved-slice change retries (4.1 saver).
 - Banner: inline, non-modal; `card` background, 1px `rule-thin` border, 4px left edge `postmark` (info) or `airmail-red` (save failed), `body` `ink` text, exactly one text button "Got it" ≥ 24×24px. Puzzle screen: top of the side column; elsewhere: full content width directly under the header, pushing content down. Never overlays the grid. Priority in this story: read-only > save failed > unreadable. "Got it" hides that banner (a read-only tab stays read-only) and moves focus to the grid tab-stop on the Puzzle screen, else the page heading.
@@ -45,9 +45,9 @@ deferred: []
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |---|---|---|---|
 | Migrate | stored v0 doc, fake v0→v1 migration | loads as v1, every Postcard and Session carried; v1 written back once by the holder | none |
-| Newer | stored `schemaVersion: 2` | defaults shown (the newer document can't be read), read-only, "A newer version saved your progress. Reload to carry on."; stored value byte-for-byte unchanged | no writes ever |
+| Newer | stored `schemaVersion: 2` | defaults shown (the newer document can't be read) *(as built: the saved state shows read-only when it still reads as this version's document, else defaults; the Spec Change Log cited below was never written. Epic 4 retro R6; `src/persistence/store.ts:60-63`; annotated 2026-10-09, TS-48)*, read-only, "A newer version saved your progress. Reload to carry on."; stored value byte-for-byte unchanged | no writes ever |
 | Unreadable | invalid doc | backup key holds the raw value; defaults; unreadable banner on Album; later changes save to the main key | none |
-| Backup fails | invalid doc, backup `set` rejects | read-only, unreadable banner text, nothing written | no throw |
+| Backup fails | invalid doc, backup `set` rejects | read-only, unreadable banner text, nothing written *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): saving off, not read-only; annotated 2026-10-09, TS-48.)* | no throw |
 | Migration throws | v0 doc, migration throws | treated as unreadable (backup, defaults, banner) | no throw |
 | Second tab | lock not available | saved state shown, read-only, "Traveller Sudoku is open in another tab…" | no writes ever |
 | Locks API missing | `navigator.locks` undefined | tab treated as holder | none |
@@ -100,7 +100,7 @@ deferred: []
 
 ## Design Notes
 
-- **`storageUnavailable`:** 4.1 turned saving off silently after a failed or hung load; this story makes that state visible as read-only with the unreadable banner text ("…kept safe, not overwritten."), which is accurate because nothing was touched. Chosen over a new string to keep the copy set to the ACs.
+- **`storageUnavailable`:** 4.1 turned saving off silently after a failed or hung load; this story makes that state visible as read-only with the unreadable banner text ("…kept safe, not overwritten."), which is accurate because nothing was touched. Chosen over a new string to keep the copy set to the ACs. *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): this case now plays on in memory with saving off and its own banner, not read-only; annotated 2026-10-09, TS-48.)*
 - **Unreadable priority:** the AC fixes only read-only > save failed; the unreadable notice is informational and ranks below both (Story 4.4 inserts its banners after save failed).
 - **Read-only guard at the reducer** (not only `inert`) stops in-memory play that could never be saved (choosing a new City, Free Play, toggles via keyboard).
 
@@ -116,7 +116,7 @@ deferred: []
 
 Status: done
 
-**Summary:** saved progress is now protected across versions and tabs. Only the tab holding the Web Lock `traveller-save` writes; a second tab, newer-version data or a failed or hung load makes the tab read-only (the reducer refuses saved-slice changes; grid, side column and Settings inert; Hint unavailable) with its banner. Older documents migrate forward one version at a time and are written back once. Unreadable data is copied to a fresh `traveller-save-backup-<ISO>` key, never overwritten, before the app starts from defaults. Failed writes show the save-failed banner, announced once per failure, and clear on the next good write. One inline banner shows at a time by priority: read-only > save failed > unreadable.
+**Summary:** saved progress is now protected across versions and tabs. Only the tab holding the Web Lock `traveller-save` writes; a second tab, newer-version data or a failed or hung load *(superseded by TS-43 (spec-ts-43-play-without-saving.md): a failed or hung load now turns saving off, not read-only; annotated 2026-10-09, TS-48)* makes the tab read-only (the reducer refuses saved-slice changes; grid, side column and Settings inert; Hint unavailable) with its banner. Older documents migrate forward one version at a time and are written back once. Unreadable data is copied to a fresh `traveller-save-backup-<ISO>` key, never overwritten, before the app starts from defaults. Failed writes show the save-failed banner, announced once per failure, and clear on the next good write. One inline banner shows at a time by priority: read-only > save failed > unreadable.
 
 **Files changed:**
 - `src/persistence/migrations.ts`, `lock.ts` (new), `store.ts`, `document.ts` -- migrations, releasable lock, load/settle pipeline, backups, saver outcomes

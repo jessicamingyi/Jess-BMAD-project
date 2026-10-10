@@ -262,11 +262,13 @@ So that every change reaches players as a calm, private, static site and the pur
 **Then** `npm test` fails and names the offending file and global
 
 **Given** the GitHub Actions workflow `.github/workflows/ci-deploy`
-**When** a commit is pushed to `main`
-**Then** it runs `npm ci`, then `npm test`, then `npm run build`, and deploys the build output to GitHub Pages only if every step succeeds
-**And** when any step fails, nothing is deployed and the previously published site stays live
+**When** a commit is pushed to `main` (or a pull request targets `main`)
+**Then** it runs `npm ci`, then `npm run lint`, then `npm test`, then `npm run build`
+**And** publishing is opt-in: only when the repository variable `PAGES_ENABLED` is `true` does a push to `main` deploy the build output to GitHub Pages, and only if every step succeeds; until then nothing is published
+**And** when any step fails, nothing is deployed and the previously published site (if any) stays live
+*(Reconciled 2026-10-09: the repo is private, so deploy was made opt-in behind `vars.PAGES_ENABLED` in commit 322efeb; the site has not gone live yet; going live belongs to TS-38. Retro 1–3 S1; `.github/workflows/ci-deploy.yml:30-44`.)*
 
-**Given** the site is published at `https://<owner>.github.io/<repo>/`
+**Given** the site is published at `https://<owner>.github.io/<repo>/` (once `PAGES_ENABLED` is set)
 **When** a visitor opens it
 **Then** every asset loads from the `/<repo>/` path with no 404s (Vite `base` = repository path)
 
@@ -345,7 +347,8 @@ So that I can solve a calm Sudoku with no pressure and no way to lose.
 **Given** one empty cell remains and the player enters the correct digit
 **When** `digitEntered` is reduced
 **Then** in that same reducer step `digits === solution` is detected and the session's `status` becomes `solved` (unit-tested; there is no UI-dispatchable `puzzleSolved` action)
-**And** the grid stays visible, further pad clicks change nothing, and a calm italic line "Solved." appears in the side column with no Postcard, confetti, flashing, animation or sound
+**And** the grid stays visible, further pad clicks change nothing, and a calm italic solved line appears in the side column with no confetti, flashing or sound; a Free Play solve shows no Postcard and nothing animates, while the first solve of a City shows Story 3.3's Postcard reveal, which slides onto the finished grid
+*(Reconciled 2026-10-09: Epic 3's Postcard reveal superseded "no Postcard, no animation" for City solves; the Free Play line became "Solved. Another one?" in Story 1.8. Retro 1–3 S5; `src/ui/puzzle.css` Postcard motion.)*
 
 **Covers:** FR2, FR6, FR7, NFR1, NFR2, NFR13, AD-5, AD-6, AD-10, UX-DR7, UX-DR8, UX-DR9, UX-DR37, UX-DR54, Conventions (cells, digit strings, past-tense actions)
 
@@ -419,7 +422,9 @@ So that trying an idea never costs me anything.
 
 **Given** the side column
 **When** it renders
-**Then** the action row shows "Undo" and "Restart" as default buttons (transparent, `ink` text, 3px double `rule-box` border, small-caps, square corners) with key captions ("Ctrl+Z", or "⌘Z" on macOS) in `caption` `ink-muted`
+**Then** the action row shows "Undo" and "Restart" as default buttons (transparent, `ink` text, 3px double `rule-box` border, small-caps, square corners); "Undo" carries the key caption ("Ctrl+Z", or "⌘Z" on macOS) in `caption` `ink-muted`, and "Restart" has no key caption (it has no shortcut)
+**And** from Story 2.1 the row reads "Undo · Hint · Restart", with "Hint" between them
+*(Reconciled 2026-10-09: Restart never had a shortcut, so it shows no caption; Story 2.1 inserted Hint. Retro 1–3 S2; `src/ui/action-row.tsx:82-105`.)*
 
 **Given** the player has made several digit entries, clears and Note changes
 **When** they click "Undo" repeatedly
@@ -489,7 +494,8 @@ So that I can solve without a mouse or without seeing the screen.
 
 **Given** focus is in the grid or the side column
 **When** the player presses N, M, Ctrl+Z (Cmd+Z on macOS) or H
-**Then** N toggles Digit / Notes, M toggles cell-first / number-first, Ctrl/Cmd+Z undoes one change, and H does nothing yet (reserved for Hints)
+**Then** N toggles Digit / Notes, M toggles cell-first / number-first, Ctrl/Cmd+Z undoes one change, and H opens the Hint panel and advances it one step per press (Story 2.1)
+*(Reconciled 2026-10-09: "H does nothing yet" was superseded by Epic 2's Hint key. Retro 1–3 S5; `src/ui/keyboard.ts`.)*
 
 **Given** focus is on the header (wordmark)
 **When** the player presses 1–9, N, M, H or Ctrl/Cmd+Z
@@ -515,7 +521,8 @@ So that I can solve without a mouse or without seeing the screen.
 
 **Given** `prefers-reduced-motion: reduce` or not
 **When** the player solves
-**Then** nothing on the Puzzle screen animates or transitions
+**Then** nothing on the Puzzle screen animates or transitions, except the first solve of a City, where Story 3.3's Postcard slides onto the finished grid (and appears in place, without sliding, under reduced motion)
+*(Reconciled 2026-10-09: superseded by Epic 3's Postcard reveal. Retro 1–3 S5; `src/ui/puzzle.css:76-100`.)*
 
 **Given** a viewport narrower than 1100px
 **When** the Puzzle screen renders
@@ -659,7 +666,8 @@ So that I always have a fair Puzzle to play.
 
 **Given** Free Play entry now exists
 **When** the app starts with no session in progress
-**Then** the built-in sample Puzzle is no longer loaded at startup (it remains only as a test fixture); `sessions` starts empty and the app shows the Free Play start state (Free Play entry with its single start button)
+**Then** the built-in sample Puzzle is no longer loaded at startup (it remains only as a test fixture); `sessions` starts empty, the app opens on the Album (Story 3.5's launch rule), and the "Puzzle" nav item is disabled until a Puzzle exists
+*(Reconciled 2026-10-09: the Free Play start state at startup was superseded by Story 3.5's `launch()`, which opens the Album when nothing is in progress. Retro 1–3 S4; `src/game/launch.ts:30-50`.)*
 
 **Given** the Free Play entry
 **When** it opens
@@ -686,7 +694,11 @@ So that I always have a fair Puzzle to play.
 
 **Given** the worker replies with the latest request id
 **When** the reply is reduced
-**Then** `sessions['free']` is replaced by a fresh Session (digits = Givens, Notes all 0, `inProgress`, `difficulty: 'medium'`, `hintsUsed: 0`), the undo history is empty, `settings` remembers Medium, and the Puzzle screen opens titled "Free Play · Medium" with focus on the grid
+**Then** `sessions['free']` is replaced by a fresh Session (digits = Givens, Notes all 0, `inProgress`, `difficulty: 'medium'`, `hintsUsed: 0`), `settings` remembers Medium, and only a Hint belonging to the old Free Play Puzzle closes
+**And** the new Puzzle becomes the current Puzzle (undo history empty, `meta.lastPlayedKey` = `free`), unless a City is current and the player has left the entry: then the City stays current and the new Puzzle waits under Free Play → "Carry on"
+**And** the Puzzle screen opens titled "Free Play · Medium" with focus on the grid only if the player is still on the Free Play entry; elsewhere they stay on their screen
+**And** if the player went back to the old Free Play Puzzle and it is current, in progress and on the Puzzle screen, the reply is set aside: the old Puzzle, its Undo and the screen are unchanged, `settings` and `meta.lastPlayedKey` are unchanged, and only the entry returns to idle
+*(Reconciled 2026-10-09: open-only-from-the-entry was a Story 1.8 decision; the set-aside rule and Hint scoping came from the Epics 1–3 retro fixes D1/D5. Retro 1–3 S3, S11; spec-1-8 Decisions; spec-retro-epics-1-3-actions.md; `src/game/reducer-free-play.ts`.)*
 
 **Given** two requests were sent in a row
 **When** the reply to the older request arrives
@@ -722,14 +734,16 @@ So that I learn why a digit goes somewhere instead of just being told.
 
 **Given** the Puzzle screen with an in-progress Puzzle
 **When** the side column renders
-**Then** the action row reads "Undo · Hint · Restart", with "Hint" as the surface's one primary button (`ink` fill, `card` text, 3px double `card` border, 2px solid `ink` outline) and the key caption "H" in `caption` `ink-muted`
+**Then** the action row reads "Undo · Hint · Restart", with "Hint" as the surface's one primary button (`ink` fill, `card` text, 3px double `card` border, 2px solid `ink` outline) and the key caption "H" in `caption` style, coloured `card` on the primary fill so it keeps at least 4.5:1 (enabled and disabled, both themes)
 **And** the side-column focus order is Hint panel (when open) → mode indicator → digit pad → Undo · Hint · Restart
+*(Reconciled 2026-10-09: `ink-muted` on the `ink` fill failed 4.5:1, so the primary caption uses `card` (retro 1–3 D2). spec-retro-epics-1-3-actions.md; `src/ui/controls.css:82-84`.)*
 
 **Given** a grid position with no Mistake
 **When** `engine/hints` is asked for a Hint
 **Then** it computes candidates from the session's current digits only (never from Notes), runs the AD-2 solver from that position until the first `Step` that has a placement, and returns the chain of `Step`s in order, elimination-only `Step`s first, ending with that placement
 **And** a unit test shows that the same digits with different (even wrong) Notes produce an identical Hint, and that asking for a Hint never changes the player's Notes
-**And** for each of the five Techniques a known position returns a chain whose last `Step` names that Technique
+**And** for each of the five Techniques a known position returns a chain that uses it: for naked single and hidden single the chain's last (only) `Step` names that Technique; for naked pair, pointing and claiming the chain's first `Step` names it and the chain ends in a placement (only singles place digits)
+*(Reconciled 2026-10-09: "the last Step names each of 5 Techniques" can't be met, because elimination Techniques never place a digit. Retro 1–3 S8; `tests/engine/hints.test.ts:46,57`.)*
 
 **Given** the Hint panel is closed, or open and idle
 **When** the player clicks "Hint" in the action row, or presses H with focus in the grid or side column (handled by the single `ui/keyboard` handler from Story 1.5)
@@ -742,13 +756,15 @@ So that I learn why a digit goes somewhere instead of just being told.
 
 **Given** a Hint at step 1
 **When** the panel renders
-**Then** the step label reads "Show a nudge", the text names the Technique and the unit (row, column or box) of the chain's first `Step`, rendered from that Technique's nudge template in `content/techniques` (draft, e.g. "Look for a hidden single in row 4."), and the step button reads "Explain it"
+**Then** the step label reads "Nudge", the text names the Technique and the unit (row, column or box) of the chain's first `Step`, rendered from that Technique's nudge template in `content/techniques` (draft, e.g. "Look for a hidden single in row 4."), and the step button reads "Explain it"
+*(Reconciled 2026-10-09: step labels are nouns ("Nudge", "Explanation"); the buttons keep "Show a nudge" / "Explain it" / "Show me the move". No decision was recorded in 2.1. Retro 1–3 S6; `src/content/copy.ts` `hintLabelNudge`, `hintLabelExplain`.)*
 **And** every cell of that unit gets the hint-focus mark (2px dashed `postmark` inset ring, drawn 3px inside the selected ring when the cell is also selected)
 **And** each hint-focused cell's accessible name ends with "hint", and the live region announces the nudge text once
 
 **Given** a Hint at step 1
 **When** the player clicks "Explain it" or presses H
-**Then** the step label reads "Explain it", the text gives one or two plain sentences covering the whole chain, built from one template per Technique in `content/techniques` (hidden single in a row: "In row {r}, a {d} fits only in column {c}. Every other empty cell in the row already has a {d} in its column."), and the step button reads "Show me the move"
+**Then** the step label reads "Explanation", the text gives one or two plain sentences covering the whole chain, built from one template per Technique in `content/techniques` (hidden single in a row: "In row {r}, a {d} fits only in column {c}. Every other empty cell in the row already has a {d} in its column or box."; "an 8" for 8), and the step button reads "Show me the move"
+*(Reconciled 2026-10-09: label per S6; the hidden-single template gained "or box", since a box can also rule a cell out. Retro 1–3 S6, S8; `src/content/techniques.ts:70-74`.)*
 **And** the hint-focus ring moves to the `focusCells` of every `Step` in the chain, and the live region announces the explanation once
 
 **Given** the engine and `content/techniques`
@@ -780,6 +796,8 @@ So that I learn why a digit goes somewhere instead of just being told.
 **Given** the solver finds no placement from the current digits (not expected for MVP Puzzles)
 **When** a Hint is requested
 **Then** the engine returns a "no Hint" result without throwing, the panel stays idle and nothing else changes
+**And** the "no Hint" result is kept while the panel is idle, so asking again does nothing (and the step button is disabled) until the digits change
+*(Reconciled 2026-10-09: the cached idle "no Hint" result is as built and was not in the epic. Retro 1–3 S9; `src/game/reducer-hint.ts:32`.)*
 
 **Given** focus is on the header nav
 **When** the player presses H
@@ -795,10 +813,11 @@ So that I can keep going when I don't see it, and still take it back.
 
 **Acceptance Criteria:**
 
-**Given** a Hint at step 2 ("Explain it")
-**When** the player clicks "Show me the move" or presses H
+**Given** a Hint at step 2 ("Explanation")
+**When** the player clicks "Show me the move", presses H, or clicks the action-row "Hint"
 **Then** `hintApplied` places the chain's final placement digit in its cell through the same Undo path as `digitEntered`, increments the session's `hintsUsed` by 1, and clears `ui.hint`
 **And** the panel returns to idle ("Hint" · "Show a nudge"), the hint-focus marks disappear, and focus moves to the grid if it was inside the panel
+*(Reconciled 2026-10-09: label per S6; at step 2 every Hint control, including the action-row "Hint", applies the move. Retro 1–3 S6, S9; `src/ui/puzzle-screen.tsx:57-58`, `src/game/hint.ts` `hintAction`.)*
 
 **Given** the target cell has Notes
 **When** the move is placed
@@ -840,7 +859,8 @@ So that I can spot it myself next time.
 
 **Given** a Technique Hint at step 1 or 2
 **When** the panel renders
-**Then** it shows the link "What's a {technique}?" (e.g. "What's a hidden single?") in `airmail-red` with a 3px underline offset, naming the Technique of the chain's final `Step`
+**Then** it shows the link "What's a {technique}?" (e.g. "What's a hidden single?"; "What's pointing?" and "What's claiming?" take no article) in `airmail-red` with a 3px underline offset, naming the Technique of the chain's first `Step`, the same Technique the nudge names
+*(Reconciled 2026-10-09: a browser check found the nudge and a final-Step link naming different Techniques, so the link follows `chain[0]`. Retro 1–3 S7, S9; `src/game/hint.ts:35-41`, `src/content/techniques.ts` `link`.)*
 
 **Given** the link is visible
 **When** the player clicks it or activates it with Enter
@@ -872,7 +892,7 @@ So that I never reason forward from a wrong digit or get stuck on a full grid th
 
 **Given** a Mistake Hint at step 1
 **When** the panel renders
-**Then** the step label reads "Show a nudge", the text reads "One of your digits doesn't fit — look at row {r}." (e.g. "One of your digits doesn't fit — look at row 4."), the Mistake cell gets the hint-focus ring, the step button reads "Explain it", and the live region announces the text once
+**Then** the step label reads "Nudge" (step 2's reads "Explanation"; reconciled 2026-10-09, retro 1–3 S6), the text reads "One of your digits doesn't fit — look at row {r}." (e.g. "One of your digits doesn't fit — look at row 4."), the Mistake cell gets the hint-focus ring, the step button reads "Explain it", and the live region announces the text once
 
 **Given** a Mistake Hint at step 2
 **When** the panel renders
@@ -900,10 +920,13 @@ So that I never reason forward from a wrong digit or get stuck on a full grid th
 **When** the side column renders
 **Then** the calm inline line "Something doesn't fit yet — want a hint?" appears in the side column with a "Hint" button (default style; the action-row "Hint" stays the one primary), nothing overlays or moves the grid
 **And** nothing else changes: Mistake highlighting is not forced on, input stays live, the status stays `inProgress`, and there is no game over
+**And** the digit that fills the grid is announced once with the cue ("7. Something doesn't fit yet — want a hint?")
 
 **Given** the "Something doesn't fit yet" line
 **When** the player clicks its "Hint" button
 **Then** the Hint panel opens at step 1 of a Mistake Hint pointing at the first Mistake in row-major order
+**And** further clicks on that button advance the Hint like H: step 2, then the move (clearing the Mistake)
+*(Reconciled 2026-10-09: the spoken cue and the button running the whole sequence are as built and were not in the epic. Retro 1–3 S9; `src/ui/puzzle-screen.tsx:138`, `src/game/announce.ts:93`.)*
 
 **Given** the "Something doesn't fit yet" line is showing
 **When** any cell becomes empty again, or the grid is solved
@@ -936,8 +959,10 @@ So that every City plays the same fair Puzzle forever, offline, at the Difficult
 
 **Given** any City in `content/cities.json` has `placeholder: true`
 **When** the CI pipeline runs on `main`
-**Then** tests may pass but the deploy-to-GitHub-Pages job fails with a clear message listing the placeholder City ids, so the live site never ships placeholder content
+**Then** tests may pass but the deploy-to-GitHub-Pages job fails with a clear message listing the placeholder City ids (`npm run check:placeholders`), so the live site never ships placeholder content
 **And** local `npm run dev` and `npm run build` still work with placeholder content
+**And** the deploy job, and so this gate, runs only once the repository variable `PAGES_ENABLED` is `true` (Story 1.1); until then it has never fired
+*(Reconciled 2026-10-09: deploy is opt-in behind `vars.PAGES_ENABLED`. Retro 1–3 S1; `.github/workflows/ci-deploy.yml:42-61`.)*
 
 **Given** `src/game/journey`
 **When** it is read
@@ -1031,8 +1056,9 @@ So that each Puzzle feels like the next stop on a journey I choose.
 **Given** a City Puzzle on the Puzzle screen
 **When** the header renders
 **Then** it shows the destination title in `city-title` ("Lisbon · Mid · Medium"), the meta line in `body` `ink-muted` ("Portugal — Europe, Postcard 5 of 10", where 5 is the City's slot position in its Region), and the 74×88px Stamp: `airmail-red` face, `card` 9px caps text with country top, the City's glyph centre and Tier bottom, perforated edge (5px dotted `desk` border + 2px `card` outline), rotated +3°, `aria-hidden`
-**And** a decorative Postmark sits outside the top-right corner of the grid frame, never over cells: double circle (2px outer + 1px inner) in `postmark` at 75% opacity with the City name in caps and today's date as DD MMM YY ("06 OCT 26"), the date passed in by the shell, `aria-hidden`
+**And** a decorative Postmark sits outside the top-right corner of the grid frame, never over cells: double circle (2px outer + 1px inner) in `postmark` at 75% opacity with the City name in caps and a date as DD MMM YY ("06 OCT 26"), `aria-hidden`: today's date (from the shell) while the City is in progress, and the Postcard's `collectedOn` during the reveal and on a solved City
 **And** a Free Play Puzzle shows neither Stamp nor Postmark
+*(Reconciled 2026-10-09: the Postmark shows the solve date once the City is solved. Retro 1–3 S10; `src/ui/puzzle-screen.tsx:85`.)*
 
 **Given** a `cityChosen` action for a locked City or an unknown id (a stale or forged action)
 **When** it is reduced
@@ -1071,11 +1097,15 @@ So that finishing feels like getting a warm note from somewhere I've been.
 **Then** it is `card` with the 8px airmail-stripe border (repeating −45° `airmail-red` 12px / `desk` 8px / `rule-box` 12px / `desk` 8px), rotated −1°, square corners, with the shadow `0 10px 26px rgba(31,42,68,.30)`
 **And** its left half holds the City's line in `postcard-line` `ink`; its right half holds the Postmark (City name caps, `collectedOn` as DD MMM YY) overlapping the 52×62px Stamp, and three ruled address lines "To: the Traveller" · "Album · {Region}" · "{City}, {country}"
 **And** the line sits in a region labelled "Postcard from {City}" that is tied to "Add to Album" by `aria-describedby`, and the live region announces "Solved"
+**And** the Postcard is a labelled `role="dialog"`, `aria-modal` during the reveal
+*(Reconciled 2026-10-09: the dialog role is as built and was not in the epic. Retro 1–3 S10; `src/ui/postcard.tsx:31-50`.)*
 
 **Given** the Postcard is showing
 **When** the player clicks "Add to Album" or presses Esc
 **Then** `postcardAdded` sets that Postcard's `revealed` to `true`, and the Album opens on that City's Region with the heading "Where to next?", the Region count one higher, and focus on the Album heading
 **And** clicking outside the Postcard does nothing; there is no other way to dismiss it
+**And** when the player later returns to the solved City via "Puzzle", the solved grid shows with the side-column line "Solved. Where to next?" followed by a link-styled "Album" button
+*(Reconciled 2026-10-09: the interim "Solved. Where to next?" line was meant to be replaced but stays as the solved-City line. Retro 1–3 S12; `src/content/copy.ts` `solvedCity`, `src/ui/puzzle-screen.tsx:145`.)*
 
 **Given** the Album after "Add to Album"
 **When** the new City's slot renders
@@ -1109,8 +1139,9 @@ So that my Album feels like a keepsake and favourite Puzzles stay playable.
 **Then** the Postcard viewer opens over the Album page, non-blocking, reusing the Postcard component (Postmark dated with the Postcard's `collectedOn`) with "Play again" (primary) in place of "Add to Album", and focus moves to "Play again"
 
 **Given** the Postcard viewer is open
-**When** the player presses Esc or clicks once outside it
+**When** the player presses Esc, clicks once outside it, or chooses its visible "Close" control
 **Then** it closes and focus returns to the slot that opened it
+*(Reconciled 2026-10-09: a visible "Close" control was added. Retro 1–3 S10; `src/ui/postcard.tsx`, `src/content/copy.ts` `viewerClose`.)*
 
 **Given** the Postcard viewer
 **When** the player chooses "Play again"
@@ -1121,15 +1152,18 @@ So that my Album feels like a keepsake and favourite Puzzles stay playable.
 **When** its slot renders
 **Then** it shows the Collected layout plus "Carry on" in small-caps `airmail-red`; "Carry on" resumes the replay exactly as left, and clicking the Postcard face still opens the viewer
 
-**Given** a replay is in progress
+**Given** a replay is in progress and has been touched (any digit or Note beyond the Givens)
 **When** the player chooses "Play again" in the viewer
-**Then** an inline confirm appears in the viewer ("Start fresh" / "Keep going"), matching the Free Play replace confirm, and focus moves to "Keep going"
+**Then** an inline confirm appears in the viewer ("This replaces your replay in progress." · "Start fresh" / "Keep going"), matching the Free Play replace confirm, and focus moves to "Keep going"
 **And** "Start fresh" replaces the replay with a fresh grid (AD-10), while "Keep going" resumes the replay exactly as left
+**And** for an untouched replay (only the Givens, no Notes) "Play again" starts a fresh grid without asking, since there is nothing to lose
+*(Reconciled 2026-10-09: the confirm is skipped when the replay is untouched. Retro 1–3 S10; `src/game/reducer-journey.ts:129-137`.)*
 
 **Given** a replay session
 **When** the player completes the solution
-**Then** the session becomes `solved`, no Postcard is shown, `album` is unchanged (no duplicate, no new `collectedOn`), and the side column shows "Solved again. {City} is already in your Album." (e.g. "Solved again. Lisbon is already in your Album.") with a link to the Album
+**Then** the session becomes `solved`, no Postcard is shown, `album` is unchanged (no duplicate, no new `collectedOn`), and the side column shows "Solved again. {City} is already in your Album." (e.g. "Solved again. Lisbon is already in your Album."), where the word "Album" in the sentence is the link-styled button to the Album
 **And** the slot returns to plain Collected
+*(Reconciled 2026-10-09: the link is the word "Album" inside the sentence, not a separate link. Retro 1–3 S10; `src/content/copy.ts` `solvedAgainBefore`/`solvedAgainAfter`.)*
 
 **Covers:** FR7, FR16, AD-6, AD-10, UX-DR17, UX-DR21, UX-DR23, UX-DR26, UX-DR46, UX-DR57, UX-DR64, UX-DR67
 
@@ -1141,10 +1175,12 @@ So that coming back takes no clicks.
 
 **Acceptance Criteria:**
 
-**Given** any action that changes a session's digits or Notes (`digitEntered`, a clear, `noteToggled`, `hintApplied`, `undoRequested`, `restartConfirmed`)
+**Given** any action that changes a session's digits or Notes (`digitEntered`, `cellClicked`, `currentDigitPlaced` and `cellCleared`, in Digit or Notes mode; `hintApplied`, `undoRequested`, `restartConfirmed`)
 **When** it is reduced
 **Then** `meta.lastPlayedKey` is set to that session's key
+**And** a Free Play reply that makes the new Free Play Puzzle current (`freePlayGenerated`, Story 1.8) also sets it to `free`
 **And** actions that only open a session (`cityChosen`, "Carry on"), select cells or switch modes do not change it (unit-tested)
+*(Reconciled 2026-10-09: there is no `noteToggled` action; Notes go through the digit actions in Notes mode. Retro 1–3 S11; spec-3-5 Design Notes; `src/game/reducer-shared.ts` `putSession`, `src/game/reducer-free-play.ts`.)*
 
 **Given** the app starts with state where `sessions[meta.lastPlayedKey]` exists and is `inProgress`
 **When** the launch rule runs
@@ -1159,8 +1195,9 @@ So that coming back takes no clicks.
 **Then** the Album opens (on the most recent Postcard's Region, else Europe) with focus on its heading, and any in-progress Puzzle shows "Carry on" on its slot or on the Free Play entry
 
 **Given** the header nav
-**When** a current Puzzle exists (the session last open on the Puzzle screen, or at launch the `lastPlayedKey` session)
+**When** a current Puzzle exists (the session last open on the Puzzle screen, or at launch the `lastPlayedKey` session, even if it is solved)
 **Then** "Puzzle" returns to it with focus on the grid
+*(Reconciled 2026-10-09: a solved last-played Session counts as current. Retro 1–3 S11; `src/game/launch.ts:41`.)*
 **And** when none exists, "Puzzle" is disabled (`aria-disabled`, still focusable for its label) and does nothing
 
 **Given** any Puzzle is `inProgress`
@@ -1196,8 +1233,9 @@ So that I can close the tab at any moment and lose nothing.
 
 **Given** `persistence/document`
 **When** `toDocument(state)` runs
-**Then** it returns one document `{ schemaVersion: 1, album, sessions, settings, meta }` with `givens`, `solution` and `digits` as 81-character digit strings and `notes` as 81 numbers; `ui` (including `hint`, `undo`, `saveFailed`, `readOnly`, `updateReady`) is never included
+**Then** it returns one document `{ schemaVersion: 2, album, sessions, settings, meta }` (version 1 in this story; Story 4.4's v1 → v2 migration made it 2) with `givens`, `solution` and `digits` as 81-character digit strings and `notes` as 81 numbers; `ui` (including `hint`, `undo`, `saveFailed`, `readOnly`, `updateReady`) is never included
 **And** `fromDocument(toDocument(state))` restores `album`, `sessions`, `settings` and `meta` exactly (round-trip unit test)
+*(Reconciled 2026-10-09: the current schema version is 2. Epic 4 retro R1; `src/persistence/document.ts:5`.)*
 
 **Given** an action that changes `album`, `sessions`, `settings` or `meta`
 **When** it is reduced
@@ -1210,8 +1248,9 @@ So that I can close the tab at any moment and lose nothing.
 
 **Given** saved data exists
 **When** the app starts (reload or browser restart)
-**Then** the document is loaded before the first screen renders, `album`, `sessions`, `settings` and `meta` are restored, the undo history starts empty, and the launch rule (Story 3.5) opens the Puzzle on `meta.lastPlayedKey` if it is `inProgress`, else the Album
+**Then** the document is loaded before the first screen renders, `album`, `sessions`, `settings` and `meta` are restored, the undo history starts empty, and the launch rule (Story 3.5) opens the Puzzle on `meta.lastPlayedKey` if it is `inProgress`, else on the first `inProgress` City in catalogue order, else on the Free Play Puzzle if `inProgress`, else the Album
 **And** any Postcard with `revealed: false` is shown again first (Story 3.3)
+*(Reconciled 2026-10-09: the full Story 3.5 / AD-10 launch rule applies. Epic 4 retro R2; `src/game/launch.ts`.)*
 
 **Given** several half-finished City Puzzles and a Free Play Puzzle
 **When** the page is reloaded
@@ -1239,23 +1278,38 @@ So that nothing the game does can quietly wipe or corrupt my Album.
 **When** a banner shows
 **Then** it is inline and non-modal: `card`, 1px `rule-thin` border, a 4px left edge in `postmark` (info) or `airmail-red` (save failed), `body` `ink` text and exactly one text button (no icons, no bare "×"), at least 24×24px
 **And** on the Puzzle screen it sits at the top of the side column at side-column width so the grid never moves; on the Album and other screens it spans the content width directly under the header and pushes content down; it never overlays the grid
-**And** at most one banner is visible at a time, choosing the highest priority among those pending (read-only > save failed in this story; Story 4.4 completes the order)
-**And** dismissing a banner moves focus to the grid on the Puzzle screen, or the page heading elsewhere
+**And** at most one banner is visible at a time, choosing the highest priority among those pending (read-only > save failed > unreadable in this story; Story 4.4 and TS-43 complete the order)
+**And** dismissing a banner moves focus to the grid on the Puzzle screen, or the page heading elsewhere; in a read-only tab on the Puzzle screen the grid is inert, so focus moves to the current nav item instead
+*(Reconciled 2026-10-09: the unreadable notice ranks third (spec-4-2 Design Notes); the read-only focus fallback was only in a comment and a test. Epic 4 retro R4, R7; `src/game/banners.ts:8`, `src/ui/app.tsx:221-223`.)*
 
-**Given** `persistence/migrations`
+**Given** `persistence/migrations.ts`
 **When** a stored document has an older `schemaVersion`
-**Then** migrations run forward in order, one version at a time, before `fromDocument`, and the migrated document is written back
-**And** a test with a fake v0 document and a v0 → v1 migration loads it as v1 with every Postcard and session carried forward
+**Then** migrations run forward in order, one version at a time, before `fromDocument`, and the lock holder writes the migrated document back once
+**And** a test with a v1 document and the shipped v1 → v2 migration (Story 4.4) loads it as v2 with every Postcard and session carried forward; a document claiming version 0 is unreadable, because no v0 document ever shipped
+*(Reconciled 2026-10-09: the fake v0 → v1 test was replaced by the real v1 → v2 migration test. Epic 4 retro R5; `src/persistence/migrations.ts:6-9`.)*
 
 **Given** a stored `schemaVersion` newer than the code's
 **When** the app loads
 **Then** `ui.readOnly` is set, the tab never writes to storage for the rest of the page's life, and the banner "A newer version saved your progress. Reload to carry on." · "Got it" shows
+**And** the saved state shows, read-only, when the newer document still reads as this version's document (best effort, in memory only); otherwise the defaults show
 **And** the stored document is left byte-for-byte unchanged (unit-tested)
+*(Reconciled 2026-10-09: the best-effort read-only restore was a Story 4.2 amendment (UJ-2). Epic 4 retro R6; `src/persistence/store.ts:60-63`.)*
 
 **Given** stored data that can't be read (invalid structure, failed validation, or a migration that throws)
-**When** the app loads
-**Then** the raw stored value is first copied to a new backup key that is never overwritten, then the app starts from an empty Album with the banner "We couldn't read your saved progress. It's been kept safe, not overwritten." · "Got it" on the Album
-**And** if the backup copy fails, the tab goes read-only instead of writing anything
+**When** the app loads in the tab holding the save lock
+**Then** the raw stored value is first copied to a new backup key (`traveller-save-backup-<ISO time>`) that is never overwritten, then the main key gets the default document and the app starts from an empty Album with the banner "We couldn't read your saved progress. It's been kept safe, not overwritten." · "Got it" on the Album
+**And** if the backup copy fails, nothing is written and the tab plays on with saving off (see below)
+**And** if start-up has already given up (the 3 s timeout) when the backup finishes, the main key is not written: the unreadable data stays where it is and the next launch shows the unreadable notice again
+**And** a tab without the lock writes nothing: it starts from an empty Album, read-only (another tab), with no unreadable notice (deferred, Epic 4 retro R8)
+*(Reconciled 2026-10-09: the data is kept only under the backup key, so the main key is overwritten with defaults after a successful backup (spec-4-2 residual risk); a failed backup turns saving off instead of read-only (TS-43, spec-ts-43-play-without-saving.md); no main-key write after a start-up give-up (TS-42, spec-ts-42-44-boot-timeout-and-test-gaps.md). The banner's "not overwritten" refers to the backup copy. Epic 4 retro R3, R8; `src/persistence/store.ts:127-143`.)*
+
+**Given** storage can't be reached at start-up (the load rejects, the lock, load and settle together take longer than 3 s, or unreadable data can't be backed up)
+**When** the app starts
+**Then** the tab starts from the defaults and plays normally in memory with saving off: Cities, Free Play, Hints, Postcards and Settings all work, but nothing is ever written, `persist()` and `persisted()` are never called, and the save lock is released so another tab can save
+**And** the info banner "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again." · "Got it" shows (not announced), and "Got it" hides it for the page while saving stays off
+**And** the storage notice and the Add to Dock tip never show while saving is off, because both promise saving
+**And** a tab that learned another tab holds the lock before giving up is read-only (another tab) instead, and shows no saving-off banner
+*(Reconciled 2026-10-09: Jessica chose play-without-saving over read-only `storageUnavailable` (Epic 4 retro E2). TS-43, spec-ts-43-play-without-saving.md; `src/ui/boot.tsx`, `src/game/banners.ts`.)*
 
 **Given** the game opens in a tab
 **When** it starts
@@ -1311,8 +1365,9 @@ So that I can play on a train and never lose a Puzzle to a new version.
 
 **Given** a new version is deployed while a game tab is open
 **When** the new service worker is waiting
-**Then** `ui.updateReady` is set and the informational banner "A new version is ready. It arrives next time you open the game." · "Got it" shows at its priority, which is lowest: read-only > save failed > storage notice > persistence (Add to Dock) > update ready
+**Then** `ui.updateReady` is set and the informational banner "A new version is ready. It arrives next time you open the game." · "Got it" shows at its priority, which is lowest: read-only > saving off > save failed > unreadable > storage notice > persistence (Add to Dock) > update ready
 **And** the app never calls `updateSW()` and never reloads during a session
+*(Reconciled 2026-10-09: the order as built has seven kinds, with unreadable (Story 4.2) and saving off (TS-43) added. Epic 4 retro R4; `src/game/banners.ts:8` `BANNER_PRIORITY`.)*
 
 **Given** all game tabs are closed
 **When** the player opens the game again
@@ -1336,33 +1391,40 @@ So that I don't lose my Postcards to cleared or evicted browser data.
 **When** the Album opens on Europe with "Where to first?"
 **Then** the info banner "Your Album lives in this browser only. Clearing browser data erases it." · "Got it" sits directly under the header above the slots (as in the key-first-launch mockup), and play is not blocked: the "Travel here" slots work while it shows
 **And** if the player opens a Puzzle before dismissing it, the notice moves to the top of the side column and the grid never moves
+**And** while saving is off (Story 4.2, TS-43) the notice never shows, because it promises saving
+*(Reconciled 2026-10-09: TS-43, spec-ts-43-play-without-saving.md; `src/game/banners.ts` `pending`.)*
 
 **Given** the storage notice
 **When** the player chooses "Got it"
 **Then** `meta.seenStorageNotice` becomes true (saved), the notice never shows again, focus moves to the grid on the Puzzle screen or the page heading elsewhere, and `navigator.storage.persist()` is requested
 **And** the result is stored in `meta.persistGranted`
 
-**Given** `persist()` is refused on Safari
+**Given** `persist()` is refused on Safari (desktop macOS Safari 17 or later, not already running as a web app)
 **When** the result arrives
-**Then** the banner "Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it." · "Got it" shows
+**Then** the banner "Safari may clear your Album after 7 days away. Add Traveller Sudoku to the Dock (File › Add to Dock) to keep it." · "Got it" shows (never while saving is off)
 **And** on other browsers a refusal shows nothing, and when `navigator.storage.persist` is unavailable it is treated as refused without error
+*(Reconciled 2026-10-09: Safari detection was narrowed to desktop macOS Safari 17+ in Story 4.4 review; the tip is hidden while saving is off (TS-43). Epic 4 retro R11; `src/ui/browser.ts:28-33`, spec-ts-43-play-without-saving.md.)*
 
-**Given** the first Postcard is added to the Album and `meta.persistGranted` is not true
+**Given** the first Postcard is added to the Album and `meta.persistGranted` is not true, in a tab that can write (not read-only, saving on)
 **When** "Add to Album" completes
 **Then** `persist()` is requested again and `meta.persistGranted` is updated; if still refused on Safari, the Add to Dock banner shows on the Album
+**And** a read-only or saving-off tab never calls `persist()` or `persisted()`
+*(Reconciled 2026-10-09: TS-44 (E5) and TS-43 tests pin the writable-only guard; `src/ui/app.tsx:126-180`.)*
 
-**Given** the app starts
+**Given** the app starts in a tab that can write (not read-only, saving on)
 **When** `navigator.storage.persisted()` reports true (e.g. after Add to Dock)
 **Then** `meta.persistGranted` is set to true and no Safari banner is shown again
 
 **Given** several banners are pending at once
 **When** the screen renders
-**Then** exactly one shows, in the priority order read-only > save failed > storage notice > persistence (Add to Dock) > update ready, and the next one appears when the visible one is resolved or dismissed
+**Then** exactly one shows, in the priority order read-only > saving off > save failed > unreadable > storage notice > persistence (Add to Dock) > update ready, and the next one appears when the visible one is resolved or dismissed
 **And** a unit test covers the priority selection for every pair
+*(Reconciled 2026-10-09: seven kinds as built; unreadable ranks above the storage notice because it explains an empty Album, and saving off (TS-43) ranks right after read-only. Epic 4 retro R4; `src/game/banners.ts:8`.)*
 
-**Given** any banner (read-only, save failed, unreadable save, storage notice, Add to Dock, update ready)
+**Given** any banner (read-only, saving off, save failed, unreadable save, storage notice, Add to Dock, update ready)
 **When** the player activates its one text button
-**Then** it is dismissed, focus moves to the grid on the Puzzle screen or the page heading elsewhere, and the focus order is header nav → banner → page content (Album) or grid → side column with the banner first (Puzzle screen)
+**Then** it is dismissed, focus moves to the grid on the Puzzle screen or the page heading elsewhere (the current nav item when a read-only grid is inert), and the focus order is header nav → banner → page content (Album) or grid → side column with the banner first (Puzzle screen)
+*(Reconciled 2026-10-09: Epic 4 retro R7; TS-43; `src/ui/app.tsx:221-223`.)*
 
 **Given** the first-launch flow
 **When** a new player opens the game, chooses "Got it", and picks a Near City

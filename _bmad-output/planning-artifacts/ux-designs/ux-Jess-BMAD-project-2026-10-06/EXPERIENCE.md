@@ -2,7 +2,7 @@
 name: 'Traveller Sudoku'
 status: final
 created: '2026-10-06'
-updated: '2026-10-06'
+updated: '2026-10-09'
 sources:
   - _bmad-output/planning-artifacts/prds/prd-Jess-BMAD-project-2026-10-05/prd.md
   - _bmad-output/planning-artifacts/prds/prd-Jess-BMAD-project-2026-10-05/addendum.md
@@ -44,18 +44,20 @@ Warm, brief, like a friend writing. No exclamation-mark celebrations, never "Wro
 | Locked slot | "Opens after 3 Near Postcards" / "Opens after 3 Mid Postcards" |
 | In-progress slot † | "Carry on" |
 | Collected slot just added | "just arrived" |
-| Postcard viewer | "Play again" |
+| Postcard viewer | "Play again" · "Close" (as built, 2026-10-09: visible close control added in Story 3.4) |
 | Region count | "Europe 4 / 10" |
 | Leaving a Puzzle / resume reassurance | "No rush - your Puzzle will wait." |
 | Hint, idle label | "Hint" |
-| Hint steps | "Show a nudge" → "Explain it" → "Show me the move" |
-| Hint, step 2 (hidden single in a row; one template per Technique in content) | "In row {r}, a {d} fits only in column {c}. Every other empty cell in the row already has a {d} in its column." |
-| Hint, Technique link † | "What's a hidden single?" |
+| Hint step labels | "Hint" (idle) → "Nudge" → "Explanation" (as built, 2026-10-09: the labels are nouns; retro 1–3 S6) |
+| Hint step buttons | "Show a nudge" → "Explain it" → "Show me the move" |
+| Hint, step 2 (hidden single in a row; one template per Technique in content) | "In row {r}, a {d} fits only in column {c}. Every other empty cell in the row already has a {d} in its column or box." ("an 8" for 8) (as built, 2026-10-09: "or box" added; retro 1–3 S8) |
+| Hint, Technique link † | "What's a hidden single?" (no article for "What's pointing?" / "What's claiming?"; names the same Technique as the nudge) |
 | Hint when a Mistake exists, step 1 | "One of your digits doesn't fit — look at row {r}." |
 | Grid full, not solved | "Something doesn't fit yet — want a hint?" · "Hint" |
 | Hint closed | "Esc to set aside" |
 | Postcard button | "Add to Album" |
-| Replay solved † | "Solved again. Lisbon is already in your Album." |
+| Replay solved † | "Solved again. Lisbon is already in your Album." (the word "Album" is the link) |
+| Solved City, revisited † | "Solved. Where to next?" · "Album" (as built, 2026-10-09: shown when returning to a solved City via "Puzzle"; retro 1–3 S12) |
 | Free Play solved † | "Solved. Another one?" |
 | Free Play generating † | "Finding a fair Puzzle…" |
 | Restart confirm † | "Clear your digits and Notes? The Givens stay." · "Restart" · "Keep going" |
@@ -64,6 +66,7 @@ Warm, brief, like a friend writing. No exclamation-mark celebrations, never "Wro
 | Save failed † | "Your last change couldn't be saved. Your next move will try again - your Puzzle is still here." · "Got it" |
 | Read-only, other tab † | "Traveller Sudoku is open in another tab. Play there, or close it and reload this one." · "Got it" |
 | Read-only, newer version † | "A newer version saved your progress. Reload to carry on." · "Got it" |
+| Saving off † | "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again." · "Got it" (as built, 2026-10-09: TS-43) |
 | Unreadable save † | "We couldn't read your saved progress. It's been kept safe, not overwritten." · "Got it" |
 | Update ready † | "A new version is ready. It arrives next time you open the game." · "Got it" |
 
@@ -86,7 +89,7 @@ Visual specs: `DESIGN.md` › Components.
 | Album slot | Collected → opens the Postcard viewer. Collected with a replay in progress → "Carry on" resumes it. Reachable → starts or resumes that City's Puzzle. Locked → shows no City name, only the unlock line; not clickable, focusable for its label. |
 | Postcard viewer | Opens over the Album page, non-blocking; same Postcard component. Closes with Esc or one click outside it. "Play again" always starts a fresh grid (AD-10); if a replay of that City is in progress it first asks inline ("Start fresh" / "Keep going"). The collected Postcard is unchanged. |
 | Region tabs | Europe · Asia · The Americas; Album opens on the Region of the last Postcard, else Europe [ASSUMPTION]. |
-| Notice banner | {components.notice-banner}. Non-modal, never over the grid (AD-12). Album and other screens: under the header. Puzzle screen: in the side column, so the grid never moves [ASSUMPTION: at the top of the side column]. Every banner has a text button that dismisses it. Stays until resolved or dismissed; at most one visible, priority: read-only > save failed > storage notice > persistence > update ready [ASSUMPTION]. |
+| Notice banner | {components.notice-banner}. Non-modal, never over the grid (AD-12). Album and other screens: under the header. Puzzle screen: in the side column, so the grid never moves [ASSUMPTION: at the top of the side column]. Every banner has a text button that dismisses it. Stays until resolved or dismissed; at most one visible, priority: read-only > saving off > save failed > unreadable > storage notice > persistence (Add to Dock) > update ready (as built, 2026-10-09: `src/game/banners.ts` `BANNER_PRIORITY`). |
 | Settings toggle | Click or Space toggles; takes effect immediately and is saved. Lamplight swaps every `{colors.x}` for `{colors.x-lamplight}` instantly, no system-theme following. |
 | Restart confirm | Replaces the action row inline; "Restart" clears all entries except Givens (FR-22), undoable [ASSUMPTION]; "Keep going" or Esc cancels. |
 | Difficulty picker | Easy · Medium · Hard on Free Play entry; preselects the last Difficulty used (`settings`, AD-10). |
@@ -102,9 +105,10 @@ Visual specs: `DESIGN.md` › Components.
 | Solved, replay | Puzzle | No Postcard; inline line "Solved again. Lisbon is already in your Album." with link to Album. |
 | Collected, replay in progress | Album | {components.album-slot-collected} plus "Carry on"; resumes the replay. |
 | Locked | Album | {components.album-slot-locked}, text says what unlocks it, no City name. Unlock computed live, so a newly opened Tier simply shows "Travel here" next visit. |
-| Read-only (other tab / newer version) | All | Banner; grid, pad and Settings visible but inert; Hint unavailable. |
+| Read-only (other tab / newer version) | All | Banner; grid, pad and Settings visible but inert; Hint unavailable. Only these two causes make a tab read-only (as built, 2026-10-09: storage that can't be reached is "Saving off", below). "Got it" moves focus to the current nav item on the Puzzle screen, since the inert grid can't take it. |
+| Saving off (storage can't be reached) | All | As built, 2026-10-09 (TS-43): the load failed, start-up took longer than 3 s, or unreadable data couldn't be backed up. Starts from the defaults and plays normally in memory, but nothing is ever saved and persistent storage is never asked for. Saving-off banner (info edge, not announced); "Got it" hides it for the page. The storage notice and the Add to Dock tip never show. |
 | Save failed | All | Banner with {components.notice-banner.accent-edge-save-failed}; play continues; the next change tries saving again, and the banner clears on the next successful save or when dismissed. |
-| Unreadable save | Album | Banner; starts from an empty Album while the old data stays in its backup key (AD-7). |
+| Unreadable save | Album | Banner; the old data is copied to its own backup key first, then the main save is reset to an empty Album, which the game starts from (AD-7). If the backup can't be made, nothing is written and the tab is "Saving off" instead (as built, 2026-10-09). |
 | Update ready | All | Banner, informational only; never reloads (AD-8). |
 | Persistence not granted (Safari) | Album | The Add to Dock banner appears after the storage notice is dismissed, and again after the first Postcard. Other browsers: nothing shown. |
 | Free Play generating | Free Play entry | Start button replaced by "Finding a fair Puzzle…"; Difficulty picker disabled; on reply, the Puzzle screen opens. Stale replies ignored (AD-10). |
@@ -137,8 +141,8 @@ Visual specs: `DESIGN.md` › Components.
 **Restart (FR-22).** Always via the inline confirm.
 
 **Hint, 3 steps (FR-8–FR-11, AD-11).**
-1. "Show a nudge": names the Technique and the area (row, column or box) to look at; area cells get {components.grid-cell-hint-focus}.
-2. "Explain it": one or two plain sentences for the whole chain, cells involved marked. Wording comes from one template per Technique (Voice and Tone › Hint, step 2).
+1. Nudge (button "Show a nudge"; step label "Nudge", as built 2026-10-09): names the Technique and the area (row, column or box) to look at; area cells get {components.grid-cell-hint-focus}.
+2. Explanation (button "Explain it"; step label "Explanation", as built 2026-10-09): one or two plain sentences for the whole chain, cells involved marked. Wording comes from one template per Technique (Voice and Tone › Hint, step 2).
 3. "Show me the move": places the digit through the Undo path; counts as a Hint used.
 
 **Mistake branch (AD-9).** If the grid holds a Mistake, the Hint reports it instead, regardless of the Mistake Assist. With several Mistakes, the first in row-major order. Step 1 points to the Mistake cell ("One of your digits doesn't fit — look at row {r}."); step 2 explains that the digit differs from the solution path; step 3 clears that digit through the normal Undo path. When the Mistake Assist is off, the Mistake mark shows only while that Hint is open.

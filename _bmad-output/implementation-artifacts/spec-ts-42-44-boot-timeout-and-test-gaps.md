@@ -21,7 +21,7 @@ deferred: []
 
 ## Boundaries & Constraints
 
-**Always:** After boot gives up, the main save key is never written by start-up code (no defaults write, no migration write-back). A started backup may complete. The give-up page stays as today: defaults, read-only `storageUnavailable`. Behaviour on the non-timeout paths is unchanged. Only `src/persistence/` touches storage.
+**Always:** After boot gives up, the main save key is never written by start-up code (no defaults write, no migration write-back). A started backup may complete. The give-up page stays as today: defaults, read-only `storageUnavailable`. *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): saving off, not read-only; annotated 2026-10-09, TS-48.)* Behaviour on the non-timeout paths is unchanged. Only `src/persistence/` touches storage.
 
 **Never:** No change to the 3 s timeout value, banner copy, or the E2 read-only decision (that is TS-43). No new dependencies.
 
@@ -29,8 +29,8 @@ deferred: []
 
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
-| Late unreadable settle | Load resolves unreadable before 3 s; `saveBackup` resolves after 3 s | Backup written; `save` (defaults) never called; page read-only storageUnavailable; lock released | — |
-| Late load | Load resolves (loaded doc) after 3 s | No `save`, no `saveBackup`; lock released; page defaults read-only | — |
+| Late unreadable settle | Load resolves unreadable before 3 s; `saveBackup` resolves after 3 s | Backup written; `save` (defaults) never called; page read-only storageUnavailable *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): saving off, not read-only; annotated 2026-10-09, TS-48.)*; lock released | — |
+| Late load | Load resolves (loaded doc) after 3 s | No `save`, no `saveBackup`; lock released; page defaults read-only *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): saving off, not read-only; annotated 2026-10-09, TS-48.)* | — |
 | Late migration | Load resolves `migrated` but timeout already fired before write-back | Write-back skipped | — |
 | Normal unreadable | Everything inside 3 s | Unchanged: backup, defaults written, unreadable notice | — |
 | Read-only first Postcard | `otherTab` lock, stored doc with a revealable first Postcard, "Add to Album" | `persist` never called; nothing saved | — |
@@ -56,7 +56,7 @@ deferred: []
 - `src/persistence/lock.ts` -- export the one fallback used by both.
 - `src/persistence/document.ts`, `src/persistence/migrations.ts` -- one exported `isObject`.
 - `tests/persistence/store.test.ts` -- `settleLoad` with `aborted` true: no `save` for unreadable (backup still called) and for migrated.
-- `tests/ui/autosave.test.ts` -- boot tests: late load (resolves after timeout) → no save/backup, `release` called once; late backup (load unreadable in time, `saveBackup` resolves after timeout) → backup called, `save` never called, `release` called, banner is the storageUnavailable read-only one. Reload test asserting Hint, viewer and "Solved again" are cleared.
+- `tests/ui/autosave.test.ts` -- boot tests: late load (resolves after timeout) → no save/backup, `release` called once; late backup (load unreadable in time, `saveBackup` resolves after timeout) → backup called, `save` never called, `release` called, banner is the storageUnavailable read-only one. *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): saving off, not read-only; annotated 2026-10-09, TS-48.)* Reload test asserting Hint, viewer and "Solved again" are cleared.
 - `tests/ui/storage-notice.test.ts` -- read-only tab with a stored first revealable Postcard: "Add to Album" → `persist` not called, `save` not called.
 
 **Acceptance Criteria:**

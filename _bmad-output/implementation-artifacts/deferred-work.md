@@ -18,3 +18,23 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-city-catalogue.md`
   summary: Pin the `build-cities` retry-seed derivation (`${id}#1`…`#4`) with a test, for example a stubbed `generate` that fails on the plain id.
   evidence: The verification-gap review showed that dropping or reformatting the retry keys passes every test. Released City Puzzles are locked by the snapshot, so only Cities added later would silently get a different Puzzle.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-autosave-and-restore.md`
+  summary: A Lamplight player on a light OS may see a blank white system Canvas frame while the saved document loads (severity medium, unverified).
+  evidence: `src/ui/theme.css:230-233` `html:not([data-ready])` uses `background-color: Canvas` with `color-scheme: light dark` (spec-4-1 Design Notes decision); the theme is only known once the document has loaded. Settle with a frame capture (DevTools Performance screenshots) on a light OS, Lamplight on, cold reload. Mirrored from spec-4-1 frontmatter `deferred` (Epic 4 retro P2, action 4).
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-3-play-offline-and-update-gently.md`
+  summary: Install metadata is thin: one SVG icon, no PNG or apple-touch-icon, no manifest `id`, no `theme-color` meta.
+  evidence: `vite.config.ts:51` lists only `favicon.svg`; `public/` holds only `favicon.svg`; `index.html:6` links only the SVG icon. Not a 4.3 AC; relevant to Safari Add to Dock (Story 4.4) and the v1 release. Mirrored from spec-4-3 frontmatter `deferred` (Epic 4 retro R10, P2, action 4).
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-3-play-offline-and-update-gently.md`
+  summary: A tab hard-reloaded past the service worker can save a newer schema while other tabs stay on the old precached build, where the newer-version banner's "Reload to carry on." does not help (reloading under the old worker shows the same banner again; the fix is to close every tab).
+  evidence: Trigger now met (refreshed 2026-10-09): spec-4-3 deferred this "until a schema v2 exists", and Story 4.4 shipped the v1 → v2 migration (`src/persistence/document.ts:5` `SCHEMA_VERSION = 2`; `src/persistence/migrations.ts` `MIGRATIONS = [fromV0, fromV1]`), listed only under spec-4-4 Residual risks (`spec-4-4…md:126`). The waiting worker never takes over while a tab is open (`vite.config.ts:59-60` `skipWaiting: false`, `clientsClaim: false`), and the copy says reload (`src/content/copy.ts:212` `bannerNewerVersion`). Severity low. Epic 4 retro E3, action 4.
+
+- source_spec: `_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md`
+  summary: Each launch makes another `traveller-save-backup-<ISO>` copy of unreadable data while the defaults write after the backup keeps failing, using more of the quota that likely caused the failure.
+  evidence: `src/persistence/store.ts:130` backs up, `:138` writes the defaults, and `:141` returns `unreadableNotice` + `saveFailed` when that write fails, so the main key still holds the unreadable value and the next launch backs it up again. The loop ends at the first successful write (any later autosave writes the whole document). Only the success path is tested (`tests/ui/autosave.test.ts`). Severity low. Epic 4 retro E6, action 4.
+
+- source_spec: `_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md`
+  summary: A tab without the save lock that finds unreadable data starts from an empty Album, read-only (another tab), with no unreadable notice, so it cannot say why the Album looks empty.
+  evidence: `src/persistence/store.ts:128` `if (!holder) return base` (no slices, `readOnly: 'otherTab'`, `unreadableNotice: false`); only the lock holder backs up and shows the notice. Epic 4 retro R8, action 4.

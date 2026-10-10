@@ -33,8 +33,8 @@ deferred: []
 - First Postcard: when "Add to Album" makes the Album length 1 and `meta.persistGranted !== true`, the shell requests `persist()` again and dispatches `persistResolved` (same handling; on a Safari refusal the Add to Dock banner shows on the Album).
 - At start (writable tab only): if `navigator.storage.persisted()` resolves true, dispatch `persistResolved { granted: true }` (sets `persistGranted` true; no Safari banner again).
 - `persist`/`persisted` missing or rejecting count as refused / not persisted, without error. They live only in `src/persistence/` (storage guard already covers `navigator.storage`).
-- Safari detection is one pure function over the user agent (Safari, not Chrome/Chromium/Edge/Firefox/Android, iOS included), injectable for tests, outside `persistence/`.
-- Banner priority (final): read-only > save failed > unreadable > storage notice > Add to Dock > update ready. A unit test covers the visible banner for every pair.
+- Safari detection is one pure function over the user agent (Safari, not Chrome/Chromium/Edge/Firefox/Android, iOS included) *(as built: desktop macOS Safari 17+ only, not iOS or an installed web app, after a review patch; Epic 4 retro R11; `src/ui/browser.ts:28-33`; annotated 2026-10-09, TS-48)*, injectable for tests, outside `persistence/`.
+- Banner priority (final): read-only > save failed > unreadable > storage notice > Add to Dock > update ready. A unit test covers the visible banner for every pair. *(Superseded by TS-43 (spec-ts-43-play-without-saving.md): final order is read-only > saving off > save failed > unreadable > storage notice > Add to Dock > update ready; annotated 2026-10-09, TS-48.)*
 - Read-only tab: the storage notice still shows (below read-only); its "Got it" only hides it for the page (the read-only guard refuses the `meta` change) and no `persist()` is requested; no start-up `persisted()` write.
 
 **Never:**

@@ -7,7 +7,7 @@ paradigm: 'functional core / imperative shell'
 scope: 'Traveller Sudoku web MVP: whole system'
 status: final
 created: '2026-10-05'
-updated: '2026-10-06'
+updated: '2026-10-09'
 binds: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-24]
 sources:
   - _bmad-output/planning-artifacts/prds/prd-Jess-BMAD-project-2026-10-05/prd.md
@@ -70,7 +70,7 @@ graph TD
 ### AD-5: State changes only through the reducer; only saved slices are saved
 - **Binds:** FR-2–FR-7, FR-12, FR-14, FR-16, FR-17, FR-22, FR-23
 - **Prevents:** components changing state directly, a field written to storage outside the reducer and then overwritten by autosave, and save loops.
-- **Rule:** `AppState = { album, sessions, settings, meta, ui }`. Only `game/reducer(state, action)` changes it; UI code dispatches actions and never mutates state. `album`, `sessions`, `settings` (Assist toggles, theme, last Free Play Difficulty) and `meta` (`seenStorageNotice`, `persistGranted`, `lastPlayedKey`) are saved. `ui` (`hint`, `undo`, `saveFailed`, `readOnly`, `updateReady`) is never saved. Persistence saves after an action changes a saved slice; actions that change only `ui` don't trigger a save.
+- **Rule:** `AppState = { album, sessions, settings, meta, ui }`. Only `game/reducer(state, action)` changes it; UI code dispatches actions and never mutates state. `album`, `sessions`, `settings` (Assist toggles, theme, last Free Play Difficulty) and `meta` (`seenStorageNotice`, `persistGranted`, `lastPlayedKey`) are saved. `ui` (`hint`, `undo`, `saveFailed`, `readOnly`, `updateReady`; also `savingOff`, `unreadableNotice` and the banner dismissals, as built, 2026-10-09) is never saved. Persistence saves after an action changes a saved slice; actions that change only `ui` don't trigger a save.
 
 ### AD-6: Only the reducer detects a solve; only journey logic awards Postcards
 - **Binds:** FR-7, FR-12, FR-14, FR-15, FR-16
@@ -81,9 +81,12 @@ graph TD
 - **Binds:** FR-17, FR-18, FR-19, FR-24
 - **Prevents:** an update breaking or wiping saved progress, two tabs overwriting each other's Postcards, and an old-version tab writing over migrated data.
 - **Rule:** `persistence/` is the only code that touches storage, and the only owner of `toDocument`/`fromDocument`. It writes the whole document `{ schemaVersion, album, sessions, settings, meta }` to IndexedDB through `idb-keyval`.
-  - **On load:** migrations run forward in order. If the stored `schemaVersion` is newer than the code's, the tab goes read-only (`ui.readOnly`) and asks the player to reload. If data can't be read, it is kept under a backup key and the player is told; it is never overwritten.
-  - **One writer:** only the tab holding the Web Lock `traveller-save` writes. Other tabs are read-only and say the game is open elsewhere.
-  - **Persistent storage:** `navigator.storage.persist()` is requested when the player dismisses the FR-19 notice, and again after the first Postcard if it wasn't granted. The result is stored in `meta.persistGranted`. When it isn't granted on Safari, the notice suggests adding the game to the Dock.
+  - **Modules (as built, 2026-10-09):** `persistence/document.ts` (`toDocument`/`fromDocument`, `SCHEMA_VERSION` = 2), `migrations.ts` (forward steps), `store.ts` (load, settle, the serial saver), `lock.ts` (the Web Lock) and `storage-persist.ts` (`navigator.storage.persist()`/`persisted()`).
+  - **On load:** migrations run forward in order, and the lock holder writes a migrated document back once. If the stored `schemaVersion` is newer than the code's, the tab goes read-only (`ui.readOnly`) and asks the player to reload; the stored value is never written. If data can't be read, the lock holder first copies it to a new backup key that is never overwritten, then writes the default document to the main key and tells the player; the data is kept only under the backup key *(as built, 2026-10-09: the main key is overwritten after the backup, not left untouched; Epic 4 retro R3)*.
+  - **Start-up give-up (as built, 2026-10-09):** lock, load and settle together are bounded by a 3 s timeout. Once start-up gives up, start-up code never starts a main-key write (no defaults after a backup, no migration write-back); a backup already started may finish (TS-42).
+  - **Storage unavailable → saving off (as built, 2026-10-09):** when the load fails, start-up gives up, or unreadable data can't be backed up, the tab is not read-only: it sets `ui.savingOff`, plays normally in memory, never writes, never calls `persist()`/`persisted()`, releases the lock, and shows the saving-off banner (TS-43). Read-only is only for another tab holding the lock or newer-version data.
+  - **One writer:** only the tab holding the Web Lock `traveller-save` writes. Other tabs are read-only and say the game is open elsewhere. A tab that will never write (read-only for newer data, or saving off) releases the lock *(as built, 2026-10-09)*.
+  - **Persistent storage:** `navigator.storage.persist()` is requested when the player dismisses the FR-19 notice, and again after the first Postcard if it wasn't granted, only in a tab that can write. The result is stored in `meta.persistGranted`. When it isn't granted on Safari (desktop macOS Safari 17+), the notice suggests adding the game to the Dock.
   - **Failed saves** set `ui.saveFailed`.
 
 ### AD-8: Updates never interrupt a Puzzle
@@ -103,7 +106,7 @@ graph TD
   - **Keys:** `city:<id>`, or `free` for the one current Free Play Puzzle.
   - **Contents:** every session carries its own `givens` and `solution`. `notes` is 81 numbers, each a 9-bit mask. `status` is `inProgress` or `solved`.
   - **Replay and restart:** replaying a solved City replaces that session with a fresh one built from content. FR-22 Restart resets `digits` and `notes` to the givens.
-  - **Worker replies:** each Free Play request carries a request id. The reducer ignores a reply whose id isn't the latest.
+  - **Worker replies:** each Free Play request carries a request id. The reducer ignores a reply whose id isn't the latest. *(As built, 2026-10-09:)* the latest reply opens the Puzzle screen only if the player is still on the Free Play entry, and is set aside (only the entry returns to idle) when the old Free Play Puzzle is current, in progress and on the Puzzle screen.
   - **Settings:** `settings` holds preferences only, such as the last Free Play Difficulty.
   - **Last played:** `meta.lastPlayedKey` holds the key of the most recently changed session. The reducer updates it on any action that changes a session's digits or Notes; launch resumes that session if it is `inProgress`, otherwise the first `inProgress` City session in catalogue order, then the Free Play session; with none in progress it opens the Album.
 
@@ -115,7 +118,7 @@ graph TD
 ### AD-12: No third-party requests, and nothing covers a Puzzle
 - **Binds:** FR-14, FR-19, FR-24, PRD §5 (calm, privacy)
 - **Prevents:** a font, analytics script or CDN quietly breaking privacy or offline play, and notices interrupting play.
-- **Rule:** all assets are self-hosted and bundled. `index.html` sets a content security policy of `default-src 'self'` through a `<meta http-equiv>` tag, because GitHub Pages can't send custom headers. Notices (storage, save failure, read-only, update ready) are non-modal and never cover the grid of an in-progress Puzzle. Save failure appears as an inline banner.
+- **Rule:** all assets are self-hosted and bundled. `index.html` sets a content security policy of `default-src 'self'` through a `<meta http-equiv>` tag, because GitHub Pages can't send custom headers. Notices (storage, save failure, read-only, update ready; as built, 2026-10-09, also saving off, unreadable data and Add to Dock) are non-modal and never cover the grid of an in-progress Puzzle. Save failure appears as an inline banner.
 
 ## Consistency Conventions
 
@@ -125,7 +128,7 @@ graph TD
 | Code values | Tier `near` · `mid` · `far`. Difficulty `easy` · `medium` · `hard`. Region `europe` · `asia` · `americas`. The Tier→Difficulty map lives only in `game/journey`. |
 | Identifiers | City id = stable kebab-case slug (for example `lisbon`), never reused. Session key = `city:<id>` or `free`. Cells are numbered 0–80 in row-major order. Digits are 1–9, and 0 means empty. |
 | Grid format | Content and saved data store `givens`, `solution` and `digits` as 81-character digit strings. |
-| Actions | Past-tense event names, for example `digitEntered`, `noteToggled`, `undoRequested`, `hintRequested`, `hintApplied`, `cityChosen`, `restartConfirmed`. |
+| Actions | Past-tense event names, for example `digitEntered`, `undoRequested`, `hintRequested`, `hintApplied`, `cityChosen`, `restartConfirmed` (as built, 2026-10-09: there is no `noteToggled`; Notes go through the digit actions in Notes mode). |
 | Errors | The core never throws for game outcomes; it returns results. Shell errors become `ui` flags shown calmly, never browser alert boxes. |
 | Input | One keyboard handler in `ui/keyboard` owns all shortcuts (FR-21). Components don't add their own key listeners. |
 | Randomness | Only through an explicit seed parameter, so generation and tests are repeatable. |
@@ -151,13 +154,13 @@ graph TD
 
 ```text
 traveller-sudoku/
-  .github/workflows/  # ci-deploy: npm ci, test, build, deploy to Pages
+  .github/workflows/  # ci-deploy: npm ci, lint, test, build; deploy to Pages only when PAGES_ENABLED (as built, 2026-10-09)
   scripts/            # build-cities: generate missing City Puzzles + verify all
   src/
     engine/           # grid, candidates, techniques/*, solver, grader, generator, brute, hints
-    game/             # AppState, reducer, actions, journey (reachability, award, tier map)
+    game/             # AppState, reducer.ts (entry point) + reducer-*.ts areas (grid, hint, journey, free-play, notices, shared), actions, journey (reachability, award, tier map), launch, banners (as built, 2026-10-09)
     content/          # cities.json, city-puzzles.json, techniques.ts
-    persistence/      # document, migrations/, save-lock, storage-persist
+    persistence/      # document.ts, migrations.ts, store.ts, lock.ts, storage-persist.ts (as built, 2026-10-09)
     workers/          # free-play generator worker
     ui/               # screens: Album (also the destination chooser), Puzzle, FreePlay, Settings; keyboard; components
   tests/architecture/ # import-direction and banned-globals checks
@@ -183,7 +186,7 @@ graph LR
   BROWSER --- IDB[(IndexedDB)]
 ```
 
-**Deployment and environments:** local development plus one production static site on GitHub Pages. Vite's `base` is set to the repository path so the manifest and service-worker scope match. A push to `main` runs tests (including the City Puzzle snapshot and architecture tests), builds and deploys. There is no backend, account system or telemetry.
+**Deployment and environments:** local development plus one production static site on GitHub Pages. Vite's `base` is set to the repository path so the manifest and service-worker scope match. A push to `main` runs tests (including the City Puzzle snapshot and architecture tests), builds and deploys. *(As built, 2026-10-09: deploying is opt-in behind the repository variable `PAGES_ENABLED`, because the repo is private; the deploy job also refuses to publish while any City is a placeholder. The site has not gone live yet.)* There is no backend, account system or telemetry.
 
 **Known limitation:** desktop Safari usually refuses persistent storage unless the game is added to the Dock. The Album can then be erased by Safari after 7 days without a visit. AD-7's notice tells the player this; backup is out of MVP scope.
 
