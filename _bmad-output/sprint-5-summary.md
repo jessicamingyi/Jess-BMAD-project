@@ -56,7 +56,7 @@ updated: '2026-10-09'
     - Open items: a rare start-up timeout race (E1), and storage-unavailable leaving the game read-only (E2).
     - The Epic 4 specs lost their triage logs.
     - 9 new action items.
-  - **TS-40 Postcard lines drafted** (branch `content/ts-40-postcard-lines`, 9975643): 29 lines in Lisbon's voice. The deploy gate now passes on that branch. **For Jessica to approve or reword** before TS-38.
+  - **TS-40 Postcard lines drafted** (branch `content/ts-40-postcard-lines`, 9975643): 29 lines in Lisbon's voice. The deploy gate now passes on that branch. **Approved by Jessica** the same day; TS-40 is done.
 
 ## Tickets done (4 / 6)
 
