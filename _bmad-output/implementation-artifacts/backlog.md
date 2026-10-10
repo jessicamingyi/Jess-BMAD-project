@@ -103,7 +103,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | To do | TS-41 |
 | TS-46 | Cross-browser smoke test: Edge, Firefox (number-first Space), Safari on a Mac (Add to Dock tip) | Test | S | Jessica + Claude | To do | TS-45 |
 | TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do | TS-41 |
-| TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | To do | TS-43 |
+| TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | In review (awaiting Jessica's approval; see ts-48-reconciliation-log.md) | TS-43 |
 | TS-38 | Release v1: deploy gate green, smoke tests pass, repo public, Pages on (`PAGES_ENABLED=true`), live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
 | TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
 
