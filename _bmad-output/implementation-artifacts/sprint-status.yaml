@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-09-2026 13:30
+last_updated: 10-09-2026 19:37
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -128,7 +128,7 @@ sprints:
     goal: "Test, harden and release v1"
     status: in-progress
     stories: []
-    tickets: {TS-41: done, TS-42: todo, TS-43: todo, TS-44: todo, TS-45: todo,
+    tickets: {TS-41: done, TS-42: done, TS-43: todo, TS-44: done, TS-45: todo, 
         TS-46: todo, TS-47: todo, TS-48: todo, TS-38: todo, TS-39: todo}
   unscheduled:
     tickets: {TS-49: todo, TS-50: todo, TS-51: todo}
@@ -224,14 +224,14 @@ action_items:
     action: "Make the start-up timeout abort settleLoad defaults write; add boot tests
       for a late load and a late backup (E1, E4)"
     owner: "Claude (bmad-build)"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-14-test-that-a-read-only-tab-adding-its-fir"
     epic: 4
     action: "Test that a read-only tab adding its first Postcard never calls persist()
       (E5)"
     owner: "Claude (bmad-build)"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-15-decide-storageunavailable-behaviour-in-m"
     epic: 4
@@ -265,7 +265,7 @@ action_items:
     epic: 4
     action: "Tidy: one isObject, one lock-failure fallback (A7)"
     owner: "Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-20-extract-persistence-and-banner-effects-f"
     epic: 4

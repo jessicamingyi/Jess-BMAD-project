@@ -260,6 +260,29 @@ describe('settleLoad', () => {
     expect(b.data.size).toBe(0)
   })
 
+  it('migrated, start-up already given up (aborted): no write-back, read-only (storageUnavailable)', async () => {
+    const b = fakeBackend()
+    const s = slices()
+    const migrated = { kind: 'migrated', slices: s, doc: doc('m') } as const
+    expect(await settleLoad(b.store, migrated, true, NOW, () => true)).toEqual({ ...ok, readOnly: 'storageUnavailable', slices: s })
+    expect(b.log).toEqual([])
+    expect(b.data.has(SAVE_KEY)).toBe(false)
+  })
+
+  it('unreadable, start-up gives up during the backup (aborted): the backup finishes, the main key is never written', async () => {
+    const b = fakeBackend()
+    b.data.set(SAVE_KEY, 'garbled')
+    let gaveUp = false
+    const store = { ...b.store, saveBackup: async (key: string, raw: unknown) => {
+      await b.store.saveBackup(key, raw)
+      gaveUp = true
+    } }
+    expect(await settleLoad(store, { kind: 'unreadable', raw: 'garbled' }, true, NOW, () => gaveUp)).toEqual({ ...ok, readOnly: 'storageUnavailable' })
+    expect(b.log).toEqual([`backup ${KEY}`])
+    expect(b.data.get(KEY)).toBe('garbled')
+    expect(b.data.get(SAVE_KEY)).toBe('garbled')
+  })
+
   it('unreadable in a tab without the lock: no backup, read-only (otherTab)', async () => {
     const b = fakeBackend()
     expect(await settleLoad(b.store, { kind: 'unreadable', raw: 'garbled' }, false, NOW)).toEqual({ ...ok, readOnly: 'otherTab' })

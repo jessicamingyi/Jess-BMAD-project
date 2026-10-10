@@ -87,9 +87,19 @@ export type Start = {
  * is never written. Unreadable data is first copied to a fresh backup key, then
  * the main key gets the default document; if the copy fails, nothing else is
  * written and the tab is read-only. A migrated
- * document is written back once. Never throws.
+ * document is written back once. Once `aborted()` is true (start-up gave up), the
+ * main key is never written: no migrated write-back, no defaults after a backup (a
+ * backup already started may finish; it only copies the data aside). A main-key write
+ * already in flight when start-up gives up cannot be cancelled and may still land.
+ * Never throws.
  */
-export async function settleLoad(store: SaveStore, result: LoadResult, holder: boolean, now: Date): Promise<Start> {
+export async function settleLoad(
+  store: SaveStore,
+  result: LoadResult,
+  holder: boolean,
+  now: Date,
+  aborted: () => boolean = () => false,
+): Promise<Start> {
   const base = { readOnly: holder ? null : ('otherTab' as const), unreadableNotice: false, saveFailed: false }
   switch (result.kind) {
     case 'empty':
@@ -102,6 +112,8 @@ export async function settleLoad(store: SaveStore, result: LoadResult, holder: b
       return { ...base, readOnly: 'storageUnavailable' }
     case 'migrated': {
       if (!holder) return { ...base, slices: result.slices }
+      // Boot has already given up and ignores this result: the older document stays as stored (migrated again next load).
+      if (aborted()) return { ...base, readOnly: 'storageUnavailable', slices: result.slices }
       try {
         await store.save(result.doc)
         return { ...base, slices: result.slices }
@@ -117,6 +129,8 @@ export async function settleLoad(store: SaveStore, result: LoadResult, holder: b
       } catch {
         return { ...base, readOnly: 'storageUnavailable' }
       }
+      // Boot gave up while the backup ran and ignores this result: the main key keeps the unreadable data.
+      if (aborted()) return { ...base, readOnly: 'storageUnavailable' }
       // Kept safe in the backup: the main key now gets the defaults, so the next load is clean (no second backup).
       try {
         await store.save(toDocument(createInitialState()))

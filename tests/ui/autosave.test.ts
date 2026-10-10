@@ -123,6 +123,8 @@ function solvedCity(cityId: string): Session {
 const docFor = (patch: Partial<AppState>) =>
   toDocument({ ...createInitialState(), meta: { lastPlayedKey: null, seenStorageNotice: true, persistGranted: null }, ...patch })
 const card = (cityId: string, collectedOn: string, revealed = true) => ({ cityId, collectedOn, revealed })
+/** `doc` exactly as Story 4.3's build saved it: version 1, `meta` with only `lastPlayedKey`. */
+const toV1 = ({ meta, ...rest }: SaveDocument) => JSON.parse(JSON.stringify({ ...rest, schemaVersion: 1, meta: { lastPlayedKey: meta.lastPlayedKey } }))
 
 describe('when to write', () => {
   it('a first visit writes nothing', async () => {
@@ -233,6 +235,48 @@ describe('reload', () => {
     expect(shownDigits()).toBe(grid)
     await flush()
     expect(fake.save).toHaveBeenCalledTimes(saves)
+  })
+
+  it('UI-only state is not restored: no Hint step, no "Solved again" line, the viewer closed', async () => {
+    const LISBON = 'lisbon'
+    const puzzle = cityPuzzle(LISBON)!
+    const last = puzzle.givens.lastIndexOf('0')
+    const digits = puzzle.solution.slice(0, last) + '0' + puzzle.solution.slice(last + 1)
+    const fake = fakeStore(
+      docFor({
+        album: [card(LONDON, '2026-10-01'), card(LISBON, '2026-09-30')],
+        sessions: { [cityKey(LISBON)]: { ...createSession(cityKey(LISBON), puzzle), digits } },
+        meta: { lastPlayedKey: cityKey(LISBON), seenStorageNotice: true, persistGranted: null },
+      }),
+    )
+    await boot(fake)
+    expect(title()).toMatch(/^Lisbon ·/)
+    // A Hint step open.
+    act(() => button('Hint').click())
+    expect(q('.hint-panel')).not.toBeNull()
+    await reload(fake)
+    expect(title()).toMatch(/^Lisbon ·/)
+    expect(q('.hint-panel')).toBeNull()
+
+    // A replay solved: "Solved again".
+    act(() => cell(last).focus())
+    press(puzzle.solution[last])
+    expect(q('.puzzle-status')?.textContent).toBe('Solved again. Lisbon is already in your Album.')
+    await reload(fake)
+    // Nothing in progress: the launch lands on the Album.
+    expect(heading().textContent).toBe('Where to next?')
+    act(() => navLink('Puzzle').click())
+    expect(title()).toMatch(/^Lisbon ·/)
+    expect(shownDigits()).toBe(puzzle.solution)
+    expect(q('.puzzle-status')?.textContent).toBe('Solved. Where to next? Album')
+
+    // The Postcard viewer open, then a reload that lands on the Album again.
+    act(() => navLink('Album').click())
+    act(() => slot(LONDON).click())
+    expect(q('.album-viewer section.postcard')).not.toBeNull()
+    await reload(fake)
+    expect(heading().textContent).toBe('Where to next?')
+    expect(q('.album-viewer')).toBeNull()
   })
 
   it('several half-finished Cities and Free Play reopen as left; the Album reads "Carry on"; Settings kept', async () => {
@@ -461,8 +505,6 @@ describe('unreadable saved data', () => {
 })
 
 describe('migrations', () => {
-  /** `v2` exactly as Story 4.3's build saved it: version 1, `meta` with only `lastPlayedKey`. */
-  const toV1 = ({ meta, ...rest }: SaveDocument) => JSON.parse(JSON.stringify({ ...rest, schemaVersion: 1, meta: { lastPlayedKey: meta.lastPlayedKey } }))
   const unseen = (lastPlayedKey: string | null) => ({ lastPlayedKey, seenStorageNotice: false, persistGranted: null })
 
   it('a v1 document loads as v2 with every Postcard, Session and Setting, written back once', async () => {
@@ -752,6 +794,99 @@ describe('boot', () => {
     act(() => slot(PARIS).click())
     await flush()
     expect(fake.save).not.toHaveBeenCalled()
+  })
+})
+
+describe('boot, late after the timeout', () => {
+  /** Boot with fake timers, past the timeout, then let anything late settle. */
+  async function bootPastTimeout(fake: ReturnType<typeof fakeStore>, options: Omit<BootOptions, 'today'>) {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    host = document.createElement('div')
+    document.body.appendChild(host)
+    const html = document.createElement('html')
+    await act(async () => {
+      const started = bootApp(fake.store, host!, html, { today: TODAY, ...options })
+      await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS)
+      root = await started
+      await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS)
+    })
+    vi.useRealTimers()
+    await flush()
+  }
+
+  it.each<[string, () => unknown]>([
+    ['a loaded', () => docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } })],
+    ['a v1 (migrated)', () => toV1(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))],
+    ['an unreadable', () => 'garbled'],
+  ])('%s load that resolves after the give-up: nothing written, the lock released once, defaults read-only', async (_name, data) => {
+    const stored = data()
+    const fake = fakeStore(stored)
+    let loaded = false
+    fake.store.load = () =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          loaded = true
+          resolve(stored)
+        }, LOAD_TIMEOUT_MS + 10),
+      )
+    const release = vi.fn()
+    await bootPastTimeout(fake, { acquireLock: async () => ({ held: true, release }) })
+    expect(loaded).toBe(true)
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(release).toHaveBeenCalledTimes(1)
+    expect(heading().textContent).toBe('Where to first?')
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(bannerText()).toBe(UNREADABLE)
+  })
+
+  it('unreadable data whose backup finishes after the give-up: backed up, the main key never written, lock released', async () => {
+    const fake = fakeStore('garbled')
+    fake.saveBackup.mockImplementation(
+      (key, raw) =>
+        new Promise((resolve) =>
+          setTimeout(() => {
+            fake.backups.set(key, raw)
+            resolve()
+          }, LOAD_TIMEOUT_MS + 10),
+        ),
+    )
+    const release = vi.fn()
+    await bootPastTimeout(fake, { acquireLock: async () => ({ held: true, release }) })
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
+    expect([...fake.backups.values()]).toEqual(['garbled'])
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.box.value).toBe('garbled')
+    expect(release).toHaveBeenCalledTimes(1)
+    expect(banner()!.dataset.banner).toBe('readOnly')
+    expect(bannerText()).toBe(UNREADABLE)
+    act(() => slot(PARIS).click())
+    await flush()
+    expect(fake.save).not.toHaveBeenCalled()
+
+    // The next launch (normal timing) still finds the unreadable data: backed up again, and the notice shows.
+    fake.saveBackup.mockClear()
+    fake.saveBackup.mockImplementation(async (key, raw) => {
+      fake.backups.set(key, raw)
+    })
+    unmount()
+    await boot(fake, { now: () => new Date('2026-10-09T08:00:00.000Z') })
+    expect(fake.saveBackup).toHaveBeenCalledTimes(1)
+    expect(fake.save).toHaveBeenCalledTimes(1)
+    expect(bannerText()).toBe(UNREADABLE)
+    expect(banner()!.dataset.banner).not.toBe('readOnly')
+  })
+
+  it('a lock granted after the give-up is released once; nothing written', async () => {
+    const fake = fakeStore(docFor({ sessions: { [cityKey(PARIS)]: partPlayed(PARIS) } }))
+    const release = vi.fn()
+    await bootPastTimeout(fake, {
+      acquireLock: () => new Promise((resolve) => setTimeout(() => resolve({ held: true, release }), LOAD_TIMEOUT_MS + 10)),
+    })
+    expect(fake.save).not.toHaveBeenCalled()
+    expect(fake.saveBackup).not.toHaveBeenCalled()
+    expect(release).toHaveBeenCalledTimes(1)
+    expect(bannerText()).toBe(UNREADABLE)
   })
 })
 

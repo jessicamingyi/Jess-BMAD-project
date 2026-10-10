@@ -14,6 +14,9 @@ export type AcquireLock = () => Promise<SaveLock>
 
 const noop = () => {}
 
+/** What a failed lock request counts as: held, as a lone tab would be. */
+export const HOLDER_FALLBACK: SaveLock = { held: true, release: noop }
+
 /**
  * Request `traveller-save` without waiting (`ifAvailable`). Granted: the lock is
  * held until `release` (for a writing tab, the page's life) and this tab is the
@@ -21,7 +24,7 @@ const noop = () => {}
  * fails): held, as a lone tab would be.
  */
 export function acquireSaveLock(locks: LockManager | undefined = typeof navigator === 'undefined' ? undefined : navigator.locks): Promise<SaveLock> {
-  if (!locks) return Promise.resolve({ held: true, release: noop })
+  if (!locks) return Promise.resolve(HOLDER_FALLBACK)
   return new Promise<SaveLock>((resolve) => {
     locks
       .request(LOCK_NAME, { ifAvailable: true }, (lock) => {
@@ -32,6 +35,6 @@ export function acquireSaveLock(locks: LockManager | undefined = typeof navigato
         // The lock lasts until this promise settles.
         return new Promise<void>((done) => resolve({ held: true, release: () => done() }))
       })
-      .catch(() => resolve({ held: true, release: noop }))
+      .catch(() => resolve(HOLDER_FALLBACK))
   })
 }

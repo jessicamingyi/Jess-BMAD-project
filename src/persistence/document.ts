@@ -48,7 +48,8 @@ export function toDocument(state: Slices): SaveDocument {
   }
 }
 
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+/** A plain object (not null, not an array). */
+export const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isGrid = (v: unknown): v is string => typeof v === 'string' && /^[0-9]{81}$/.test(v)
 const isDifficulty = (v: unknown): v is Difficulty => v === 'easy' || v === 'medium' || v === 'hard'
 const isMask = (v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 0b111111111

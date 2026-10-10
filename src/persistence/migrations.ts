@@ -1,9 +1,7 @@
-import { SCHEMA_VERSION } from './document.ts'
+import { isObject, SCHEMA_VERSION } from './document.ts'
 
 /** One forward step: a document at version `i` in, the same data at version `i + 1` out. May throw. */
 export type Migration = (doc: Readonly<Record<string, unknown>>) => Record<string, unknown>
-
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** No version-0 document ever shipped: one claiming to be v0 cannot be read. */
 const fromV0: Migration = () => {
