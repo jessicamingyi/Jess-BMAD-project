@@ -1,19 +1,19 @@
 ---
-title: 'Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)'
+title: 'Traveller Sudoku: Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)'
 sprint: 6
 status: in-progress
 updated: '2026-10-09'
 ---
 
-# Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
+# Traveller Sudoku: Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
-**Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.
-**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 7 / 10 done (started early, Fri 9 Oct).
+**Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live (TS-38) moved to the product backlog on 9 Oct (Jessica).
+**Tickets:** 9 (TS-41 to TS-48, plus TS-39 moved from Sprint 5; TS-38 moved after MVP). **Progress:** 7 / 9 done (started early, Fri 9 Oct).
 
 Added on Fri 9 Oct. All four epics finished early and the Postcard lines are approved, so this sprint is for testing and hardening before v1 goes live.
 
 **Done when:**
-- The site is live on GitHub Pages.
+- The deploy gate is green, so going live is a settings change whenever Jessica chooses (TS-38, after MVP).
 - The automated smoke suite passes.
 - Chrome and Edge pass the smoke suite (Firefox and Safari are after MVP: TS-52, TS-53).
 - The Epic 4 retro's two medium defects are fixed.
@@ -21,7 +21,6 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 **Risks:**
 - Safari needed a Mac (TS-46); moved after MVP as TS-53 on 9 Oct.
 - TS-43 needs Jessica's decision first.
-- Going live (TS-38) needs Jessica to make the repo public.
 
 ## Plan, in order
 
@@ -35,7 +34,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
    - **TS-46:** Chrome and Edge through the smoke suite (Firefox and Safari moved after MVP: TS-52, TS-53).
    - **TS-47:** a keyboard-only and screen-reader pass.
 4. **Docs (TS-48):** `epics.md`, EXPERIENCE.md, AD-7 and the README match what was built.
-5. **Release (TS-38):** the deploy gate is green and the smoke tests pass. Jessica makes the repo public, sets Pages to GitHub Actions and sets `PAGES_ENABLED=true`. Then a live check, including offline play.
+5. **Going live (TS-38):** moved after MVP on 9 Oct; the deploy gate and smoke tests are already green.
 6. **Retrospective (TS-39):** a final MVP retrospective.
 
 ## Progress (Fri 9 Oct, started early)
@@ -57,7 +56,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 - **Open for Jessica:**
   - **Unreadable wording (decided):** Jessica chose "We couldn't read your saved progress, so we've kept a copy safe and started fresh." It replaces the inaccurate "kept safe, not overwritten".
   - **Firefox and Safari:** out of MVP scope, moved to TS-52 and TS-53 (after MVP). The Safari Add to Dock tip stays in the code but is unverified on a real Mac.
-  - **Release:** TS-38 (make the repo public, Pages on).
+  - **Going live:** moved after MVP (TS-38 at the top of the product backlog).
 
 ## Tickets
 
@@ -71,8 +70,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 | TS-46 | Cross-browser smoke test: Edge, Firefox, Safari on a Mac | Test | S | Jessica + Claude | To do | TS-45 |
 | TS-47 | Accessibility pass: keyboard-only and NVDA; decide silent-action announcements | Test | S | Jessica + Claude | To do | TS-41 |
 | TS-48 | Reconcile docs with as-built | Doc | S | Jessica (approve) + Claude | To do | TS-43 |
-| TS-38 | Release v1: repo public, Pages on, live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
-| TS-39 | Final MVP retrospective | Chore | S | Jessica + Claude | To do | Release v1 |
+| TS-39 | Final MVP retrospective | Chore | S | Jessica + Claude | To do | TS-47 |
 
 ## Decisions taken as defaults (Jessica can change them)
 

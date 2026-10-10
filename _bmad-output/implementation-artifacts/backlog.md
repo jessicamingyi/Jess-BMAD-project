@@ -7,7 +7,7 @@ sprints: 6
 
 # Traveller Sudoku: backlog and sprint board
 
-Six one-day sprints (Sprint 6 added on 9 Oct to test and harden before release). Visual board: [board.html](board.html). Stories link to their acceptance criteria in `epics.md`.
+Six one-day sprints (Sprint 6 added on 9 Oct to test and harden the MVP). Going live (TS-38) is outside the MVP, in the product backlog. Visual board: [board.html](board.html). Stories link to their acceptance criteria in `epics.md`.
 
 Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; story work is done with `bmad-build`.
 
@@ -89,10 +89,10 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-37 | [Story 4.4: Storage notice and keeping your data](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 4.2 |
 | TS-40 | [Write the 30 Postcard lines and settle their tone](../planning-artifacts/cities.md) | Content | M | Jessica + Claude | Done (Claude draft approved by Jessica) | TS-24 |
 
-## Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
+## Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
-**Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.  
-**Progress:** 7 / 10 done
+**Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live moved to the product backlog (TS-38, Jessica, 9 Oct).  
+**Progress:** 7 / 9 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -104,8 +104,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-46 | Cross-browser smoke test: Chrome and Edge (automated, `npm run smoke`); Firefox (TS-52) and Safari (TS-53) moved after MVP | Test | S | Claude | Done | TS-45 |
 | TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do (checklist ready in sprint-6-manual-test-checklist.md) | TS-41 |
 | TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | Done (approved by Jessica) | TS-43 |
-| TS-38 | Release v1: deploy gate green, smoke tests pass, repo public, Pages on (`PAGES_ENABLED=true`), live check | Chore | S | Jessica + Claude | To do | TS-42 to TS-47 |
-| TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | Release v1 |
+| TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | TS-47 |
 
 ## Product backlog (after MVP)
 
@@ -113,24 +112,25 @@ Everything planned after v1, in one list, **ordered by priority** (top first): p
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-54 | Check for a blank white frame before Lamplight on a light-themed OS (frame capture), and fix it if real (deferred 4.1, unverified medium) | Bug | S | Claude | To do | Release v1 |
-| TS-55 | An old cached version of the game meeting a newer save: "Reload to carry on" loops under the old service worker; say "close every tab and reopen", or take over on a schema change (deferred 4.3) | Bug | S | Claude (bmad-build) | To do | Release v1 |
-| TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | Release v1 |
+| TS-38 | Go live: make the repo public, Pages source GitHub Actions, `PAGES_ENABLED=true`, then a live check including offline (out of MVP scope, Jessica, 9 Oct; deploy gate and smoke tests already green) | Chore | S | Jessica + Claude | To do | MVP done |
+| TS-54 | Check for a blank white frame before Lamplight on a light-themed OS (frame capture), and fix it if real (deferred 4.1, unverified medium) | Bug | S | Claude | To do | MVP done |
+| TS-55 | An old cached version of the game meeting a newer save: "Reload to carry on" loops under the old service worker; say "close every tab and reopen", or take over on a schema change (deferred 4.3) | Bug | S | Claude (bmad-build) | To do | MVP done |
+| TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | MVP done |
 | TS-59 | Announce Undo and Restart to screen readers, if Jessica decides so in TS-47 (retro 1–3 item 9) | Story | S | Claude (bmad-build) | To do | TS-47 |
-| TS-56 | A second tab that finds unreadable data starts empty with no notice; show the unreadable line there too (Epic 4 retro R8) | Bug | S | Claude | To do | Release v1 |
-| TS-57 | Repeated backup copies when the defaults write keeps failing: back up once per unreadable value (Epic 4 retro E6) | Bug | S | Claude | To do | Release v1 |
-| TS-58 | Smoke suite: add the visibility-change update check and the newer-version banner; run `npm run smoke` in CI with the runner's Chrome (Epic 4 retro item 9) | Test | M | Claude | To do | Release v1 |
-| TS-50 | Install metadata for Add to Dock and home screens: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | Release v1 |
-| TS-52 | Firefox support: run the manual checklist (number-first Space places once, saving, two tabs, offline); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
-| TS-53 | Safari support on a Mac: run the manual checklist (Add to Dock tip on a refusal, File › Add to Dock keeps the Album, saving, two tabs, offline, fonts); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | Release v1 |
-| TS-49 | Move the saving and banner effects out of `app.tsx` into hooks; split `autosave.test.ts` by concern (retro A5, A6) | Chore | M | Claude (bmad-build) | To do | Release v1 |
+| TS-56 | A second tab that finds unreadable data starts empty with no notice; show the unreadable line there too (Epic 4 retro R8) | Bug | S | Claude | To do | MVP done |
+| TS-57 | Repeated backup copies when the defaults write keeps failing: back up once per unreadable value (Epic 4 retro E6) | Bug | S | Claude | To do | MVP done |
+| TS-58 | Smoke suite: add the visibility-change update check and the newer-version banner; run `npm run smoke` in CI with the runner's Chrome (Epic 4 retro item 9) | Test | M | Claude | To do | MVP done |
+| TS-50 | Install metadata for Add to Dock and home screens: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | MVP done |
+| TS-52 | Firefox support: run the manual checklist (number-first Space places once, saving, two tabs, offline); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | MVP done |
+| TS-53 | Safari support on a Mac: run the manual checklist (Add to Dock tip on a refusal, File › Add to Dock keeps the Album, saving, two tabs, offline, fonts); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | MVP done |
+| TS-49 | Move the saving and banner effects out of `app.tsx` into hooks; split `autosave.test.ts` by concern (retro A5, A6) | Chore | M | Claude (bmad-build) | To do | MVP done |
 | TS-60 | Pin the `build-cities` retry seeds (`${id}#1`…`#4`) with a test (deferred 3.1) | Test | S | Claude | To do | - |
 | TS-61 | Process: `bmad-build-auto` keeps the Review Triage Log and Spec Change Log in each spec, and a story that overrides an epic AC updates `epics.md` in the same commit (retro 1–3 item 7, Epic 4 item 5) | Process | S | Claude | To do | - |
 
 ## Notes
 
 - **Product backlog (9 Oct):** one prioritised list after MVP (TS-49 to TS-61); every open deferral and retro action item now has a ticket.
-- **Sprint 6 (added 9 Oct):** Epic 4 finished early, so a testing and hardening sprint goes before release. TS-42 to TS-45 are Claude's; TS-46 needs a Mac for Safari; TS-38's last step (repo public, Pages on) is Jessica's.
+- **Sprint 6 (added 9 Oct):** Epic 4 finished early, so a testing and hardening sprint goes before release. TS-42 to TS-45 are Claude's; Firefox, Safari and going live (TS-38) moved after MVP on 9 Oct. TS-38's last step (repo public, Pages on) is Jessica's.
 
 - **Sprint 3 to 5 load is heavy** (8, 9 and 4 stories). If a sprint overruns, unfinished stories move to the next sprint in order; Story 4.2 is the first candidate to split.
 - **City content (Jessica) blocks deploys from Sprint 4**: Story 3.1 makes CI refuse to deploy while any City is a placeholder.
