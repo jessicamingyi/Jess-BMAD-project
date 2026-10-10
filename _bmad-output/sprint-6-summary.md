@@ -15,7 +15,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 **Done when:**
 - The site is live on GitHub Pages.
 - The automated smoke suite passes.
-- Edge, Firefox and Safari have each been checked by hand.
+- Chrome and Edge pass the smoke suite, and Safari has been checked by hand (Firefox is after MVP, TS-52).
 - The Epic 4 retro's two medium defects are fixed.
 
 **Risks:**
@@ -32,7 +32,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
    - **TS-44:** close the small test gaps the retro found.
 3. **Test (TS-45, TS-46, TS-47):**
    - **TS-45:** an automated smoke suite, `npm run smoke`, drives installed Chrome through the core and Epic 4 journeys. It uses no new dependencies and reuses the approach from the retro behavior checks.
-   - **TS-46:** a manual smoke test in Edge, Firefox and Safari.
+   - **TS-46:** Chrome and Edge through the smoke suite; Safari by hand (Firefox moved to TS-52).
    - **TS-47:** a keyboard-only and screen-reader pass.
 4. **Docs (TS-48):** `epics.md`, EXPERIENCE.md, AD-7 and the README match what was built.
 5. **Release (TS-38):** the deploy gate is green and the smoke tests pass. Jessica makes the repo public, sets Pages to GitHub Actions and sets `PAGES_ENABLED=true`. Then a live check, including offline play.
