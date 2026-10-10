@@ -1,14 +1,14 @@
 ---
 title: 'Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)'
 sprint: 6
-status: planned
+status: in-progress
 updated: '2026-10-09'
 ---
 
 # Traveller Sudoku: Sprint 6: Test, harden and release v1 (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works everywhere it should, fix the open retro defects, then go live.
-**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 0 / 10 done.
+**Tickets:** 10 (TS-41 to TS-48, plus TS-38 and TS-39 moved from Sprint 5). **Progress:** 5 / 10 done (started early, Fri 9 Oct).
 
 Added on Fri 9 Oct. All four epics finished early and the Postcard lines are approved, so this sprint is for testing and hardening before v1 goes live.
 
@@ -37,6 +37,25 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 4. **Docs (TS-48):** `epics.md`, EXPERIENCE.md, AD-7 and the README match what was built.
 5. **Release (TS-38):** the deploy gate is green and the smoke tests pass. Jessica makes the repo public, sets Pages to GitHub Actions and sets `PAGES_ENABLED=true`. Then a live check, including offline play.
 6. **Retrospective (TS-39):** a final MVP retrospective.
+
+## Progress (Fri 9 Oct, started early)
+
+- **TS-41 Done:** the 9 Oct branches were fast-forwarded into `main` and pushed (d0d96cc); CI green.
+- **TS-42 + TS-44 Done** (ef66598, spec-ts-42-44):
+  - **TS-42:** a slow start-up can no longer leave an empty-looking Album. Once start-up gives up, nothing is written to the save.
+  - **TS-44:** new tests for every timeout branch, the read-only first-Postcard guard and restore normalisation.
+  - **Review:** 25 findings, 7 fixes.
+- **TS-43 Done** (74683dc, spec-ts-43):
+  - **What changed:** when storage can't be reached, the game is playable without saving, and says: "We can't save your progress in this browser right now. Anything saved before is left untouched. You can keep playing, but this session won't be kept - reload to try again."
+  - **Second tabs:** a second tab stays read-only, even when its storage is also slow.
+  - **Review:** 28 findings, 9 fixes.
+- **TS-45 Done** (4609c98): `npm run smoke` drives Chrome or Edge through 10 journeys in about 40 s. It passes 10/10 in Chrome 155 and Edge 154.
+- **TS-46 In progress:** Chrome and Edge are covered by the smoke suite. Firefox (not installed on the work laptop) and Safari are by hand, using `implementation-artifacts/sprint-6-manual-test-checklist.md`.
+- **TS-47 To do:** the keyboard and NVDA checklist is ready, plus the decision on silent actions (recommended: announce Undo and Restart).
+- **TS-48 In review** (1e0aa5e): 91 doc changes listed in `implementation-artifacts/ts-48-reconciliation-log.md` for Jessica to approve. README deploy section corrected. S7 leftovers fixed.
+- **Open for Jessica:**
+  - **Unreadable wording:** the unreadable banner says "kept safe, not overwritten", but the main save *is* reset after the backup. Recommended new line: "We couldn't read your saved progress, so we've kept a copy safe and started fresh."
+  - **Release:** TS-38 (make the repo public, Pages on).
 
 ## Tickets
 

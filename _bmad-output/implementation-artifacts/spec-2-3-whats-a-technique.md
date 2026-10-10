@@ -104,7 +104,7 @@ Real-browser smoke test (Chrome 155): all 5 steps pass with no errors. Definitio
 ## Design Notes
 
 - **Why on `ui.hint`, not React state:** Esc must reach `keyboard.ts`, and `resetHintOnDigits`/`hintClosed` already drop the field, so "closes with the Hint" needs no new code.
-- **Hardest = max `rank`:** chains are elimination Steps ending in a single, so the final Step is always a single. Ties don't matter (same Technique).
+- *(Superseded 2026-10-07 by the Decisions amendment: the link names `chain[0]`'s Technique, the one the nudge names; kept for history.)* **Hardest = max `rank`:** chains are elimination Steps ending in a single, so the final Step is always a single. Ties don't matter (same Technique).
 - **Definition drafts (OQ3):**
   - Naked single: "A cell where only one digit is left, because the other eight are already in its row, column or box."
   - Hidden single: "A digit that fits in only one cell of a row, column or box, even if that cell could hold other digits."

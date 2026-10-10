@@ -272,7 +272,7 @@ describe("What's a [Technique]?", () => {
   const closeButton = () => definition()!.querySelector<HTMLButtonElement>('button')!
   const gridSnapshot = () => host.querySelector('[role="grid"]')!.outerHTML
 
-  it('shows the link at steps 1 and 2, not when idle; it names the hardest Technique in the chain', () => {
+  it('shows the link at steps 1 and 2, not when idle; it names the first Technique in the chain (the one the nudge names)', () => {
     const digits = HINT_POSITIONS.pointing
     mount(createInitialState({ givens: digits, solution, difficulty: 'hard' }))
     focus(cell(digits.indexOf('0')))
