@@ -19,7 +19,7 @@ Deliver the playable foundation of Traveller Sudoku: a static, private site wher
 
 ## Requirements & Constraints
 
-- **Fair puzzles:** every Puzzle has exactly one solution and is solvable using only naked single, hidden single, naked pair, pointing, claiming. Difficulty = hardest Technique needed: Easy = singles; Medium = naked pair; Hard = pointing/claiming.
+- **Fair puzzles:** every Puzzle has exactly one solution and is solvable using only naked single, hidden single, naked pair, pointing, claiming. Difficulty = hardest Technique needed: Easy = singles; Medium = naked pair; Hard = pointing/claiming. Minimum Givens per Difficulty: Easy ≥ 61, Medium ≥ 40, Hard ≥ 32 (TS-62).
 - **Input:** cell-first and number-first, mouse or keyboard. Givens never change (silently refused). Same digit into a cell clears it. Notes toggle per digit in empty cells; placing a digit hides (not deletes) Notes. Current mode always visible.
 - **Undo:** unlimited, covers digits, Notes and Restart (snapshot before restart); no redo; no-op actions record nothing; solved Puzzles stay solved.
 - **Restart:** inline confirm, clears all but Givens, undoable.

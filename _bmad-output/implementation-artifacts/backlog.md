@@ -1,6 +1,6 @@
 ---
 title: 'Traveller Sudoku: backlog and sprint board'
-updated: '2026-10-09'
+updated: '2026-10-13'
 sprint_length: 1 day
 sprints: 6
 ---
@@ -92,7 +92,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live moved to the product backlog (TS-38, Jessica, 9 Oct).  
-**Progress:** 7 / 9 done
+**Progress:** 8 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -102,7 +102,8 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-44 | [Close test gaps: read-only first Postcard never asks to persist (E5); restore resets Hint, viewer and "Solved again" (R23); one `isObject`, one lock fallback (A7)](epic-4-retro-2026-10-09.md) | Test | S | Claude | Done | TS-41 |
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | Done | TS-41 |
 | TS-46 | Cross-browser smoke test: Chrome and Edge (automated, `npm run smoke`); Firefox (TS-52) and Safari (TS-53) moved after MVP | Test | S | Claude | Done | TS-45 |
-| TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced | Test | S | Jessica + Claude | To do (checklist ready in sprint-6-manual-test-checklist.md) | TS-41 |
+| TS-62 | [Lower the Difficulty levels: minimum Givens per Difficulty (Easy 61, Medium 40, Hard 32); regenerate the 30 City Puzzles once](spec-ts-62-lower-difficulty.md) | Story | S | Claude (bmad-build) | Done | - |
+| TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced; time two or three Easy Cities (about one minute each, TS-62) | Test | S | Jessica + Claude | To do (checklist ready in sprint-6-manual-test-checklist.md) | TS-41, TS-62 |
 | TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | Done (approved by Jessica) | TS-43 |
 | TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | TS-47 |
 

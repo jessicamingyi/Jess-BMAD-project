@@ -66,6 +66,7 @@ graph TD
 - **Binds:** FR-1, FR-13, FR-17, FR-18, FR-23
 - **Prevents:** a City's Puzzle changing under a saved session, and a slow generator blocking offline City play.
 - **Rule:** `content/city-puzzles.json` stores `{ cityId, givens, solution, difficulty }`. `scripts/build-cities` generates entries only for City ids that don't have one yet. A snapshot test fails the build if a released entry changes, or if any City Puzzle has more than one solution or a grade that doesn't match its City's Tier. Free Play Puzzles are generated in `workers/` with the same engine, from a random seed passed in.
+- **One-off regeneration (TS-62, 13 Oct):** the generator now also enforces a minimum number of Givens per Difficulty (`MIN_GIVENS`: Easy 61, Medium 40, Hard 32), so all 30 City Puzzles and the snapshot were regenerated once, before release (TS-38 not done). Saved sessions keep their own `givens`/`solution` (AD-10), so an in-progress City resumes on its old grid. `build:cities` stays append-only and the snapshot test applies again from here on.
 
 ### AD-5: State changes only through the reducer; only saved slices are saved
 - **Binds:** FR-2–FR-7, FR-12, FR-14, FR-16, FR-17, FR-22, FR-23
