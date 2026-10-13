@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { CITIES } from '../../src/content/cities.ts'
 import { cityPuzzle } from '../../src/content/city-puzzles.ts'
 import { samplePuzzle } from '../../src/content/sample-puzzle.ts'
+import { countSolutions } from '../../src/engine/brute.ts'
+import { parseGrid } from '../../src/engine/index.ts'
+import { mistakeCells } from '../../src/engine/mistakes.ts'
 import { withAnnouncement } from '../../src/game/announce.ts'
 import { reducer } from '../../src/game/reducer.ts'
 import { activeSession, createInitialState, createSession } from '../../src/game/session.ts'
@@ -128,6 +131,40 @@ describe('cityChosen: re-travel a solved City', () => {
     expect(again.sessions[`city:${NEAR}`]).toEqual(createSession(`city:${NEAR}`, near))
     expect(again.ui.undo).toEqual([])
     expect(again.ui.selectedCell).toBeNull()
+  })
+})
+
+describe('cityChosen: City Puzzle content changed under a save (TS-62)', () => {
+  /**
+   * The real pre-TS-62 europe-near-1 Givens with the current solution, both digit-permuted
+   * (d → d % 9 + 1, 0 kept): a different valid Puzzle, so the session's solution differs from content's in every cell.
+   */
+  const permute = (s: string) => s.replace(/[1-9]/g, (d) => String((Number(d) % 9) + 1))
+  const oldGivens = permute('000008640900070000001059200005000000060037001092800403000000360000240000409005000')
+  const oldPuzzle: Puzzle = { ...near, givens: oldGivens, solution: permute(near.solution) }
+  const savedOld = () =>
+    deepFreeze({ ...createInitialState(), sessions: { [`city:${NEAR}`]: createSession(`city:${NEAR}`, oldPuzzle) } })
+
+  it('an in-progress City resumes on its own saved grid, and Mistakes use its own solution', () => {
+    expect(countSolutions(parseGrid(oldGivens), 2)).toBe(1)
+    const back = reducer(savedOld(), choose(NEAR))
+    expect(back.ui.activeKey).toBe(`city:${NEAR}`)
+    expect(back.sessions[`city:${NEAR}`].givens).toBe(oldGivens)
+    expect(back.sessions[`city:${NEAR}`].givens).not.toBe(near.givens)
+    const played = playOne(back)
+    const cell = firstEmpty(oldGivens)
+    const session = played.sessions[`city:${NEAR}`]
+    expect(session.digits[cell]).toBe(oldPuzzle.solution[cell])
+    expect(session.digits[cell]).not.toBe(near.solution[cell])
+    expect(mistakeCells(session.givens, session.digits, session.solution).some(Boolean)).toBe(false)
+  })
+
+  it('"Play again" on a City solved before the change starts the new content Puzzle', () => {
+    const solved = solve(reducer(savedOld(), choose(NEAR)))
+    expect(solved.sessions[`city:${NEAR}`].status).toBe('solved')
+    const onAlbum = run(reducer(solved, { type: 'postcardAdded', cityId: NEAR }), screen('album'))
+    const again = run(onAlbum, { type: 'postcardViewed', cityId: NEAR }, { type: 'replayRequested' })
+    expect(again.sessions[`city:${NEAR}`]).toEqual(createSession(`city:${NEAR}`, near))
   })
 })
 

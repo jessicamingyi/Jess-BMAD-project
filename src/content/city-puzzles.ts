@@ -2,7 +2,8 @@ import raw from './city-puzzles.json' with { type: 'json' }
 
 /**
  * One pre-built Puzzle per City, generated once by `npm run build:cities` and never
- * rewritten. 81-char digit strings, cells 0–80 row-major, 0 = empty.
+ * rewritten. Exception: all 30 were regenerated once for TS-62 (minimum Givens per
+ * Difficulty), before release. 81-char digit strings, cells 0–80 row-major, 0 = empty.
  */
 export type CityPuzzle = {
   readonly cityId: string

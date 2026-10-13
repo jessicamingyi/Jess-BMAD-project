@@ -2,13 +2,13 @@
 title: 'Traveller Sudoku: Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)'
 sprint: 6
 status: in-progress
-updated: '2026-10-09'
+updated: '2026-10-13'
 ---
 
 # Traveller Sudoku: Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live (TS-38) moved to the product backlog on 9 Oct (Jessica).
-**Tickets:** 9 (TS-41 to TS-48, plus TS-39 moved from Sprint 5; TS-38 moved after MVP). **Progress:** 7 / 9 done (started early, Fri 9 Oct).
+**Tickets:** 10 (TS-41 to TS-48, TS-62 added 13 Oct, plus TS-39 moved from Sprint 5; TS-38 moved after MVP). **Progress:** 8 / 10 done (started early, Fri 9 Oct).
 
 Added on Fri 9 Oct. All four epics finished early and the Postcard lines are approved, so this sprint is for testing and hardening before v1 goes live.
 
@@ -32,7 +32,8 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 3. **Test (TS-45, TS-46, TS-47):**
    - **TS-45:** an automated smoke suite, `npm run smoke`, drives installed Chrome through the core and Epic 4 journeys. It uses no new dependencies and reuses the approach from the retro behavior checks.
    - **TS-46:** Chrome and Edge through the smoke suite (Firefox and Safari moved after MVP: TS-52, TS-53).
-   - **TS-47:** a keyboard-only and screen-reader pass.
+   - **TS-62 (added 13 Oct, before TS-47):** Easy was too hard. Each Difficulty now has a minimum number of Givens (Easy 61, Medium 40, Hard 32); the 30 City Puzzles were regenerated once, before release.
+   - **TS-47:** a keyboard-only and screen-reader pass, plus timing two or three Easy Cities (about one minute each). Depends on TS-62.
 4. **Docs (TS-48):** `epics.md`, EXPERIENCE.md, AD-7 and the README match what was built.
 5. **Going live (TS-38):** moved after MVP on 9 Oct; the deploy gate and smoke tests are already green.
 6. **Retrospective (TS-39):** a final MVP retrospective.
@@ -50,6 +51,7 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
   - **Review:** 28 findings, 9 fixes.
 - **TS-45 Done** (4609c98): `npm run smoke` drives Chrome or Edge through 10 journeys in about 40 s. It passes 10/10 in Chrome 155 and Edge 154.
 - **TS-46 Done:** Chrome 155 and Edge 154 pass `npm run smoke` 10/10. Firefox (TS-52) and Safari (TS-53) are out of MVP scope.
+- **TS-62 Done (13 Oct):** the generator tops up Givens after an exact grade until the Difficulty's minimum (`MIN_GIVENS`: 61 / 40 / 32). All 30 City Puzzles regenerated (12 Easy at 61, 9 Medium at 40, 9 Hard at 32). `npm test` (1294), lint, build and `npm run smoke` (10/10 in Chrome) pass. Review: 19 findings, 7 fixes (test hardening and doc touch-ups). Jessica still times two or three Easy Cities in TS-47.
 - **TS-47 To do:** the keyboard and NVDA checklist is ready, plus the decision on silent actions (recommended: announce Undo and Restart).
 - **TS-48 Done:** 91 doc changes (1e0aa5e), listed in `implementation-artifacts/ts-48-reconciliation-log.md`, approved by Jessica. README deploy section corrected. S7 leftovers fixed.
 - **Product backlog (after MVP):** one prioritised list in `backlog.md` (TS-49 to TS-61, 13 tickets). Every open deferral and retro action now has a ticket. Six retro action items that were already done are closed (Postcard lines, the Story 4.1 coverage, both doc reconciliations, deferrals mirrored, Firefox smoke superseded by TS-52).
@@ -68,7 +70,8 @@ Added on Fri 9 Oct. All four epics finished early and the Postcard lines are app
 | TS-44 | Close test gaps (E5, R23) and tidy duplicates (A7) | Test | S | Claude | To do | TS-41 |
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`) in installed Chrome | Test | M | Claude | To do | TS-41 |
 | TS-46 | Cross-browser smoke test: Edge, Firefox, Safari on a Mac | Test | S | Jessica + Claude | To do | TS-45 |
-| TS-47 | Accessibility pass: keyboard-only and NVDA; decide silent-action announcements | Test | S | Jessica + Claude | To do | TS-41 |
+| TS-62 | Lower the Difficulty levels: minimum Givens per Difficulty; regenerate the City Puzzles once | Story | S | Claude (bmad-build) | Done | - |
+| TS-47 | Accessibility pass: keyboard-only and NVDA; decide silent-action announcements; time Easy Cities | Test | S | Jessica + Claude | To do | TS-41, TS-62 |
 | TS-48 | Reconcile docs with as-built | Doc | S | Jessica (approve) + Claude | To do | TS-43 |
 | TS-39 | Final MVP retrospective | Chore | S | Jessica + Claude | To do | TS-47 |
 

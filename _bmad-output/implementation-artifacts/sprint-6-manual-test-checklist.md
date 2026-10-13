@@ -49,6 +49,11 @@ Jessica moved Firefox out of the MVP on 9 Oct. Keep this list for TS-52.
 - [ ] **Added to the Dock:** File › Add to Dock works, and the game opens from the Dock with the Album intact. The icon is plain until TS-50.
 - [ ] **Look and fonts:** the serif fonts and the postcard look match Chrome, and nothing overlaps at a normal window width.
 
+## TS-47 Easy timing (TS-62)
+
+- [ ] **One-minute Easy:** play two or three Easy (Near) Cities at a calm pace and time yourself. Each should take about one minute (about 20 empty cells). Note the times here: ______
+  - **Pass:** each Easy City takes about 2 minutes or less. **If slower:** tell Claude, so `MIN_GIVENS` can be re-tuned before release.
+
 ## TS-47 Keyboard only (any browser, mouse unplugged or untouched)
 
 - [ ] **Tab order on the Album:** nav → Region tabs → slots. A visible focus ring shows at every stop.

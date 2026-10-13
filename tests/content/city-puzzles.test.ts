@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CITIES, cityById } from '../../src/content/cities.ts'
 import { CITY_PUZZLES, cityPuzzle, type CityPuzzle } from '../../src/content/city-puzzles.ts'
 import { countSolutions } from '../../src/engine/brute.ts'
-import { grade, parseGrid, UNITS } from '../../src/engine/index.ts'
+import { grade, MIN_GIVENS, parseGrid, UNITS } from '../../src/engine/index.ts'
 import { TIER_DIFFICULTY } from '../../src/game/journey.ts'
 
 const SNAPSHOT = JSON.parse(
@@ -11,7 +11,7 @@ const SNAPSHOT = JSON.parse(
 ) as CityPuzzle[]
 
 describe('City Puzzles', () => {
-  it.each(CITY_PUZZLES.map((p) => [p.cityId, p] as const))('%s: fair, consistent and graded to its Tier', (id, p) => {
+  it.each(CITY_PUZZLES.map((p) => [p.cityId, p] as const))('%s: fair, consistent, graded to its Tier and at its minimum Givens', (id, p) => {
     const city = cityById(id)
     expect(city, `${id}: unknown City`).toBeDefined()
     expect(p.givens, `${id}: givens format`).toMatch(/^[0-9]{81}$/)
@@ -26,6 +26,7 @@ describe('City Puzzles', () => {
     for (const unit of UNITS) expect(new Set(unit.map((c) => solution[c])).size, `${id}: solution unit`).toBe(9)
 
     expect(grade(givens), `${id}: grade`).toBe(p.difficulty)
+    expect(givens.filter((d) => d !== 0).length, `${id}: Givens count`).toBeGreaterThanOrEqual(MIN_GIVENS[p.difficulty])
     if (city) expect(p.difficulty, `${id}: Tier ${city.tier}`).toBe(TIER_DIFFICULTY[city.tier])
   })
 

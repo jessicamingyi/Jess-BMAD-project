@@ -34,7 +34,7 @@ The game keeps what players value most in Sudoku apps: no interruptions, Puzzles
 
 ## 3. Glossary
 - **Puzzle**: one classic 9×9 Sudoku grid with exactly one solution, generated at a Difficulty.
-- **Difficulty**: Easy, Medium or Hard. Set by the hardest Technique the Puzzle needs: Easy needs only singles; Medium also needs naked pairs; Hard also needs pointing or claiming. `[ASSUMPTION: 3 levels and this mapping]`
+- **Difficulty**: Easy, Medium or Hard. Set by the hardest Technique the Puzzle needs: Easy needs only singles; Medium also needs naked pairs; Hard also needs pointing or claiming. `[ASSUMPTION: 3 levels and this mapping]` Each Difficulty also has a minimum number of Givens: Easy at least 61, Medium at least 40, Hard at least 32 (TS-62, decided 13 Oct), so a calm player solves an Easy Puzzle in about one minute (a design target, not a timer).
 - **Technique**: a named solving step. MVP set: naked single, hidden single, naked pair, pointing, claiming.
 - **City**: a destination with a name, a country, a Region and a Tier. Each City has one Puzzle.
 - **Region**: a group of Cities. MVP: Europe, Asia, the Americas.
@@ -55,7 +55,7 @@ The game keeps what players value most in Sudoku apps: no interruptions, Puzzles
 Classic Sudoku, focused and calm. You can never lose. Realises UJ-1 and UJ-2.
 
 - **FR-1: Fair Puzzles.** Each City's Puzzle has exactly one solution and can be solved using only the MVP Techniques, without guessing. Its Difficulty matches its City's Tier.
-  - *Consequence:* a test solver using only the MVP Techniques solves 100% of Puzzles, and the hardest Technique it needs matches the Puzzle's Difficulty as defined in §3.
+  - *Consequence:* a test solver using only the MVP Techniques solves 100% of Puzzles, and the hardest Technique it needs matches the Puzzle's Difficulty as defined in §3. Each Puzzle has at least its Difficulty's minimum Givens (Easy 61, Medium 40, Hard 32).
 - **FR-2: Two input modes.** The player can enter digits **cell-first** (select a cell, then a digit) or **number-first** (select a digit, then click cells), using mouse or keyboard. Givens can't be changed.
 - **FR-3: Notes.** The player can switch between entering a digit and entering Notes, and can add or remove Notes in any empty cell. The current mode (digit or Notes, and the selected digit in number-first mode) is always visible.
 - **FR-4: Undo.** The player can undo any number of moves, including Note changes.
