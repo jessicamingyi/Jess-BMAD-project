@@ -45,3 +45,13 @@
   summary: A tab without the save lock that finds unreadable data starts from an empty Album, read-only (another tab), with no unreadable notice, so it cannot say why the Album looks empty.
   evidence: `src/persistence/store.ts:128` `if (!holder) return base` (no slices, `readOnly: 'otherTab'`, `unreadableNotice: false`); only the lock holder backs up and shows the notice. Epic 4 retro R8, action 4.
   tracked: TS-56 in the product backlog (backlog.md), 2026-10-09.
+
+- source_spec: `_bmad-output/implementation-artifacts/mvp-retro-2026-10-13.md`
+  summary: Accepted residual risk. If the 3 s start-up timeout fires while the defaults write after an unreadable-data backup is in flight, the write lands but this tab shows the saving-off banner ("Anything saved before is left untouched"); the next launch loads clean defaults with no unreadable notice. The data is kept in the backup key.
+  evidence: `src/persistence/store.ts:135-140` (the `aborted()` check comes before the write), `src/content/copy.ts:214` `bannerSavingOff`. Needs unreadable data and a write at the 3 s edge. Severity low. MVP retro R2, accepted by Jessica on 2026-10-13.
+  tracked: accepted, no ticket.
+
+- source_spec: `_bmad-output/implementation-artifacts/mvp-retro-2026-10-13.md`
+  summary: A save lock granted after the start-up give-up is never released when the load then hangs, so later tabs open read-only although no tab saves.
+  evidence: `src/ui/boot.tsx:78-81` stores the late lock, the `finally` at `:88-90` never runs while `loadSaved` hangs, and the timeout callback (`:92-96`) ran while the lock was still null. Severity low. MVP retro R1.
+  tracked: TS-64 in the product backlog (backlog.md), 2026-10-13.
