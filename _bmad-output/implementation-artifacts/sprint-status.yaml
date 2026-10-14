@@ -85,7 +85,7 @@ sprints:
   sprint-3:
     date: "2026-10-07"
     goal: "Play a calm Sudoku: readiness check, Epic 1, City content"
-    status: in-progress
+    status: done
     stories:
       - 1-1-publish-the-traveller-sudoku-shell
       - 1-2-solve-a-puzzle-with-the-mouse
@@ -95,7 +95,7 @@ sprints:
       - 1-6-assists-and-lamplight
       - 1-7-fair-puzzles-technique-solver-and-grader
       - 1-8-start-a-free-play-puzzle
-    tickets: {TS-15: todo, TS-16: done, TS-17: done, TS-18: done, TS-19: done, 
+    tickets: {TS-15: done, TS-16: done, TS-17: done, TS-18: done, TS-19: done, 
         TS-20: done, TS-21: done, TS-22: done, TS-23: done, TS-24: done}
   sprint-4:
     date: "2026-10-08"

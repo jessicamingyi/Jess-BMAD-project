@@ -1,14 +1,14 @@
 ---
 title: 'Traveller Sudoku: Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)'
 sprint: 3
-status: in-progress
-updated: '2026-10-07'
+status: done
+updated: '2026-10-13'
 ---
 
 # Traveller Sudoku: Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** a playable, live Free Play Sudoku.
-**Tickets:** 10 (TS-15 to TS-24). **Progress:** 9 / 10 done. Epic 1 code is complete; the City list is approved.
+**Tickets:** 10 (TS-15 to TS-24). **Progress:** 10 / 10 done (TS-15 closed as not needed on 13 Oct). Epic 1 code is complete; the City list is approved.
 
 - Readiness check (`bmad-sprint-planning`).
 - **Epic 1, Stories 1.1 to 1.8:** project shell live on GitHub Pages; mouse play; Notes and number-first entry; Undo and Restart; keyboard and screen-reader play; Assists and Lamplight; Technique solver and grader; Free Play at a chosen Difficulty.
@@ -125,7 +125,7 @@ updated: '2026-10-07'
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | To do | - |
+| TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | Closed, not needed (13 Oct) | - |
 
 ---
 Tickets and status: [backlog.md](implementation-artifacts/backlog.md) · visual board: [board.html](implementation-artifacts/board.html)

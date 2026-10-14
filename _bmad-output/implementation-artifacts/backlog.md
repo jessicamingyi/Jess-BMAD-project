@@ -44,11 +44,11 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** Readiness check, Epic 1 (playable Free Play Sudoku, live on GitHub Pages), and the City content.  
-**Progress:** 10 / 10 done. MVP closed 13 Oct: [final retrospective](mvp-retro-2026-10-13.md), accepted with open items. (Stories 1.1–1.4 built early, on Tue 6 Oct; Epic 1 code complete; City list approved)
+**Progress:** 10 / 10 done; TS-15 closed as not needed on 13 Oct (Stories 1.1–1.4 built early, on Tue 6 Oct; Epic 1 code complete; City list approved)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
-| TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | To do | - |
+| TS-15 | Implementation readiness check (bmad-sprint-planning) | Chore | S | Claude | Closed, not needed (Jessica, 13 Oct): never ran; the MVP was built, tested and accepted without it | - |
 | TS-16 | [Story 1.1: Publish the Traveller Sudoku shell](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | - |
 | TS-17 | [Story 1.2: Solve a puzzle with the mouse](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.1 |
 | TS-18 | [Story 1.3: Notes and number-first entry](../planning-artifacts/epics.md) | Story | M | Claude (bmad-build) | Done | Story 1.2 |
@@ -92,7 +92,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live moved to the product backlog (TS-38, Jessica, 9 Oct).  
-**Progress:** 9 / 10 done
+**Progress:** 10 / 10 done. MVP closed 13 Oct: [final retrospective](mvp-retro-2026-10-13.md), accepted with open items.
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
