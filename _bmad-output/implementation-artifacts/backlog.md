@@ -44,7 +44,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 3: Play a calm Sudoku (Wed 7 Oct 2026)
 
 **Goal:** Readiness check, Epic 1 (playable Free Play Sudoku, live on GitHub Pages), and the City content.  
-**Progress:** 9 / 10 done (Stories 1.1–1.4 built early, on Tue 6 Oct; Epic 1 code complete; City list approved)
+**Progress:** 10 / 10 done. MVP closed 13 Oct: [final retrospective](mvp-retro-2026-10-13.md), accepted with open items. (Stories 1.1–1.4 built early, on Tue 6 Oct; Epic 1 code complete; City list approved)
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -92,7 +92,7 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 ## Sprint 6: Test and harden the MVP (Mon 12 Oct 2026)
 
 **Goal:** prove the MVP works in Chrome and Edge, fix the open retro defects, and close the MVP. Going live moved to the product backlog (TS-38, Jessica, 9 Oct).  
-**Progress:** 8 / 10 done
+**Progress:** 9 / 10 done
 
 | ID | Ticket | Type | Size | Owner | Status | Depends on |
 |---|---|---|---|---|---|---|
@@ -103,9 +103,9 @@ Sizes: S (under 2 hours), M (half a day), L (most of a day) of focused work; sto
 | TS-45 | Automated end-to-end smoke suite (`npm run smoke`): the core journeys (play, Notes, Undo, Hint, Postcard, replay, Free Play) and the Epic 4 journeys (reload, two tabs, offline, update, corrupt data) in installed Chrome | Test | M | Claude | Done | TS-41 |
 | TS-46 | Cross-browser smoke test: Chrome and Edge (automated, `npm run smoke`); Firefox (TS-52) and Safari (TS-53) moved after MVP | Test | S | Claude | Done | TS-45 |
 | TS-62 | [Lower the Difficulty levels: minimum Givens per Difficulty (Easy 61, Medium 40, Hard 32); regenerate the 30 City Puzzles once](spec-ts-62-lower-difficulty.md) | Story | S | Claude (bmad-build) | Done | - |
-| TS-47 | Accessibility pass: keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced; time two or three Easy Cities (about one minute each, TS-62) | Test | S | Jessica + Claude | To do (checklist ready in sprint-6-manual-test-checklist.md) | TS-41, TS-62 |
+| TS-47 | Time two or three Easy Cities (about one minute each, TS-62); keyboard play covered by the automated tests and `npm run smoke`. NVDA run and the announcement decision moved after MVP (TS-63, Jessica, 13 Oct) | Test | S | Jessica + Claude | Done (timing passed, Jessica, 13 Oct) | TS-41, TS-62 |
 | TS-48 | Reconcile docs with as-built: `epics.md` (Epics 1–4), EXPERIENCE.md, AD-7 and the unreadable wording, README deploy section | Doc | S | Jessica (approve) + Claude | Done (approved by Jessica) | TS-43 |
-| TS-39 | Final MVP retrospective (bmad-retrospective) | Chore | S | Jessica + Claude | To do | TS-47 |
+| TS-39 | [Final MVP retrospective (bmad-retrospective)](mvp-retro-2026-10-13.md) | Chore | S | Jessica + Claude | Done (accepted with open items, Jessica, 13 Oct) | TS-47 |
 
 ## Product backlog (after MVP)
 
@@ -116,11 +116,13 @@ Everything planned after v1, in one list, **ordered by priority** (top first): p
 | TS-38 | Go live: make the repo public, Pages source GitHub Actions, `PAGES_ENABLED=true`, then a live check including offline (out of MVP scope, Jessica, 9 Oct; deploy gate and smoke tests already green) | Chore | S | Jessica + Claude | To do | MVP done |
 | TS-54 | Check for a blank white frame before Lamplight on a light-themed OS (frame capture), and fix it if real (deferred 4.1, unverified medium) | Bug | S | Claude | To do | MVP done |
 | TS-55 | An old cached version of the game meeting a newer save: "Reload to carry on" loops under the old service worker; say "close every tab and reopen", or take over on a schema change (deferred 4.3) | Bug | S | Claude (bmad-build) | To do | MVP done |
-| TS-51 | Free Play generation timeout with a retry (retro V6) | Story | S | Claude (bmad-build) | To do | MVP done |
-| TS-59 | Announce Undo and Restart to screen readers, if Jessica decides so in TS-47 (retro 1–3 item 9) | Story | S | Claude (bmad-build) | To do | TS-47 |
+| TS-51 | Free Play generation timeout with a retry (retro V6); add a seed sweep that guards the generator's success rate after TS-62 (MVP retro R4) | Story | S | Claude (bmad-build) | To do | MVP done |
+| TS-63 | [Screen-reader pass](sprint-6-manual-test-checklist.md): keyboard-only and NVDA run of the Lisbon journey; decide whether Undo, Restart, refused Notes and deselect are announced (moved out of TS-47, Jessica, 13 Oct) | Test | S | Jessica + Claude | To do | MVP done |
+| TS-59 | Announce Undo and Restart to screen readers, if Jessica decides so in TS-63 (retro 1–3 item 9) | Story | S | Claude (bmad-build) | To do | TS-63 |
+| TS-64 | [Release the save lock when it arrives after the start-up give-up and the load then hangs](mvp-retro-2026-10-13.md); test a late lock with a hanging load (MVP retro R1) | Bug | S | Claude (bmad-build) | To do | MVP done |
 | TS-56 | A second tab that finds unreadable data starts empty with no notice; show the unreadable line there too (Epic 4 retro R8) | Bug | S | Claude | To do | MVP done |
 | TS-57 | Repeated backup copies when the defaults write keeps failing: back up once per unreadable value (Epic 4 retro E6) | Bug | S | Claude | To do | MVP done |
-| TS-58 | Smoke suite: add the visibility-change update check and the newer-version banner; run `npm run smoke` in CI with the runner's Chrome (Epic 4 retro item 9) | Test | M | Claude | To do | MVP done |
+| TS-58 | Smoke suite: add the visibility-change update check and the newer-version banner; run `npm run smoke` in CI with the runner's Chrome (Epic 4 retro item 9); a second tab can save while the first is saving off (MVP retro R3) | Test | M | Claude | To do | MVP done |
 | TS-50 | Install metadata for Add to Dock and home screens: PNG and apple-touch icons, manifest `id`, `theme-color` | Chore | S | Claude | To do | MVP done |
 | TS-52 | Firefox support: run the manual checklist (number-first Space places once, saving, two tabs, offline); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | MVP done |
 | TS-53 | Safari support on a Mac: run the manual checklist (Add to Dock tip on a refusal, File › Add to Dock keeps the Album, saving, two tabs, offline, fonts); out of MVP scope (Jessica, 9 Oct) | Test | S | Jessica + Claude | To do | MVP done |
@@ -131,6 +133,8 @@ Everything planned after v1, in one list, **ordered by priority** (top first): p
 ## Notes
 
 - **Product backlog (9 Oct):** one prioritised list after MVP (TS-49 to TS-61); every open deferral and retro action item now has a ticket.
+- **TS-47 (13 Oct):** Jessica timed the Easy Cities and they passed; the NVDA screen-reader run and the announcement decision moved after MVP as TS-63.
+- **MVP closed (13 Oct):** the final retrospective (TS-39) accepted the MVP with open items: four low findings (R1 becomes TS-64, R2 accepted in `deferred-work.md`, R3 and R4 folded into TS-58 and TS-51).
 - **Sprint 6 (added 9 Oct):** Epic 4 finished early, so a testing and hardening sprint goes before release. TS-42 to TS-45 are Claude's; Firefox, Safari and going live (TS-38) moved after MVP on 9 Oct. TS-38's last step (repo public, Pages on) is Jessica's.
 
 - **Sprint 3 to 5 load is heavy** (8, 9 and 4 stories). If a sprint overruns, unfinished stories move to the next sprint in order; Story 4.2 is the first candidate to split.

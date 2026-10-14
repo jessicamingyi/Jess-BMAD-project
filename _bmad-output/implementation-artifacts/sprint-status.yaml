@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-08-2026 14:00
-last_updated: 10-09-2026 21:02
+last_updated: 10-13-2026 21:44
 project: Jess-BMAD-project
 project_key: NOKEY
 tracking_system: file-system
@@ -126,14 +126,14 @@ sprints:
   sprint-6:
     date: "2026-10-12"
     goal: "Test and harden the MVP (going live moved after MVP)"
-    status: in-progress
+    status: done
     stories: []
     tickets: {TS-41: done, TS-42: done, TS-43: done, TS-44: done, TS-45: done, 
-        TS-46: done, TS-47: todo, TS-48: done, TS-39: todo}
+        TS-46: done, TS-62: done, TS-47: done, TS-48: done, TS-39: done}
   unscheduled:
-    tickets: {TS-38: todo, TS-54: todo, TS-55: todo, TS-51: todo, TS-59: todo, TS-56: todo,
-        TS-57: todo, TS-58: todo, TS-50: todo, TS-52: todo, TS-53: todo, TS-49: todo,
-        TS-60: todo, TS-61: todo}
+    tickets: {TS-38: todo, TS-54: todo, TS-55: todo, TS-51: todo, TS-63: todo, 
+        TS-64: todo, TS-59: todo, TS-56: todo, TS-57: todo, TS-58: todo, TS-50: 
+        todo, TS-52: todo, TS-53: todo, TS-49: todo, TS-60: todo, TS-61: todo}
 action_items:
   - id: "epic-3-retro-item-1-hold-a-free-play-reply-when-the-old-free"
     epic: 3
@@ -184,7 +184,7 @@ action_items:
     action: "Process: when a story decision overrides an epic AC or earlier story,
       update epics.md in the same story docs commit (P4)"
     owner: "Jessica + Claude"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epics-1-3-retro-2026-10-08.md"
   - id: "epic-3-retro-item-8-process-close-out-of-each-review-loop-co"
     epic: 3
@@ -254,7 +254,7 @@ action_items:
     action: "Process: bmad-build-auto close-out keeps Review Triage Log and Spec Change
       Log in the spec; done-gate checks a cited triage log exists (P1)"
     owner: "Claude"
-    status: open
+    status: in-progress
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
   - id: "epic-4-retro-item-18-reconcile-epics-md-epic-4-acs-ad-7-and-t"
     epic: 4
@@ -281,5 +281,12 @@ action_items:
     action: "TS-38 smoke test adds visibility update check, slow IndexedDB start,
       newer-version banner, Safari Add to Dock"
     owner: "Jessica + Claude"
-    status: open
+    status: in-progress
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-10-09.md"
+  - id: "mvp-retro-item-1-release-the-save-lock-when-it-arrives-after"
+    epic: 4
+    action: "Release the save lock when it arrives after the start-up give-up and
+      the load then hangs; test a late lock with a hanging load (R1, TS-64)"
+    owner: "Claude (bmad-build)"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/mvp-retro-2026-10-13.md"
